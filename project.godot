@@ -24,11 +24,6 @@ window/size/viewport_height=1080
 
 project/assembly_name="CardBase"
 
-[editor]
-
-version_control/plugin_name="GitPlugin"
-version_control/autoload_on_startup=true
-
 [input]
 
 MoveLeft={
