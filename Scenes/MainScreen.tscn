@@ -1,0 +1,132 @@
+[gd_scene load_steps=4 format=3 uid="uid://ccfyc0ji023uj"]
+
+[ext_resource type="Script" path="res://Scripts/SceneScripts/MainScreen.cs" id="1_oyuer"]
+[ext_resource type="PackedScene" uid="uid://7dp11nbgmeoo" path="res://Prefabs/Buttons/green_button_big.tscn" id="12_vbn57"]
+[ext_resource type="PackedScene" uid="uid://oj676k2vorbg" path="res://Prefabs/Buttons/red_button_big.tscn" id="13_crb0r"]
+
+[node name="MainScreen" type="ColorRect" node_paths=PackedStringArray("_mpScreen", "_username", "_ip_address", "_port")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.357574, 0.362193, 0.340647, 1)
+script = ExtResource("1_oyuer")
+_mpScreen = NodePath("CanvasLayer/Panel")
+_username = NodePath("CanvasLayer/Panel/VBoxContainer/GridContainer/UsernameEdit")
+_ip_address = NodePath("CanvasLayer/Panel/VBoxContainer/GridContainer/IpEdit")
+_port = NodePath("CanvasLayer/Panel/VBoxContainer/GridContainer/PortEdit")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -304.0
+offset_top = -150.0
+offset_right = 288.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="DeckBuilder" parent="CanvasLayer/VBoxContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Deck Builder"
+
+[node name="Multiplayer" parent="CanvasLayer/VBoxContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Multiplayer"
+
+[node name="Exit" parent="CanvasLayer/VBoxContainer" instance=ExtResource("13_crb0r")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Exit"
+
+[node name="Panel" type="Panel" parent="CanvasLayer"]
+visible = false
+z_index = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -292.5
+offset_top = -138.5
+offset_right = 292.5
+offset_bottom = 138.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 25
+
+[node name="GridContainer" type="GridContainer" parent="CanvasLayer/Panel/VBoxContainer"]
+z_index = 2
+layout_mode = 2
+theme_override_constants/h_separation = 25
+theme_override_constants/v_separation = 20
+columns = 2
+
+[node name="Username" type="Label" parent="CanvasLayer/Panel/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Username"
+horizontal_alignment = 2
+
+[node name="UsernameEdit" type="LineEdit" parent="CanvasLayer/Panel/VBoxContainer/GridContainer"]
+layout_mode = 2
+placeholder_text = "Username"
+
+[node name="Ip" type="Label" parent="CanvasLayer/Panel/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "Ip Address
+"
+horizontal_alignment = 2
+
+[node name="IpEdit" type="LineEdit" parent="CanvasLayer/Panel/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "localhost"
+placeholder_text = "IP Address"
+
+[node name="Port" type="Label" parent="CanvasLayer/Panel/VBoxContainer/GridContainer"]
+layout_mode = 2
+text = "Port"
+horizontal_alignment = 2
+
+[node name="PortEdit" type="LineEdit" parent="CanvasLayer/Panel/VBoxContainer/GridContainer"]
+layout_mode = 2
+placeholder_text = "8080"
+
+[node name="Host" parent="CanvasLayer/Panel/VBoxContainer/GridContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Host"
+
+[node name="Join" parent="CanvasLayer/Panel/VBoxContainer/GridContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Join"
+
+[node name="CancelMP" parent="CanvasLayer/Panel/VBoxContainer" instance=ExtResource("13_crb0r")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Cancel"
+
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/DeckBuilder" to="." method="_on_deck_builder_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Multiplayer" to="." method="_on_multiplayer_pressed"]
+[connection signal="pressed" from="CanvasLayer/VBoxContainer/Exit" to="." method="_on_exit_pressed"]
+[connection signal="pressed" from="CanvasLayer/Panel/VBoxContainer/GridContainer/Host" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="CanvasLayer/Panel/VBoxContainer/GridContainer/Join" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="CanvasLayer/Panel/VBoxContainer/CancelMP" to="." method="_on_cancel_mp_pressed"]

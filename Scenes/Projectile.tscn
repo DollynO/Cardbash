@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://cyhc4x42utdgo"]
+
+[ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/Projectile.cs" id="1_7wxbw"]
+[ext_resource type="Texture2D" uid="uid://btoom8qme5m5x" path="res://Sprites/Projectiles/fireBallProjectile.png.png" id="2_ptqrn"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]
+radius = 33.3333
+
+[node name="Node2D" type="CharacterBody2D" node_paths=PackedStringArray("timer", "sprite", "collisionShape")]
+scale = Vector2(0.33, 0.33)
+collision_layer = 2
+script = ExtResource("1_7wxbw")
+timer = NodePath("Timer")
+sprite = NodePath("CollisionShape2D/Sprite2D")
+collisionShape = NodePath("CollisionShape2D")
+
+[node name="Timer" type="Timer" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_e0kvs")
+
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape2D"]
+texture = ExtResource("2_ptqrn")
+
+[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]

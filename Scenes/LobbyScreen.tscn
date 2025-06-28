@@ -1,0 +1,208 @@
+[gd_scene load_steps=5 format=3 uid="uid://br2igbh2h3386"]
+
+[ext_resource type="PackedScene" uid="uid://cewc4ky5xxtch" path="res://Prefabs/Buttons/green_button.res" id="1_33tii"]
+[ext_resource type="Script" path="res://Scripts/SceneScripts/LobbyManager.cs" id="1_iigad"]
+[ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="2_7rmyw"]
+[ext_resource type="PackedScene" uid="uid://gi8i5cvds6au" path="res://Scenes/PlayerSlot.tscn" id="3_p6nru"]
+
+[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("ReadyButton", "NotReadyButton", "StartButton", "_teamSelect", "_deckSelect", "_playerListContainer")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.356863, 0.360784, 0.341176, 1)
+script = ExtResource("1_iigad")
+ReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Ready")
+NotReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/NotReady")
+StartButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start")
+_teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/TeamSelect")
+_deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
+_playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/MarginContainer"]
+layout_mode = 2
+
+[node name="Header" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="Back" parent="CanvasLayer/MarginContainer/VBoxContainer2/Header" instance=ExtResource("1_33tii")]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -20.0
+offset_bottom = 20.0
+grow_vertical = 2
+Text = "Back"
+
+[node name="MainContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Main" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerList" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayerListContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerSlot" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+layout_mode = 2
+
+[node name="PlayerSlot2" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+layout_mode = 2
+
+[node name="PlayerSlot3" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+layout_mode = 2
+
+[node name="PlayerSlot4" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+layout_mode = 2
+
+[node name="PlayerSlot5" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+layout_mode = 2
+
+[node name="PlayerSlot6" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+layout_mode = 2
+
+[node name="Settings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="VSplitContainer" type="VSplitContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerSettings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+
+[node name="Player Settings" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -52.0
+offset_right = 347.0
+offset_bottom = 52.0
+grow_vertical = 2
+columns = 2
+
+[node name="TeamLabel" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Team"
+horizontal_alignment = 2
+
+[node name="TeamSelect" type="OptionButton" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings"]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+flat = true
+allow_reselect = true
+
+[node name="DeckLabel" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings"]
+layout_mode = 2
+text = "Deck"
+horizontal_alignment = 2
+
+[node name="DeckSelect" type="OptionButton" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/icon_max_width = 5
+flat = true
+expand_icon = true
+allow_reselect = true
+
+[node name="GameSettings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+
+[node name="Footer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="Ready" parent="CanvasLayer/MarginContainer/VBoxContainer2/Footer" instance=ExtResource("1_33tii")]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -95.0
+offset_top = -20.0
+offset_right = 95.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+Text = "Not Ready?"
+
+[node name="Start" parent="CanvasLayer/MarginContainer/VBoxContainer2/Footer" instance=ExtResource("1_33tii")]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -190.0
+offset_top = -20.0
+offset_right = 0.0
+offset_bottom = 20.0
+grow_horizontal = 0
+grow_vertical = 2
+Text = "Start"
+
+[node name="NotReady" parent="CanvasLayer/MarginContainer/VBoxContainer2/Footer" instance=ExtResource("2_7rmyw")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -95.0
+offset_top = -20.0
+offset_right = 95.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+Text = "Ready?"
+
+[node name="LobbyUpdateTimer" type="Timer" parent="."]
+wait_time = 0.1
+autostart = true
+
+[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer2/Header/Back" to="." method="_on_back_pressed"]
+[connection signal="item_selected" from="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/TeamSelect" to="." method="_on_team_selected"]
+[connection signal="item_selected" from="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect" to="." method="_on_deck_selected"]
+[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer2/Footer/Ready" to="." method="_on_ready_pressed"]
+[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start" to="." method="_on_start_pressed"]
+[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer2/Footer/NotReady" to="." method="_on_not_ready_pressed"]
+[connection signal="timeout" from="LobbyUpdateTimer" to="." method="update_ui"]

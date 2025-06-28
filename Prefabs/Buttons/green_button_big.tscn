@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://7dp11nbgmeoo"]
+
+[ext_resource type="PackedScene" uid="uid://cewc4ky5xxtch" path="res://Prefabs/Buttons/green_button.res" id="1_4ljse"]
+
+[node name="GreenButtonBig" instance=ExtResource("1_4ljse")]
+custom_minimum_size = Vector2(280, 60)
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 290.0
+offset_bottom = 70.0
+
+[node name="Label" parent="." index="0"]
+theme_override_font_sizes/font_size = 40
+
+[node name="TextureRect" parent="." index="1"]
+offset_left = -10.0
+offset_top = -40.0
+offset_right = 290.0
+offset_bottom = 40.0

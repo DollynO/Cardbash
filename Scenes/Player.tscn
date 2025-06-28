@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3 uid="uid://dka24bmvrxth4"]
+
+[ext_resource type="Script" path="res://Scripts/Player.cs" id="1_xpxcd"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_o1nio"]
+properties/0/path = NodePath(".:Username")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:PlayerId")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+properties/2/path = NodePath(".:IsReady")
+properties/2/spawn = true
+properties/2/replication_mode = 1
+properties/3/path = NodePath(".:TeamNumber")
+properties/3/spawn = true
+properties/3/replication_mode = 1
+
+[node name="Player" type="Node"]
+script = ExtResource("1_xpxcd")
+
+[node name="PlayerSync" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_o1nio")

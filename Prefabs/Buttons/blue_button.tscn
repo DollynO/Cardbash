@@ -1,0 +1,14 @@
+[gd_scene load_steps=6 format=3 uid="uid://d1mdwyqwxe0ba"]
+
+[ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="1_7dk8h"]
+[ext_resource type="Texture2D" uid="uid://viso52o07dpm" path="res://Sprites/Buttons/Normal/BLUE.png" id="2_kxqp2"]
+[ext_resource type="Texture2D" uid="uid://ccx51f7vv457e" path="res://Sprites/Buttons/Pressed/BLUE.png" id="3_yls27"]
+[ext_resource type="Texture2D" uid="uid://c4cv3fp3jhsah" path="res://Sprites/Buttons/Hover/BLUE_edited.png" id="4_j53iu"]
+[ext_resource type="Texture2D" uid="uid://dc3u2rvgp7xke" path="res://Sprites/Buttons/Disabled/BLUE.png" id="5_y84ur"]
+
+[node name="BlueButton" node_paths=PackedStringArray("TextLabel") instance=ExtResource("1_7dk8h")]
+texture_normal = ExtResource("2_kxqp2")
+texture_pressed = ExtResource("3_yls27")
+texture_hover = ExtResource("4_j53iu")
+texture_disabled = ExtResource("5_y84ur")
+TextLabel = NodePath("Label")
