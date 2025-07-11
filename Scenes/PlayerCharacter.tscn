@@ -1,7 +1,8 @@
-[gd_scene load_steps=47 format=3 uid="uid://hpbx14ma8p0v"]
+[gd_scene load_steps=49 format=3 uid="uid://hpbx14ma8p0v"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerCharacter.cs" id="1_sdal5"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
+[ext_resource type="Shader" path="res://Shaders/PlayerCharacter_TeamColor.gdshader" id="3_hy4ar"]
 [ext_resource type="Texture2D" uid="uid://c37nsb5ilblyd" path="res://Sprites/GameSprites/player.png" id="3_kf8vq"]
 [ext_resource type="Script" path="res://Scenes/PlayerAnimation.cs" id="4_xt6qq"]
 
@@ -20,6 +21,15 @@ properties/1/replication_mode = 1
 properties/2/path = NodePath("InputSynchronizer:KeyState")
 properties/2/spawn = true
 properties/2/replication_mode = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_81jb4"]
+shader = ExtResource("3_hy4ar")
+shader_parameter/team_color = Color(1, 1, 1, 1)
+shader_parameter/mask_color = Vector4(0.341, 0.227, 0.196, 1)
+shader_parameter/mask_color_2 = Vector4(0.251, 0.153, 0.09, 1)
+shader_parameter/tolerance = 0.1
+shader_parameter/region_min = Vector2(0, 0)
+shader_parameter/region_max = Vector2(1, 1)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j486y"]
 atlas = ExtResource("3_kf8vq")
@@ -333,10 +343,12 @@ script = ExtResource("2_uj4u6")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." node_paths=PackedStringArray("_inputSynchronizer")]
 z_index = 10
 texture_filter = 1
+material = SubResource("ShaderMaterial_81jb4")
 position = Vector2(0, -36.11)
 scale = Vector2(2.09375, 2.09375)
 sprite_frames = SubResource("SpriteFrames_h7wyx")
 animation = &"move_side"
+frame_progress = 0.124028
 script = ExtResource("4_xt6qq")
 _inputSynchronizer = NodePath("../InputSynchronizer")
 

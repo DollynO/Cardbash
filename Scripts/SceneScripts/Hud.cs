@@ -69,6 +69,9 @@ public partial class Hud : CanvasLayer
 				_abilityFrames[i].UpdateUi(null);
 			}
 		}
+		
+		
+		PrintStats(player.PlayerStats);
 	}
 	
 	private void _clear_card_box()

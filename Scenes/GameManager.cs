@@ -25,7 +25,12 @@ public partial class GameManager : Node2D
 	
 	[Signal]
 	public delegate void OnPlayerKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
-	
+
+	public override void _EnterTree()
+	{
+		_spawner.SpawnFunction = new Callable(this, MethodName.CustomSpawner);
+	}
+
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -109,25 +114,49 @@ public partial class GameManager : Node2D
 
 	private void _spawn_player_character(Player player)
 	{
-		var character = _playerCharScene.Instantiate();
-		character.Name = player.Name;
-		if (character is PlayerCharacter playerChar)
+		var deckDict = player.SelectedDeck.ToDict();
+		var dict = new Godot.Collections.Dictionary<string, Variant>
 		{
-			playerChar.PlayerStats.SetDefault();
-			playerChar.PlayerName = player.Username;
-			foreach (var cardCounter in player.SelectedDeck.Cards)
-			{
-				for (var i = 0; i < cardCounter.Value.Count; i++)
-				{
-					playerChar.PlayerStats.Cards.Add(cardCounter.Key);
-				}
-			}
-
-			playerChar.OnKilled += onKillReported;
+			{ "playerName", player.Username },
+			{ "teamId", player.TeamNumber },
+			{ "playerId", player.Name },
+			{ "deck", deckDict}
+		};
+		_spawner.Spawn(dict);
+		//_spawner.AddChild(character, true);
+		//Rpc(MethodName.SyncPlayerName, int.Parse(player.Name), player.Username);
+	}
+	
+	private Node CustomSpawner(Variant data)
+	{
+		var dic = data.AsGodotDictionary<string, Variant>();
+		var playerName = (string)dic["playerName"];
+		var teamId = int.Parse((string)dic["teamId"]);
+		var playerId = (string)dic["playerId"];
+		var deck = Deck.FromDict((Dictionary)dic["deck"]);
+		if (_playerCharScene.Instantiate() is not PlayerCharacter node)
+		{
+			return null;
 		}
-		_spawner.AddChild(character, true);
-		_currentCharacters.Add(int.Parse(player.Name), (PlayerCharacter)character);
-		Rpc(MethodName.SyncPlayerName, int.Parse(player.Name), player.Username);
+		
+		node.Name = playerId;
+		node.PlayerName = playerName;
+		node.TeamId = teamId;
+		node.PlayerId = long.Parse(playerId);
+		node.PlayerStats.SetDefault();
+		foreach (var cardCounter in deck.Cards)
+		{
+			for (var i = 0; i < cardCounter.Value.Count; i++)
+			{
+				node.PlayerStats.Cards.Add(cardCounter.Key);
+			}
+		}
+		if (Multiplayer.IsServer())
+		{
+			node.OnKilled += onKillReported;
+			_currentCharacters.Add(node.PlayerId, node);
+		}
+		return node;
 	}
 
 	private void onKillReported(PlayerCharacter victim, PlayerCharacter killer)
@@ -220,13 +249,24 @@ public partial class GameManager : Node2D
 
 	public PlayerCharacter GetPlayerCharacter(long id)
 	{
-		if (id == Multiplayer.GetUniqueId())
+		if (id == Multiplayer.GetUniqueId() && _currentPlayer != null)
 		{
-			return _currentPlayer ??=
-				_spawner.GetChildren().FirstOrDefault(c => c.Name == id.ToString()) as PlayerCharacter;
+			return _currentPlayer;
 
 		}
 
-		return _spawner.GetChildren().FirstOrDefault(c => c.Name == id.ToString()) as PlayerCharacter;
+		foreach (var child in _spawner.GetChildren())
+		{
+			if (child is PlayerCharacter player && player.PlayerId == id)
+			{
+				if (id == Multiplayer.GetUniqueId())
+				{
+					_currentPlayer = player;
+				}
+				return player;
+			}
+		}
+		
+		return null;
 	}
 }

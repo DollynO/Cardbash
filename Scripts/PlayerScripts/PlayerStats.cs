@@ -7,7 +7,6 @@ namespace CardBase.Scripts.PlayerScripts;
 
 public partial class PlayerStats : Resource
 {
-    public int TeamId { get; set; }
     public bool IsDead { get; set; }
     public int Life { get; set; }
     public int Armor { get; set; }
@@ -26,7 +25,6 @@ public partial class PlayerStats : Resource
     public Dictionary ToDict()
     {
         var dict = new Dictionary();
-        dict.Add("TeamId", TeamId);
         dict.Add("IsDead", IsDead);
         dict.Add("Life", Life);
         dict.Add("Armor", Armor);
@@ -58,7 +56,6 @@ public partial class PlayerStats : Resource
     {
         var player = new PlayerStats();
         
-        player.TeamId = (int)dict["TeamId"];
         player.IsDead = (bool)dict["IsDead"];
         player.Life = (int)dict["Life"];
         player.Armor = (int)dict["Armor"];
@@ -83,7 +80,6 @@ public partial class PlayerStats : Resource
     
     public void Update(PlayerStats stats)
     {
-        TeamId = stats.TeamId;
         IsDead = stats.IsDead;
         Life = stats.Life;
         Armor = stats.Armor;

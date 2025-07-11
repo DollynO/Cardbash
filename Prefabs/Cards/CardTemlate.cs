@@ -24,9 +24,7 @@ public partial class CardTemlate : TextureRect
 
             if (card.IconPath != null)
             {
-                var img = new Image();
-                img.Load(card.IconPath);
-                Image.Texture = ImageTexture.CreateFromImage(img);
+                Image.Texture = GD.Load<Texture2D>(card.IconPath);
             }
         }
     }

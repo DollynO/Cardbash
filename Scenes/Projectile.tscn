@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cyhc4x42utdgo"]
 
 [ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/Projectile.cs" id="1_7wxbw"]
-[ext_resource type="Texture2D" uid="uid://btoom8qme5m5x" path="res://Sprites/Projectiles/fireBallProjectile.png.png" id="2_ptqrn"]
+[ext_resource type="Texture2D" uid="uid://btoom8qme5m5x" path="res://Sprites/Projectiles/fireBallProjectile.png" id="2_ptqrn"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]
 radius = 33.3333

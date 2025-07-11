@@ -58,7 +58,7 @@ public partial class TeamDeathMatch : GameMode
 
     private void onPlayerKilled(PlayerCharacter victim, PlayerCharacter killer)
     {
-        var teamId = killer.PlayerStats.TeamId;
+        var teamId = killer.TeamId;
         if (!TeamPoints.TryAdd(teamId, 1))
         {
             TeamPoints[teamId]++;
@@ -71,13 +71,13 @@ public partial class TeamDeathMatch : GameMode
     private int getLastLivingTeamId(IList<PlayerCharacter> players)
     {
         var teamsInGame = players.Where(p => p.PlayerStats.CurrentLife > 0)
-            .DistinctBy(p => p.PlayerStats.TeamId);
+            .DistinctBy(p => p.TeamId);
         var playerCharacters = teamsInGame.ToList();
         if (playerCharacters.Count != 1)
         {
             return -1;
         }
         
-        return playerCharacters.First().PlayerStats.TeamId;
+        return playerCharacters.First().TeamId;
     }
 }

@@ -30,6 +30,9 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         }
     }
     private string _playerName;
+
+    public int TeamId { get; set; }
+    public long PlayerId { get; set; }
     
     public override void _EnterTree()
     {
@@ -38,6 +41,11 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         PlayerStats.MovementSpeed = 300;
         _playerHealth.MaxValue = 100;
         _gameManager = (GameManager)GetNode("/root/Main/Game");
+        _playerAnimation.Material = _playerAnimation.Material.Duplicate() as ShaderMaterial;
+        var spriteMaterial = _playerAnimation.Material as ShaderMaterial;
+        var teamColor = TeamColor.GetColor(TeamId);
+        
+        spriteMaterial?.SetShaderParameter("team_color", teamColor);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -56,9 +64,6 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         ((PlayerAnimation)_playerAnimation).UpdateAnimation();
         if (_inputSync.GetMultiplayerAuthority() == Multiplayer.GetUniqueId())
         {
-            var hud = GetNode<Hud>("/root/Main/Game/HUD");
-            hud?.PrintStats(PlayerStats);
-
             for (var i = 0; i < Abilities.Count; i++)
             {   
                 Abilities[i].HandleInput(_playerInput.KeyState[i] ,delta);

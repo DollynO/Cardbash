@@ -19,7 +19,7 @@ public partial class IceArrowAbility : ProjectileAbility
            Direction = Vector2.Right,
            Speed = 100,
            TimeToBeALive = 3,
-           SpriteTexture = GD.Load<Texture2D>("res://sprites/Projectiles/fireBallProjectile.png.png"),
+           SpriteTexture = GD.Load<Texture2D>("res://Sprites/Projectiles/fireBallProjectile.png"),
        };
     }
 
