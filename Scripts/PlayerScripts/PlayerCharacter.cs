@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.Abilities;
+﻿using System.Collections.Generic;
+using CardBase.Scripts.Abilities;
 using Godot;
 using Godot.Collections;
 
@@ -11,8 +12,9 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     private PlayerInput _playerInput;
     private GameManager _gameManager;
 
-    public PlayerStats PlayerStats = new PlayerStats();
-    public Array<Ability> Abilities = new Array<Ability>();
+    public PlayerStats PlayerStats = new();
+    public Array<Ability> Abilities = new();
+    public readonly List<DamageModifier> DamageModifier = new();
 
     [Export] private Label _playerNameLabel;
     [Export] private ProgressBar _playerHealth;
@@ -46,6 +48,10 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         var teamColor = TeamColor.GetColor(TeamId);
         
         spriteMaterial?.SetShaderParameter("team_color", teamColor);
+        
+        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Ice, Type = DamageModifierType.ExtraDamage, Value = 10.0f});
+        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Ice, TargetDamageType = DamageType.Ice, Type = DamageModifierType.Modifier, Value = 10.0f});
+        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Fire, Type = DamageModifierType.Modifier, Value = 10.0f});
     }
 
     public override void _PhysicsProcess(double delta)
@@ -74,16 +80,13 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         _playerHealth.Value = PlayerStats.CurrentLife * 100 / PlayerStats.Life;
     }
 
-    public void ApplyDamage(double damage, PlayerCharacter attacker)
+    public void ApplyDamage(Godot.Collections.Dictionary<DamageType, float> damage, PlayerCharacter attacker)
     {
-        if (Multiplayer.GetUniqueId() == _inputSync.GetMultiplayerAuthority())
-        {
-            Rpc(MethodName.applyDamageServer, damage, long.Parse(attacker.Name));
-        }
+        Rpc(MethodName.applyDamageServer, damage, long.Parse(attacker.Name));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void applyDamageServer(double damage, long attackerId)
+    private void applyDamageServer(Godot.Collections.Dictionary<DamageType, float> damage, long attackerId)
     {
         if (Multiplayer.IsServer())
         {
@@ -91,8 +94,26 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             {
                 return;
             }
-        
-            this.PlayerStats.CurrentLife -= (int)damage;
+
+            foreach (var dmg in damage)
+            {
+                var defenseStat = dmg.Key switch
+                {
+                    DamageType.Physical => PlayerStats.Armor,
+                    DamageType.Poison => PlayerStats.Armor,
+                    DamageType.Darkness => 0,
+                    DamageType.Holy => 0,
+                    DamageType.Fire => PlayerStats.EnergyShield,
+                    DamageType.Ice => PlayerStats.EnergyShield,
+                    DamageType.Lightning => PlayerStats.EnergyShield,
+                    _ => 0,
+                };
+
+                var dr = defenseStat / (defenseStat + 5 * dmg.Value);
+                
+                this.PlayerStats.CurrentLife -= (int)(dmg.Value * (1 - dr));
+                GD.Print($"{dmg.Key} : {dmg.Value} : DR {dr}");
+            }
             Rpc(MethodName.SyncPlayerLife,  Name, PlayerStats.CurrentLife);
             if (PlayerStats.CurrentLife > 0)
             {
