@@ -1,20 +1,8 @@
-﻿using System;
-using CardBase.Scripts.Abilities.TriggerStrategy;
-using CardBase.Scripts.Cards;
+﻿using CardBase.Scripts.Abilities.TriggerStrategy;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
-
-public enum DamageType
-{
-    Physical,
-    Bleed,
-    Poison,
-    Fire,
-    Ice,
-    Lightning,
-}
 
 public enum AbilityState
 {
@@ -25,17 +13,54 @@ public enum AbilityState
 
 public partial class Ability : BaseCardableObject
 {
-    public string Name { get; set; }
-    public double BaseCooldown { get; set; }
-    public double CurrentCooldown { get; set; }
-    public double BaseDamage { get; set; }
-    public DamageType DamageType { get; set; }
+    /**
+     * @brief Name of the ability
+     */
+    public string AbilityName { get; set; }
     
+    /**
+     * @brief Base cooldown
+     */
+    public double BaseCooldown { get; set; }
+    
+    /**
+     * @brief Current cooldown. Is set to the @ref BaseCooldown.
+     */
+    public double CurrentCooldown { get; set; }
+    
+    /**
+     * @brief Base damage of the ability.
+     */
+    public double BaseDamage { get; set; }
+    
+    /**
+     * @brief Base type of the ability. Can be changed through upgrades.
+     */
+    public DamageType BaseType { get; set; }
+    
+    /**
+     * @brief Maximum stacks. Has to be at least one.
+     */
     public int MaxStack { get; set; }
+    
+    /**
+     * @brief Current stack count. If count == 0 ability is disabled.
+     */
     public int CurrentStack { get; set; }
+    
+    /**
+     * @brief Internal update counter. tracks the current state.
+     */
     protected int UpdateCounter { get; set; }
+    
+    /**
+     * @brief Strategy how the ability is triggered. Can be changed.
+     */
     protected ITriggerStrategy TriggerStrategy { get; set; }
 
+    /**
+     * @brief The caller of the ability.
+     */
     protected PlayerCharacter Caller;
     
     protected Ability(string guid) : base(guid)
@@ -47,6 +72,9 @@ public partial class Ability : BaseCardableObject
 
     public void SetCaller(PlayerCharacter pCaller) => this.Caller = pCaller;
     
+    /**
+     * @brief Updates the cooldown of the ability. Updates the stack count.
+     */
     public void UpdateCooldown(double delta)
     {
         if (CurrentStack == MaxStack)
@@ -94,15 +122,15 @@ public partial class Ability : BaseCardableObject
         {
             case AbilityKeyState.ABILITY_PRESSED:
                 TriggerStrategy.OnKeyJustPressed(this);
-                GD.Print($"{Name} is Pressed");
+                GD.Print($"{AbilityName} is Pressed");
                 break;
             case AbilityKeyState.ABILITY_HOLD:
                 TriggerStrategy.OnKeyPressed(this, delta);
-                GD.Print($"{Name} charged");
+                GD.Print($"{AbilityName} charged");
                 break;
             case AbilityKeyState.ABILITY_RELEASED:
                 TriggerStrategy.OnKeyReleased(this);
-                GD.Print($"{Name} released");
+                GD.Print($"{AbilityName} released");
                 break;
             default:
                 break;

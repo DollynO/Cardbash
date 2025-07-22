@@ -1,4 +1,6 @@
-﻿using Godot;
+﻿using System;
+using Godot;
+using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities;
 
@@ -6,6 +8,7 @@ public partial class ProjectileAbility : Ability
 {
     protected ProjectileStats ProjectileStats;
     private PackedScene ProjectileScene = GD.Load<PackedScene>("res://Scenes//Projectile.tscn");
+    
     protected ProjectileAbility(string guid) : base(guid)
     {
     }
@@ -28,12 +31,19 @@ public partial class ProjectileAbility : Ability
             return;
         }
 
-        var projectile = ProjectileScene.Instantiate() as Projectile;
-        if (projectile != null)
+        var abilitySpawner = Caller.GetTree().Root.GetNode<AbilitySpawner>("/root/Main/Game/AbilitySpawner");
+        var dict = new Dictionary<string, Variant>
         {
-            projectile.SetStats(ProjectileStats);
-            projectile.GlobalPosition = Caller.GlobalPosition;
-        }
-        Caller.GetTree().Root.AddChild(projectile);
+            ["spawn_type"] = (int)SpawnType.SpawnTypeProjectile,
+            ["damage"] = DamageCalculator.CalculateTotalDamage(
+                new Damage {DamageNumber = (float)BaseDamage, Type = BaseType},
+                Caller.DamageModifier),
+            ["speed"] = ProjectileStats.Speed,
+            ["direction"] = ProjectileStats.Direction,
+            ["sprite_path"] = ProjectileStats.SpritePath,
+            ["time_to_be_a_live"] = ProjectileStats.TimeToBeALive,
+            ["caller_id"] = Caller.PlayerId
+        };
+        abilitySpawner.SpawnObject(dict);
     }
 }

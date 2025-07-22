@@ -9,23 +9,22 @@ public partial class IceArrowAbility : ProjectileAbility
        this.DisplayName = "Ice Arrow";
        this.Description = "Fires an ice arrow";
        this.IconPath = "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png";
-       this.BaseCooldown = 10;
-       this.Name = "Ice Arrow";
-       this.BaseDamage = 100;
+       this.BaseCooldown = 1;
+       this.AbilityName = "Ice Arrow";
+       this.BaseDamage = 50;
+       this.BaseType = DamageType.Ice;
        this.ProjectileStats = new ProjectileStats()
        {
            Caller = this.Caller,
-           Damage = (float)this.BaseDamage,
            Direction = Vector2.Right,
            Speed = 100,
            TimeToBeALive = 3,
-           SpriteTexture = GD.Load<Texture2D>("res://Sprites/Projectiles/fireBallProjectile.png"),
+           SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
        };
     }
 
     protected override void InternalUse()
     {
-        Caller.ApplyDamage(BaseDamage, Caller);
     }
     
     protected override void InternalUpdate()

@@ -1,17 +1,18 @@
 ﻿using System;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
+using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities;
 
 public record ProjectileStats
 {
     public float Speed;
-    public float Damage;
+    public Dictionary<DamageType, float> Damage;
     public Vector2 Direction;
     public float TimeToBeALive;
     public GodotObject Caller;
-    public Texture2D SpriteTexture;
+    public string SpritePath;
 }
 
 public partial class Projectile : CharacterBody2D
@@ -31,19 +32,21 @@ public partial class Projectile : CharacterBody2D
     public void SetStats(ProjectileStats pStats)
     {
         stats = pStats;
-        sprite.Texture = stats.SpriteTexture;
+        sprite.Texture = GD.Load<Texture2D>(stats.SpritePath);
     }
     
     public override void _Ready()
     {
         timer.Start(stats.TimeToBeALive);
+        this.SetMultiplayerAuthority(1);
     }
 
     public override void _PhysicsProcess(double delta)
     {
+        var collision = MoveAndCollide(stats.Direction * stats.Speed * (float)delta);
+
         if (Multiplayer.IsServer())
         {
-            var collision = MoveAndCollide(stats.Direction * stats.Speed * (float)delta);
             if (collision != null && collision.GetCollider() != stats.Caller)
             {
                 if (collision.GetCollider() is IHitableObject hitObject)
@@ -65,7 +68,10 @@ public partial class Projectile : CharacterBody2D
 
     private void _on_timer_timeout()
     {
-        DestroyProjectile();
+        if (Multiplayer.IsServer())
+        {
+            DestroyProjectile();
+        }
     }
 
     private void DestroyProjectile()
