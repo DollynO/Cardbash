@@ -18,7 +18,13 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
     [Export] private Label _playerNameLabel;
     [Export] private ProgressBar _playerHealth;
+    
+    [Export] private Sprite2D _lookAtIndicator;
+    [Export] private Node2D _lookAtDirectionPoint;
+    private Vector2 _lookAtDirectionCorrection = Vector2.FromAngle(Mathf.Tau / 4);
 
+    [Export] private Node2D _characterCenterPoint;
+    
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
     
@@ -48,7 +54,17 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         var teamColor = TeamColor.GetColor(TeamId);
         
         spriteMaterial?.SetShaderParameter("team_color", teamColor);
-        
+
+        if (int.Parse(Name) == Multiplayer.GetUniqueId())
+        {
+            _lookAtIndicator.Visible = true;
+            _lookAtIndicator.Material = _lookAtIndicator.Material.Duplicate() as ShaderMaterial;
+            spriteMaterial = _lookAtIndicator.Material as ShaderMaterial;
+            spriteMaterial?.SetShaderParameter("mask_color", new Color(1f, 1f, 1f));
+            spriteMaterial?.SetShaderParameter("team_color", teamColor);
+            spriteMaterial?.SetShaderParameter("tolerance", 0.4);
+        }
+
         DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Ice, Type = DamageModifierType.ExtraDamage, Value = 10.0f});
         DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Ice, TargetDamageType = DamageType.Ice, Type = DamageModifierType.Modifier, Value = 10.0f});
         DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Fire, Type = DamageModifierType.Modifier, Value = 10.0f});
@@ -75,9 +91,27 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                 Abilities[i].HandleInput(_playerInput.KeyState[i] ,delta);
                 Abilities[i].UpdateCooldown(delta);
             }
+            
+            _lookAtIndicator.LookAt(GetGlobalMousePosition());
+            _lookAtIndicator.Rotate(-Mathf.Tau / 4);
         }
 
         _playerHealth.Value = PlayerStats.CurrentLife * 100 / PlayerStats.Life;
+    }
+
+    public Vector2 GetLookAtDirection()
+    {
+        return (_lookAtDirectionPoint.GlobalPosition - _lookAtIndicator.GlobalPosition).Normalized();
+    }
+
+    public Vector2 GetProjectileStartPosition()
+    {
+        return _lookAtDirectionPoint.GlobalPosition;
+    }
+
+    public Vector2 GetCharacterCenterPosition()
+    {
+        return _characterCenterPoint.GlobalPosition;
     }
 
     public void ApplyDamage(Godot.Collections.Dictionary<DamageType, float> damage, PlayerCharacter attacker)
@@ -112,8 +146,8 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                 var dr = defenseStat / (defenseStat + 5 * dmg.Value);
                 
                 this.PlayerStats.CurrentLife -= (int)(dmg.Value * (1 - dr));
-                GD.Print($"{dmg.Key} : {dmg.Value} : DR {dr}");
             }
+            
             Rpc(MethodName.SyncPlayerLife,  Name, PlayerStats.CurrentLife);
             if (PlayerStats.CurrentLife > 0)
             {

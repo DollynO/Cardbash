@@ -1,10 +1,11 @@
-[gd_scene load_steps=49 format=3 uid="uid://hpbx14ma8p0v"]
+[gd_scene load_steps=51 format=3 uid="uid://hpbx14ma8p0v"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerCharacter.cs" id="1_sdal5"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
 [ext_resource type="Shader" path="res://Shaders/PlayerCharacter_TeamColor.gdshader" id="3_hy4ar"]
 [ext_resource type="Texture2D" uid="uid://c37nsb5ilblyd" path="res://Sprites/GameSprites/player.png" id="3_kf8vq"]
 [ext_resource type="Script" path="res://Scenes/PlayerAnimation.cs" id="4_xt6qq"]
+[ext_resource type="Texture2D" uid="uid://dqboie3r12b81" path="res://Sprites/DirectionArrow/direction_arrow_256.png" id="6_dieop"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3kik1"]
 properties/0/path = NodePath(".:position")
@@ -325,13 +326,25 @@ bg_color = Color(0.862304, 0.343347, 0.27235, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fwnwc"]
 bg_color = Color(0.6, 0.886275, 0.6, 1)
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "_playerNameLabel", "_playerHealth") groups=["Player"]]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_th5e4"]
+shader = ExtResource("3_hy4ar")
+shader_parameter/team_color = Color(1, 1, 1, 1)
+shader_parameter/mask_color = Vector4(1, 1, 1, 1)
+shader_parameter/mask_color_2 = Vector4(0.251, 0.153, 0.09, 1)
+shader_parameter/tolerance = 0.1
+shader_parameter/region_min = Vector2(0, 0)
+shader_parameter/region_max = Vector2(1, 1)
+
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint") groups=["Player"]]
 collision_layer = 2
 script = ExtResource("1_sdal5")
 _inputSync = NodePath("InputSynchronizer")
 _playerAnimation = NodePath("AnimatedSprite2D")
 _playerNameLabel = NodePath("Label")
 _playerHealth = NodePath("Lifebar")
+_lookAtIndicator = NodePath("LookAtIndicator")
+_lookAtDirectionPoint = NodePath("LookAtIndicator/LookAtDirectionPoint")
+_characterCenterPoint = NodePath("CenterNode")
 
 [node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_3kik1")
@@ -380,11 +393,20 @@ value = 33.0
 allow_greater = true
 show_percentage = false
 
-[node name="ProjectileSpawn" type="Node2D" parent="."]
-position = Vector2(0, -21)
-
-[node name="ProjectileDirection" type="Node2D" parent="ProjectileSpawn"]
-position = Vector2(28.991, 0)
-
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = false
+
+[node name="LookAtIndicator" type="Sprite2D" parent="."]
+visible = false
+material = SubResource("ShaderMaterial_th5e4")
+position = Vector2(0, -21)
+rotation = 6.28319
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("6_dieop")
+offset = Vector2(0, 250)
+
+[node name="LookAtDirectionPoint" type="Node2D" parent="LookAtIndicator"]
+position = Vector2(0, 170)
+
+[node name="CenterNode" type="Node2D" parent="."]
+position = Vector2(0, -21)

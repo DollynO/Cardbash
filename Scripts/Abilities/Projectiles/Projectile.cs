@@ -9,19 +9,26 @@ public record ProjectileStats
 {
     public float Speed;
     public Dictionary<DamageType, float> Damage;
-    public Vector2 Direction;
+    public Vector2 StartPosition;
+    public Vector2? Direction;
     public float TimeToBeALive;
     public GodotObject Caller;
     public string SpritePath;
+    public int PiercingCount;
+    public int BouncingCount;
 }
 
-public partial class Projectile : CharacterBody2D
+public partial class Projectile : Node2D
 {
+    public const float MAX_SPEED = 1000;
     ProjectileStats stats;
 
     [Export] private Timer timer;
     [Export] private Sprite2D sprite;
     [Export] private CollisionShape2D collisionShape;
+    private IHitableObject _lastCollider;
+    private PhysicsDirectSpaceState2D _state;
+    private uint collisionMask = 1 + 2;
     
     [Signal]
     public delegate void OnHitEventHandler(GodotObject hitableObject);
@@ -38,32 +45,63 @@ public partial class Projectile : CharacterBody2D
     public override void _Ready()
     {
         timer.Start(stats.TimeToBeALive);
-        this.SetMultiplayerAuthority(1);
+        SetMultiplayerAuthority(1);
+        _state = GetWorld2D().GetDirectSpaceState();
     }
-
+    
     public override void _PhysicsProcess(double delta)
     {
-        var collision = MoveAndCollide(stats.Direction * stats.Speed * (float)delta);
+        var from = GlobalPosition;
+        var to = GlobalPosition +  (stats.Direction ?? Vector2.Zero) * stats.Speed * (float)delta;
 
         if (Multiplayer.IsServer())
         {
-            if (collision != null && collision.GetCollider() != stats.Caller)
+
+            var query = new PhysicsRayQueryParameters2D
             {
-                if (collision.GetCollider() is IHitableObject hitObject)
+                From = from,
+                To = to,
+                CollisionMask = collisionMask,
+                Exclude = new Array<Rid> { ((PlayerCharacter)stats.Caller).GetRid() },
+            };
+
+            var results = _state.IntersectRay(query);
+            if (results.Count > 0)
+            {
+                var collider = (GodotObject)results["collider"];
+                switch (collider)
                 {
-                    var attacker = stats.Caller as PlayerCharacter;
-                    hitObject.ApplyDamage(stats.Damage, attacker);
+                    case TileMapLayer layer when stats.BouncingCount-- > 0:
+                        stats.Direction = (stats.Direction ?? Vector2.Zero).Bounce((Vector2)results["normal"]);
+                        Rpc(MethodName.SyncDirectionChange, to, (stats.Direction ?? Vector2.Zero));
+                        break;
+                    case TileMapLayer layer:
+                        DestroyProjectile();
+                        break;
+                    case IHitableObject hitObject:
+                    {
+                        var attacker = (PlayerCharacter)stats.Caller;
+                        hitObject.ApplyDamage(stats.Damage, attacker);
+                        if (stats.PiercingCount-- <= 0)
+                        {
+                            DestroyProjectile();
+                        }
+
+                        break;
+                    }
                 }
-                GD.Print("I collided with ", ((Node)collision.GetCollider()).Name);
-                DestroyProjectile();
+                GD.Print(results);
             }
         }
+
+        GlobalPosition = to;
     }
 
-    [Rpc]
-    private void SyncPosition(Vector2 pos)
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void SyncDirectionChange(Vector2 pos, Vector2 dir)
     {
         this.GlobalPosition = pos;
+        stats.Direction = dir;
     }
 
     private void _on_timer_timeout()
