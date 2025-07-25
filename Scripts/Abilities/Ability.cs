@@ -122,15 +122,12 @@ public partial class Ability : BaseCardableObject
         {
             case AbilityKeyState.ABILITY_PRESSED:
                 TriggerStrategy.OnKeyJustPressed(this);
-                GD.Print($"{AbilityName} is Pressed");
                 break;
             case AbilityKeyState.ABILITY_HOLD:
                 TriggerStrategy.OnKeyPressed(this, delta);
-                GD.Print($"{AbilityName} charged");
                 break;
             case AbilityKeyState.ABILITY_RELEASED:
                 TriggerStrategy.OnKeyReleased(this);
-                GD.Print($"{AbilityName} released");
                 break;
             default:
                 break;
