@@ -61,21 +61,25 @@ public partial class AbilitySpawner : MultiplayerSpawner
 	{
 		if (projectileScene.Instantiate() is Projectile projectile)
 		{
+			var speed = (float)data["speed"];
+			speed = speed > Projectile.MAX_SPEED ? Projectile.MAX_SPEED : speed;
 			var projectileStats = new ProjectileStats()
 			{
 				Damage = (Dictionary<DamageType, float>)data["damage"],
 				Direction = (Vector2)data["direction"],
-				Speed = (float)data["speed"],
+				Speed = speed,
 				SpritePath = (string)data["sprite_path"],
 				TimeToBeALive = (float)data["time_to_be_a_live"],
 				Caller = gameManager.GetPlayerCharacter((long)data["caller_id"]),
+				PiercingCount = (int)data["piercing_count"],
+				BouncingCount = (int)data["bouncing_count"],
+				StartPosition = (Vector2)data["start_position"],
 			};
 			projectile.SetStats(projectileStats);
-			projectile.GlobalPosition = ((PlayerCharacter)projectileStats.Caller).GlobalPosition;
+			projectile.GlobalPosition = projectileStats.StartPosition;
 			return projectile;
 		}
 		
-		GD.Print("error");
 		return null;
 	}
 }

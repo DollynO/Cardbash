@@ -16,10 +16,12 @@ public partial class IceArrowAbility : ProjectileAbility
        this.ProjectileStats = new ProjectileStats()
        {
            Caller = this.Caller,
-           Direction = Vector2.Right,
-           Speed = 100,
-           TimeToBeALive = 3,
+           Direction = null,
+           Speed = 300,
+           TimeToBeALive = 4,
            SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
+           BouncingCount = 3,
+           PiercingCount = 1
        };
     }
 
