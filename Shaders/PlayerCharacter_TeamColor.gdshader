@@ -12,8 +12,8 @@ uniform vec2 region_max = vec2(1, 1); // top-right corner of region
 
 void fragment() {
     vec4 tex_color = texture(TEXTURE, UV);
-	
-	vec4 team_color_2 = vec4(team_color.r * 0.73, team_color.g * 0.67, team_color.b * 0.67, 1.0); 
+
+	vec4 team_color_2 = vec4(team_color.r * 0.73, team_color.g * 0.67, team_color.b * 0.67, 1.0);
 
     // Only apply inside the defined UV region
     if (UV.x >= region_min.x && UV.x <= region_max.x &&

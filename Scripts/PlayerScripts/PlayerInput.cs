@@ -29,6 +29,11 @@ public partial class PlayerInput : MultiplayerSynchronizer
     
     [Export]
     public Array<AbilityKeyState> KeyState = new();
+    
+    [Export]
+    public Node2D LookAtRotation;
+
+    [Export] public float LookAtRotationValue;
 	
     public override void _Ready()
     {
@@ -58,7 +63,10 @@ public partial class PlayerInput : MultiplayerSynchronizer
         KeyState[3] = state;
 
         KeyState = new Array<AbilityKeyState>(KeyState);
-
+        
+        LookAtRotation.LookAt(GetParent<PlayerCharacter>().GetGlobalMousePosition());
+        LookAtRotation.Rotate(-Mathf.Tau / 4);
+        LookAtRotationValue = LookAtRotation.Rotation;
     }
 
     private void setKeyState(ref AbilityKeyState keyState, string actionName)

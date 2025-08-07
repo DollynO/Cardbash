@@ -22,6 +22,12 @@ properties/1/replication_mode = 1
 properties/2/path = NodePath("InputSynchronizer:KeyState")
 properties/2/spawn = true
 properties/2/replication_mode = 1
+properties/3/path = NodePath("InputSynchronizer:LookAtRotationValue")
+properties/3/spawn = false
+properties/3/replication_mode = 1
+properties/4/path = NodePath("CenterNode:rotation")
+properties/4/spawn = true
+properties/4/replication_mode = 1
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_81jb4"]
 shader = ExtResource("3_hy4ar")
@@ -342,16 +348,17 @@ _inputSync = NodePath("InputSynchronizer")
 _playerAnimation = NodePath("AnimatedSprite2D")
 _playerNameLabel = NodePath("Label")
 _playerHealth = NodePath("Lifebar")
-_lookAtIndicator = NodePath("LookAtIndicator")
-_lookAtDirectionPoint = NodePath("LookAtIndicator/LookAtDirectionPoint")
+_lookAtIndicator = NodePath("CenterNode/LookAtIndicator")
+_lookAtDirectionPoint = NodePath("CenterNode/LookAtDirectionPoint")
 _characterCenterPoint = NodePath("CenterNode")
 
 [node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_3kik1")
 
-[node name="InputSynchronizer" type="MultiplayerSynchronizer" parent="."]
+[node name="InputSynchronizer" type="MultiplayerSynchronizer" parent="." node_paths=PackedStringArray("LookAtRotation")]
 replication_config = SubResource("SceneReplicationConfig_fv7tp")
 script = ExtResource("2_uj4u6")
+LookAtRotation = NodePath("../CenterNode")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." node_paths=PackedStringArray("_inputSynchronizer")]
 z_index = 10
@@ -396,17 +403,18 @@ show_percentage = false
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = false
 
-[node name="LookAtIndicator" type="Sprite2D" parent="."]
+[node name="CenterNode" type="Node2D" parent="."]
+position = Vector2(0, -21)
+rotation = -1.91463
+
+[node name="LookAtIndicator" type="Sprite2D" parent="CenterNode"]
 visible = false
 material = SubResource("ShaderMaterial_th5e4")
-position = Vector2(0, -21)
-rotation = 6.28319
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("6_dieop")
 offset = Vector2(0, 250)
 
-[node name="LookAtDirectionPoint" type="Node2D" parent="LookAtIndicator"]
-position = Vector2(0, 170)
-
-[node name="CenterNode" type="Node2D" parent="."]
-position = Vector2(0, -21)
+[node name="LookAtDirectionPoint" type="Node2D" parent="CenterNode"]
+position = Vector2(-0.000152588, 34)
+rotation = -0.47822
+scale = Vector2(0.2, 0.2)

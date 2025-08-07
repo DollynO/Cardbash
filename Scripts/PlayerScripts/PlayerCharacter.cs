@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using CardBase.Scripts.Abilities;
 using Godot;
 using Godot.Collections;
@@ -13,7 +14,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     private GameManager _gameManager;
 
     public PlayerStats PlayerStats = new();
-    public Array<Ability> Abilities = new();
+    public readonly List<Ability> Abilities = new();
     public readonly List<DamageModifier> DamageModifier = new();
 
     [Export] private Label _playerNameLabel;
@@ -92,8 +93,6 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                 Abilities[i].UpdateCooldown(delta);
             }
             
-            _lookAtIndicator.LookAt(GetGlobalMousePosition());
-            _lookAtIndicator.Rotate(-Mathf.Tau / 4);
         }
 
         _playerHealth.Value = PlayerStats.CurrentLife * 100 / PlayerStats.Life;
@@ -101,7 +100,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
     public Vector2 GetLookAtDirection()
     {
-        return (_lookAtDirectionPoint.GlobalPosition - _lookAtIndicator.GlobalPosition).Normalized();
+        return (_lookAtDirectionPoint.GlobalPosition - _characterCenterPoint.GlobalPosition).Normalized();
     }
 
     public Vector2 GetProjectileStartPosition()
@@ -174,5 +173,33 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         var inputDir = new Vector2(_playerInput.XDirection, _playerInput.YDirection);
         Velocity = inputDir * PlayerStats.MovementSpeed;
         MoveAndSlide();
+    }
+
+    public void RegisterAbilityObject(Node node)
+    {
+        if (node is ICustomSpawnObject customSpawnObject)
+        {
+            if (Multiplayer.GetUniqueId() == customSpawnObject.CreatorId)
+            {
+                Abilities.FirstOrDefault(a => a.GUID == customSpawnObject.AbilityGuid)?
+                    .RegisterSpawnedNode(node);
+            }
+        }
+    }
+
+    public void RequestMeleeCone(MeleeConeProperties properties)
+    {
+        var dict = properties.ToDict();
+        Rpc(MethodName.CreateMeleeCone, dict);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void CreateMeleeCone(Godot.Collections.Dictionary<string, Variant>dict)
+    {
+        var cone = new MeleeCone();
+        var property = MeleeConeProperties.FromDict(dict);
+        property.Owner = this;
+        cone.SetStats(property);
+        _characterCenterPoint.AddChild(cone);
     }
 }
