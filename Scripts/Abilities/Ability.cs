@@ -11,13 +11,8 @@ public enum AbilityState
     OnCooldown,
 }
 
-public partial class Ability : BaseCardableObject
+public abstract class Ability : BaseCardableObject
 {
-    /**
-     * @brief Name of the ability
-     */
-    public string AbilityName { get; set; }
-    
     /**
      * @brief Base cooldown
      */
@@ -63,14 +58,13 @@ public partial class Ability : BaseCardableObject
      */
     protected PlayerCharacter Caller;
     
-    protected Ability(string guid) : base(guid)
+    protected Ability(string guid, PlayerCharacter creator) : base(guid)
     {
         TriggerStrategy = new SimpleTriggerStrategy();
         MaxStack = 1;
         BaseCooldown = 1.0;
+        Caller = creator;
     }
-
-    public void SetCaller(PlayerCharacter pCaller) => this.Caller = pCaller;
     
     /**
      * @brief Updates the cooldown of the ability. Updates the stack count.
@@ -105,7 +99,7 @@ public partial class Ability : BaseCardableObject
         return true;
     }
 
-    public virtual void Charge(double delta)
+    public void Charge(double delta)
     {
     }
 
@@ -113,8 +107,6 @@ public partial class Ability : BaseCardableObject
     {
         
     }
-
-    
 
     public void HandleInput(AbilityKeyState state, double delta)
     {
@@ -145,8 +137,7 @@ public partial class Ability : BaseCardableObject
         InternalUpdate();
     }
 
-    protected virtual void InternalUpdate()
-    {
-        
-    }
+    protected abstract void InternalUpdate();
+
+    public abstract void RegisterSpawnedNode(Node node);
 }

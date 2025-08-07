@@ -1,11 +1,13 @@
 using Godot;
 using System;
 using System.Runtime.CompilerServices;
+using CardBase.Scripts;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
 using Godot.Collections;
 
 public enum SpawnType{
+	Undefined,
 	SpawnTypeProjectile,
 }
 
@@ -19,6 +21,15 @@ public partial class AbilitySpawner : MultiplayerSpawner
 	public override void _EnterTree()
 	{ 
 		SpawnFunction = new Callable(this, MethodName.customSpawner);
+		Spawned += OnSpawned;
+	}
+
+	private void OnSpawned(Node node)
+	{
+		if (node is ICustomSpawnObject customSpawnObject)
+		{
+			gameManager.GetPlayerCharacter(customSpawnObject.CreatorId).RegisterAbilityObject(node);
+		}
 	}
 
 	// Called when the node enters the scene tree for the first time.
@@ -48,13 +59,26 @@ public partial class AbilitySpawner : MultiplayerSpawner
 	private Node customSpawner(Variant data)
 	{
 		var dic = data.AsGodotDictionary<string, Variant>();
-		switch ((SpawnType)(int)dic["spawn_type"])
+		if (!dic.TryGetValue("spawn_properties", out var spawnPropertiesDict))
 		{
-			case SpawnType.SpawnTypeProjectile:
-				return spawnProjectile(dic);
+			throw new ArgumentNullException("no spawn properties");
 		}
+		
+		var spawnProperties = SpawnerBaseProperties.FromDict(spawnPropertiesDict.AsGodotDictionary<string, Variant>());
 
-		return null;
+		var node = spawnProperties.SpawnType switch
+		{
+			SpawnType.SpawnTypeProjectile => spawnProjectile(dic),
+			_ => null
+		};
+
+		if (node is ICustomSpawnObject customSpawnObject)
+		{
+			customSpawnObject.CreatorId = spawnProperties.CreatorId;
+			customSpawnObject.AbilityGuid = spawnProperties.AbilityGuid;
+		}
+		
+		return node;
 	}
 
 	private Node spawnProjectile(Dictionary<string, Variant> data)

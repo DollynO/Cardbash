@@ -18,9 +18,12 @@ public record ProjectileStats
     public int BouncingCount;
 }
 
-public partial class Projectile : Node2D
+public partial class Projectile : Node2D, ICustomSpawnObject
 {
     public const float MAX_SPEED = 1000;
+    public long CreatorId { get; set; }
+    public string AbilityGuid { get; set; }
+
     ProjectileStats stats;
 
     [Export] private Timer timer;
@@ -29,12 +32,15 @@ public partial class Projectile : Node2D
     private IHitableObject _lastCollider;
     private PhysicsDirectSpaceState2D _state;
     private uint collisionMask = 1 + 2;
-    
-    [Signal]
-    public delegate void OnHitEventHandler(GodotObject hitableObject);
 
     [Signal]
     public delegate void OnDestroyedEventHandler(Vector2 position);
+
+    [Signal]
+    public delegate void OnPiercingEventHandler(Vector2 position);
+    
+    [Signal]
+    public delegate void OnCollisionEventHandler(Vector2 position);
 
     public void SetStats(ProjectileStats pStats)
     {

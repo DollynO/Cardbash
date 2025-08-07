@@ -18,8 +18,26 @@ public partial class GlobalCardManager : Node
 
     public GlobalCardManager()
     {
-        create_cards(AbilityCards, CardType.Ability, AbilityManager.Abilities);
         create_cards(ItemCards, CardType.Item, ItemManager.Items);
+        
+         // ability cards need a creator so generate them extra.   
+        AbilityCards.Clear();
+        foreach (var entry in AbilityManager.Abilities)
+        {
+            var item = entry.Value(null);
+            
+            var card = new AbilityCard()
+            {
+                Description = item.Description,
+                DisplayName = item.DisplayName,
+                IconPath = item.IconPath,
+                EffectGUID = item.GUID,
+                CardType = CardType.Ability,
+            };
+            
+            AbilityCards.Add(card.EffectGUID, card);
+        }
+        
         load_decks();
     }
 
