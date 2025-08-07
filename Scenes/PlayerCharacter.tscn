@@ -341,7 +341,7 @@ shader_parameter/tolerance = 0.1
 shader_parameter/region_min = Vector2(0, 0)
 shader_parameter/region_max = Vector2(1, 1)
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint") groups=["Player"]]
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera") groups=["Player"]]
 collision_layer = 2
 script = ExtResource("1_sdal5")
 _inputSync = NodePath("InputSynchronizer")
@@ -351,6 +351,7 @@ _playerHealth = NodePath("Lifebar")
 _lookAtIndicator = NodePath("CenterNode/LookAtIndicator")
 _lookAtDirectionPoint = NodePath("CenterNode/LookAtDirectionPoint")
 _characterCenterPoint = NodePath("CenterNode")
+_camera = NodePath("Camera2D")
 
 [node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_3kik1")

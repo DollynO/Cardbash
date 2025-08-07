@@ -23,8 +23,12 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     [Export] private Sprite2D _lookAtIndicator;
     [Export] private Node2D _lookAtDirectionPoint;
     private Vector2 _lookAtDirectionCorrection = Vector2.FromAngle(Mathf.Tau / 4);
-
     [Export] private Node2D _characterCenterPoint;
+    
+    [Export]
+    private Camera2D _camera;
+
+    private Rect2 _mapBounds;
     
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
@@ -64,6 +68,12 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             spriteMaterial?.SetShaderParameter("mask_color", new Color(1f, 1f, 1f));
             spriteMaterial?.SetShaderParameter("team_color", teamColor);
             spriteMaterial?.SetShaderParameter("tolerance", 0.4);
+            _camera.Enabled = true;
+            _mapBounds = _gameManager.GetMapBoundry();
+            _camera.LimitTop = (int)_mapBounds.Position.Y;
+            _camera.LimitLeft = (int)_mapBounds.Position.X;
+            _camera.LimitRight = (int)_mapBounds.Position.X + (int)_mapBounds.Size.X;
+            _camera.LimitBottom = (int)_mapBounds.Position.Y + (int)_mapBounds.Size.Y;
         }
 
         DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Ice, Type = DamageModifierType.ExtraDamage, Value = 10.0f});

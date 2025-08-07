@@ -18,6 +18,7 @@ public partial class GameManager : Node2D
 	[Export] private PackedScene _playerCharScene;
 	[Export] private MultiplayerSpawner _spawner;
 	[Export] private Hud _hud;
+	[Export] private TileMapLayer _tileMapLayer;
 	
 	private Godot.Collections.Dictionary<long, PlayerCharacter> _currentCharacters = new();
 	private PlayerCharacter _currentPlayer;
@@ -74,6 +75,16 @@ public partial class GameManager : Node2D
 			players = _currentCharacters.Values.ToList(),
 			settings = GameSettings.WorldSettings,
 		};
+	}
+
+	public Rect2 GetMapBoundry()
+	{
+		var rect = _tileMapLayer.GetUsedRect();
+		var tileSize = _tileMapLayer.TileSet.TileSize;
+
+		Vector2 origion = _tileMapLayer.MapToLocal(rect.Position);
+		Vector2 size = rect.Size *  tileSize;
+		return new Rect2(origion, size);
 	}
 	
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
