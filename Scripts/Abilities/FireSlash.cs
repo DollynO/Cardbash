@@ -22,9 +22,9 @@ public class FireSlash : Ability
         {
             Angle =45,
             AttackTime = 1,
-            Damage = new Dictionary<DamageType, float>
+            Damage = new System.Collections.Generic.Dictionary<DamageType, Damage>
             {
-                { DamageType.Physical, 20f}
+                { DamageType.Physical, new Damage() {DamageNumber = 20f, AilmentChange =Damage.DEFAULT_AILMENT_CHANGE, Type = DamageType.Physical}}
             },
             Length = 120,
             Offset = 0,
@@ -35,9 +35,9 @@ public class FireSlash : Ability
         {
             Angle = 120,
             AttackTime = 2,
-            Damage = new Dictionary<DamageType, float>
+            Damage = new System.Collections.Generic.Dictionary<DamageType, Damage>
             {
-                {DamageType.Fire, 50f}
+                { DamageType.Fire, new Damage() {DamageNumber = 40f, AilmentChange = Damage.DEFAULT_AILMENT_CHANGE + 1, Type = DamageType.Fire}}
             },
             Length = 80,
             Offset = 0,

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
@@ -15,7 +16,7 @@ public static class DamageCalculator
      * @param[in]   modifiers   Modifiers to change the type or value of the damage.
      * conversion -> extra damage -> modifier
      */
-    public static Godot.Collections.Dictionary<DamageType, float> CalculateTotalDamage(Damage orgDamage, List<DamageModifier> modifiers)
+    public static Dictionary<DamageType, Damage> CalculateTotalDamage(Damage orgDamage, List<DamageModifier> modifiers)
     {
         var baseDamage = new Damage()
         {
@@ -46,9 +47,9 @@ public static class DamageCalculator
             }
         }
         
-        var totalDamageList = new Godot.Collections.Dictionary<DamageType, float>
+        var totalDamageList = new Dictionary<DamageType, Damage>
         {
-            { baseDamage.Type, baseDamage.DamageNumber }
+            { baseDamage.Type, baseDamage }
         };
         var conversionMaxVal = new Godot.Collections.Dictionary<DamageType, float>();
         foreach (var mod in conversionList.Where(mod => mod.OutputDamageType == orgDamage.Type).Where(mod => !conversionMaxVal.TryAdd(mod.TargetDamageType, mod.Value)))
@@ -74,15 +75,22 @@ public static class DamageCalculator
                 convValue = 100 - totalConversion;
                 totalConversion = 100;
             }
-            
-            var convDamage = totalDamageList[orgDamage.Type] * convValue / 100;
-            totalDamageList[orgDamage.Type] -= convDamage;
+
+            var convDamage = new Damage
+            {
+                DamageNumber = totalDamageList[orgDamage.Type].DamageNumber * convValue / 100,
+                AilmentChange = baseDamage.AilmentChange,
+                Type = conv.Key,
+            };
+            totalDamageList[orgDamage.Type].DamageNumber -= convDamage.DamageNumber;
             totalDamageList.Add(conv.Key, convDamage);
         }
         
-        foreach (var mod in extraDamageList.Where(mod => mod.TargetDamageType == orgDamage.Type).Where(mod => !totalDamageList.TryAdd(mod.OutputDamageType, orgDamage.DamageNumber * mod.Value / 100)))
+        foreach (var mod in extraDamageList
+                     .Where(mod => mod.TargetDamageType == orgDamage.Type)
+                     .Where(mod => !totalDamageList.TryAdd(mod.OutputDamageType, new Damage() { DamageNumber = orgDamage.DamageNumber * mod.Value / 100, Type = mod.OutputDamageType, AilmentChange = baseDamage.AilmentChange})))
         {
-            totalDamageList[mod.OutputDamageType] += (orgDamage.DamageNumber * mod.Value / 100);
+            totalDamageList[mod.OutputDamageType].DamageNumber += (orgDamage.DamageNumber * mod.Value / 100);
         }
         
         var modifierMaxList = new Godot.Collections.Dictionary<DamageType, float>();
@@ -93,9 +101,32 @@ public static class DamageCalculator
 
         foreach (var mod in modifierList.Where(mod => totalDamageList.ContainsKey(mod.TargetDamageType)))
         {
-            totalDamageList[mod.TargetDamageType] *= (1 + mod.Value / 100);
+            totalDamageList[mod.TargetDamageType].DamageNumber *= (1 + mod.Value / 100);
         }
         
         return totalDamageList;
+    }
+
+    public static Godot.Collections.Dictionary<DamageType, Variant> ConvertDmgDictToGodotDict(Dictionary<DamageType, Damage> dict)
+    {
+        var godotDict = new Godot.Collections.Dictionary<DamageType, Variant>();
+        foreach (var entry in dict)
+        {
+            godotDict.Add(entry.Key, entry.Value.ToDict());
+        }
+
+        return godotDict;
+    }
+
+    public static Dictionary<DamageType, Damage> ConvertGodotDmgDictToSystemDict(
+        Godot.Collections.Dictionary<DamageType, Variant> dict)
+    {
+        var systemDict = new Dictionary<DamageType, Damage>();
+        foreach (var entry in dict)
+        {
+            systemDict.Add(entry.Key, Damage.FromDict((Godot.Collections.Dictionary<string, Variant>)entry.Value));
+        }
+
+        return systemDict;
     }
 }

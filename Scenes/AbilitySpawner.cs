@@ -87,9 +87,14 @@ public partial class AbilitySpawner : MultiplayerSpawner
 		{
 			var speed = (float)data["speed"];
 			speed = speed > Projectile.MAX_SPEED ? Projectile.MAX_SPEED : speed;
+			var damage = new System.Collections.Generic.Dictionary<DamageType, Damage>();
+			foreach (var entry in (Dictionary<DamageType, Variant>)data["damage"])
+			{
+				damage.Add(entry.Key, Damage.FromDict((Dictionary<string, Variant>)entry.Value));
+			}
 			var projectileStats = new ProjectileStats()
 			{
-				Damage = (Dictionary<DamageType, float>)data["damage"],
+				Damage = damage,
 				Direction = (Vector2)data["direction"],
 				Speed = speed,
 				SpritePath = (string)data["sprite_path"],

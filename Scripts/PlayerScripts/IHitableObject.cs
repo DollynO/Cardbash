@@ -1,9 +1,9 @@
-﻿using CardBase.Scripts.Abilities;
-using Godot.Collections;
+﻿using System.Collections.Generic;
+using CardBase.Scripts.Abilities;
 
 namespace CardBase.Scripts.PlayerScripts;
 
 public interface IHitableObject
 {
-    public void ApplyDamage(Dictionary<DamageType, float> damage, PlayerCharacter attacker);
+    public void ApplyDamage(Dictionary<DamageType, Damage> damage, PlayerCharacter attacker);
 }

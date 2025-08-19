@@ -71,7 +71,7 @@ public partial class Hud : CanvasLayer
 		}
 		
 		
-		PrintStats(player.PlayerStats);
+		PrintStats(player.StatBlock);
 	}
 	
 	private void _clear_card_box()
@@ -127,13 +127,13 @@ public partial class Hud : CanvasLayer
 		_selectedCard = card;
 	}
 	
-	public void PrintStats(PlayerStats stats)
+	public void PrintStats(StatBlockComponent stats)
 	{
-		_statsText.Text = $"Movement Speed: {stats.MovementSpeed}\n" +
-		                  $"Armor: {stats.Armor}\n"+
-		                  $"Life: {stats.Life}\n"+
-		                  $"Energy Shield: {stats.EnergyShield}\n"+
-		                  $"INT: {stats.Intelligence}\n"+
-		                  $"STR: {stats.Strength}\n";
+		_statsText.Text = $"Movement Speed: {stats.GetStat(StatType.MovementSpeed)}\n" +
+		                  $"Armor: {stats.GetStat(StatType.Armor)}\n"+
+		                  $"Life: {stats.GetStat(StatType.Life)}\n"+
+		                  $"Energy Shield: {stats.GetStat(StatType.EnergyShield)}\n"+
+		                  $"INT: {stats.GetStat(StatType.Int)}\n"+
+		                  $"STR: {stats.GetStat(StatType.Str)}\n";
 	}
 }

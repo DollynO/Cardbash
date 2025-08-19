@@ -8,7 +8,7 @@ namespace CardBase.Scripts.Abilities;
 public record ProjectileStats
 {
     public float Speed;
-    public Dictionary<DamageType, float> Damage;
+    public System.Collections.Generic.Dictionary<DamageType, Damage> Damage;
     public Vector2 StartPosition;
     public Vector2? Direction;
     public float TimeToBeALive;
@@ -45,7 +45,7 @@ public partial class Projectile : Node2D, ICustomSpawnObject
     public void SetStats(ProjectileStats pStats)
     {
         stats = pStats;
-        sprite.Texture = GD.Load<Texture2D>(stats.SpritePath);
+        sprite.Texture = IconLoader.Instance.LoadImage(stats.SpritePath);
     }
     
     public override void _Ready()

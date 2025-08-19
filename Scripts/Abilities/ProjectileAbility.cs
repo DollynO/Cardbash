@@ -28,7 +28,15 @@ public abstract class ProjectileAbility : Ability
     {
         var projectile_stats = GetProjectileStats();
         var abilitySpawner = Caller.GetTree().Root.GetNode<AbilitySpawner>("/root/Main/Game/AbilitySpawner");
-        
+
+        var damage = DamageCalculator.CalculateTotalDamage(
+            new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChange = 0.2f },
+            Caller.DamageModifier);
+        var godotDamage = new Dictionary<DamageType, Variant>();
+        foreach (var entry in damage)
+        {
+            godotDamage.Add(entry.Key, (Dictionary<string, Variant>)entry.Value.ToDict());
+        }
         var dict = new Dictionary<string, Variant>
         {
             ["spawn_properties"] = new SpawnerBaseProperties
@@ -37,9 +45,7 @@ public abstract class ProjectileAbility : Ability
                 CreatorId = Caller.PlayerId,
                 SpawnType = SpawnType.SpawnTypeProjectile
             }.ToDict(),
-            ["damage"] = DamageCalculator.CalculateTotalDamage(
-                new Damage {DamageNumber = (float)BaseDamage, Type = BaseType},
-                Caller.DamageModifier),
+            ["damage"] = godotDamage,
             ["speed"] = projectile_stats.Speed,
             ["direction"] = projectile_stats.Direction ?? Caller.GetLookAtDirection(),
             ["sprite_path"] = projectile_stats.SpritePath,

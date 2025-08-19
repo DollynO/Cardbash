@@ -14,7 +14,7 @@ public class MeleeConeProperties : IDictAble<MeleeConeProperties>
     public float Length { get; init; }
     public float AttackTime { get; init; }
     public PlayerCharacter Owner { get; set; }
-    public Godot.Collections.Dictionary<DamageType, float> Damage { get; init; }
+    public System.Collections.Generic.Dictionary<DamageType, Damage> Damage { get; init; }
 
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -25,7 +25,7 @@ public class MeleeConeProperties : IDictAble<MeleeConeProperties>
             ["Length"] = Length,
             ["AttackTime"] = AttackTime,
             ["OwnerId"] = Owner.PlayerId,
-            ["Damage"] = Damage,
+            ["Damage"] = DamageCalculator.ConvertDmgDictToGodotDict(Damage),
         };
         
         return dict;
@@ -39,7 +39,7 @@ public class MeleeConeProperties : IDictAble<MeleeConeProperties>
             Offset = (float)dict["Offset"],
             Length = (float)dict["Length"],
             AttackTime = (float)dict["AttackTime"],
-            Damage = (Godot.Collections.Dictionary<DamageType, float>)dict["Damage"]
+            Damage = DamageCalculator.ConvertGodotDmgDictToSystemDict((Godot.Collections.Dictionary<DamageType, Variant>)dict["Damage"])
         };
     } 
 }
@@ -52,7 +52,7 @@ public partial class MeleeCone : Node2D
     [Export] public float Length;
     [Export] public PlayerCharacter Owner;
     [Export] public float AttackTime;
-    private Godot.Collections.Dictionary<DamageType, float> Damage = new();
+    private System.Collections.Generic.Dictionary<DamageType, Damage> Damage = new();
     
     private float piOffset;
     private List<Vector2> points = new();
@@ -124,7 +124,7 @@ public partial class MeleeCone : Node2D
         this.Length = stats.Length;
         this.AttackTime = stats.AttackTime;
         this.Owner = stats.Owner;
-        this.Damage = new Godot.Collections.Dictionary<DamageType, float>(stats.Damage);
+        this.Damage = new System.Collections.Generic.Dictionary<DamageType, Damage>(stats.Damage);
 
     }
     
