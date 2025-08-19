@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using CardBase.Scripts;
 using CardBase.Scripts.Cards;
 
 public partial class CardTemlate : TextureRect
@@ -24,7 +25,7 @@ public partial class CardTemlate : TextureRect
 
             if (card.IconPath != null)
             {
-                Image.Texture = GD.Load<Texture2D>(card.IconPath);
+                Image.Texture = IconLoader.Instance.LoadImage(card.IconPath);
             }
         }
     }

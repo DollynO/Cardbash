@@ -106,7 +106,7 @@ public partial class DeckBuilder : Control
 			_deleteButton.Disabled = false;
 			_selectedDeck = deck;
 			_selectedDeckName.Text = _selectedDeck.DisplayName;
-			_selectedDeckIcon.Texture = _selectedDeck.Icon ?? GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png");
+			_selectedDeckIcon.Texture = _selectedDeck.Icon ?? IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png");
 			
 			display_selected_deck_cards();
 			return;

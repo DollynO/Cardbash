@@ -112,12 +112,12 @@ public partial class Deck : Node
     {
         return number switch
         {
-            (int)DeckIconNumber.Red => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Green => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Blue => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Violet => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Gold => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            _ => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png")
+            (int)DeckIconNumber.Red => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Green => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Blue => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Violet => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Gold => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            _ => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png")
         };
     }
 } 

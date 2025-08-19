@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Globalization;
+using CardBase.Scripts;
 using CardBase.Scripts.Abilities;
 
 public partial class AbilityFrame : TextureRect
@@ -48,6 +49,6 @@ public partial class AbilityFrame : TextureRect
 		}
 
 		_stackCount.Text = ability.MaxStack > 1 ? $"{ability.CurrentStack} / {ability.MaxStack}" : string.Empty;
-		_abilityIcon.Texture ??= GD.Load<Texture2D>(ability.IconPath);
+		_abilityIcon.Texture ??= IconLoader.Instance.LoadImage(ability.IconPath);
 	}
 }
