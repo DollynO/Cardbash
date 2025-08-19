@@ -1,0 +1,37 @@
+using System.Collections.Generic;
+using CardBase.Scripts.PlayerScripts;
+using Godot;
+
+namespace CardBase.Scripts.Abilities.Buffs;
+
+public class BurnDebuff : Buff
+{
+    private float base_damage;
+    private DamageType base_damage_type;
+    
+    public BurnDebuff(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    {
+        this.Description = "Burns the target";
+        this.DisplayName = "Burn";
+        this.IconPath = "res://Sprites/SkillIcons/Fire/19_Ignition.png";
+        this.Duration = 5;
+        this.base_damage = 200 / this.Duration;
+        this.base_damage_type = DamageType.Fire;
+    }
+
+    protected override void InternalOnActivate()
+    {
+    }
+
+    protected override void InternalOnTick(float delta)
+    {
+        var damages = DamageCalculator.CalculateTotalDamage(
+            new Damage { DamageNumber = base_damage * delta, AilmentChange = 0, Type = base_damage_type },
+            Caller.DamageModifier);
+        Target.ApplyDamage(damages, Caller);
+    }
+
+    protected override void InternalOnDeactivate()
+    {
+    }
+}
