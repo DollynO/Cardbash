@@ -1,4 +1,4 @@
-[gd_scene load_steps=51 format=3 uid="uid://hpbx14ma8p0v"]
+[gd_scene load_steps=54 format=3 uid="uid://hpbx14ma8p0v"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerCharacter.cs" id="1_sdal5"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
@@ -6,6 +6,8 @@
 [ext_resource type="Texture2D" uid="uid://c37nsb5ilblyd" path="res://Sprites/GameSprites/player.png" id="3_kf8vq"]
 [ext_resource type="Script" path="res://Scenes/PlayerAnimation.cs" id="4_xt6qq"]
 [ext_resource type="Texture2D" uid="uid://dqboie3r12b81" path="res://Sprites/DirectionArrow/direction_arrow_256.png" id="6_dieop"]
+[ext_resource type="Script" path="res://Scripts/PlayerScripts/StatBlockComponent.cs" id="7_j8r5e"]
+[ext_resource type="Script" path="res://Scripts/Abilities/Buffs/BuffManager.cs" id="8_djedk"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3kik1"]
 properties/0/path = NodePath(".:position")
@@ -341,17 +343,24 @@ shader_parameter/tolerance = 0.1
 shader_parameter/region_min = Vector2(0, 0)
 shader_parameter/region_max = Vector2(1, 1)
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera") groups=["Player"]]
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_5dv8y"]
+properties/0/path = NodePath(".:ReplicatedCurrent")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+
+[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "_buffManager") groups=["Player"]]
 collision_layer = 2
 script = ExtResource("1_sdal5")
 _inputSync = NodePath("InputSynchronizer")
 _playerAnimation = NodePath("AnimatedSprite2D")
+StatBlock = NodePath("StatBlockComponent")
 _playerNameLabel = NodePath("Label")
 _playerHealth = NodePath("Lifebar")
 _lookAtIndicator = NodePath("CenterNode/LookAtIndicator")
 _lookAtDirectionPoint = NodePath("CenterNode/LookAtDirectionPoint")
 _characterCenterPoint = NodePath("CenterNode")
 _camera = NodePath("Camera2D")
+_buffManager = NodePath("BuffManager")
 
 [node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_3kik1")
@@ -419,3 +428,13 @@ offset = Vector2(0, 250)
 position = Vector2(-0.000152588, 34)
 rotation = -0.47822
 scale = Vector2(0.2, 0.2)
+
+[node name="StatBlockComponent" type="Node" parent="." node_paths=PackedStringArray("sync")]
+script = ExtResource("7_j8r5e")
+sync = NodePath("StatSync")
+
+[node name="StatSync" type="MultiplayerSynchronizer" parent="StatBlockComponent"]
+replication_config = SubResource("SceneReplicationConfig_5dv8y")
+
+[node name="BuffManager" type="Node" parent="."]
+script = ExtResource("8_djedk")

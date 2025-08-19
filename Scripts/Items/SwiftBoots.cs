@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
 
@@ -14,6 +15,6 @@ public partial class SwiftBoots : Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.PlayerStats.MovementSpeed = (int)(player.PlayerStats.MovementSpeed * (1f + StatIncrease / 100f));
+        player.StatBlock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.MovementSpeed, StatOp.PercentAdd, StatIncrease / 100f));
     } 
 }

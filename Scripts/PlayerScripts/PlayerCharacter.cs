@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CardBase.Scripts.Abilities;
+using CardBase.Scripts.Abilities.Buffs;
+using CardBase.Scripts.Cards;
 using Godot;
 using Godot.Collections;
 
@@ -13,7 +16,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     private PlayerInput _playerInput;
     private GameManager _gameManager;
 
-    public PlayerStats PlayerStats = new();
+    [Export] public StatBlockComponent StatBlock;
     public readonly List<Ability> Abilities = new();
     public readonly List<DamageModifier> DamageModifier = new();
 
@@ -29,6 +32,8 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     private Camera2D _camera;
 
     private Rect2 _mapBounds;
+
+    [Export] private BuffManager _buffManager;
     
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
@@ -43,7 +48,9 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         }
     }
     private string _playerName;
-
+    
+    public Array<Card> Cards = new Array<Card>();
+    public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
     
@@ -51,7 +58,19 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     {
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
-        PlayerStats.MovementSpeed = 300;
+        StatBlock.Define(StatType.MovementSpeed, 300, 0);
+        StatBlock.Define(StatType.CurrentLife, 100);
+        StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity, new []
+            {
+                StatType.CurrentLife
+            });
+        StatBlock.Define(StatType.Armor, 0);
+        StatBlock.Define(StatType.EnergyShield, 0);
+        StatBlock.Define(StatType.CritBonus, 0);
+        StatBlock.Define(StatType.CritChance, 0);
+        StatBlock.Define(StatType.Int, 0);
+        StatBlock.Define(StatType.Str, 0);
+
         _playerHealth.MaxValue = 100;
         _gameManager = (GameManager)GetNode("/root/Main/Game");
         _playerAnimation.Material = _playerAnimation.Material.Duplicate() as ShaderMaterial;
@@ -85,13 +104,18 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     {
         if (Multiplayer.IsServer())
         {
-            if (!PlayerStats.IsDead)
+            if (!this.playerIsDead())
             {
                 _move(delta);
             }
         }
     }
-    
+
+    private bool playerIsDead()
+    {
+        return StatBlock.GetStat(StatType.CurrentLife) <= 0;
+    }
+
     public override void _Process(double delta)
     {
         ((PlayerAnimation)_playerAnimation).UpdateAnimation();
@@ -105,7 +129,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             
         }
 
-        _playerHealth.Value = PlayerStats.CurrentLife * 100 / PlayerStats.Life;
+        _playerHealth.Value = StatBlock.GetStat(StatType.CurrentLife) * 100 / StatBlock.GetStat(StatType.Life);
     }
 
     public Vector2 GetLookAtDirection()
@@ -123,65 +147,65 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         return _characterCenterPoint.GlobalPosition;
     }
 
-    public void ApplyDamage(Godot.Collections.Dictionary<DamageType, float> damage, PlayerCharacter attacker)
+    public void ApplyDamage(System.Collections.Generic.Dictionary<DamageType, Damage> damage, PlayerCharacter attacker)
     {
-        Rpc(MethodName.applyDamageServer, damage, long.Parse(attacker.Name));
+        var dict = new Godot.Collections.Dictionary<DamageType, Variant>();
+        foreach (var dmg in damage)
+        {
+            dict.Add(dmg.Key, dmg.Value.ToDict());
+        }
+        Rpc(MethodName.applyDamageServer, dict, long.Parse(attacker.Name));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void applyDamageServer(Godot.Collections.Dictionary<DamageType, float> damage, long attackerId)
+    private void applyDamageServer(Dictionary dict, long attackerId)
     {
         if (Multiplayer.IsServer())
         {
-            if (PlayerStats.IsDead)
+
+            var damage = new System.Collections.Generic.Dictionary<DamageType, Damage>();
+            foreach (var entry in dict)
+            {
+                damage.Add((DamageType)(int)entry.Key,
+                    Damage.FromDict((Godot.Collections.Dictionary<string, Variant>)entry.Value));
+            }
+            
+            if (playerIsDead())
             {
                 return;
             }
 
+            var attacker = _gameManager.GetPlayerCharacter(attackerId);
             foreach (var dmg in damage)
             {
                 var defenseStat = dmg.Key switch
                 {
-                    DamageType.Physical => PlayerStats.Armor,
-                    DamageType.Poison => PlayerStats.Armor,
+                    DamageType.Physical => StatBlock.GetStat(StatType.Armor),
+                    DamageType.Poison => StatBlock.GetStat(StatType.Armor),
                     DamageType.Darkness => 0,
                     DamageType.Holy => 0,
-                    DamageType.Fire => PlayerStats.EnergyShield,
-                    DamageType.Ice => PlayerStats.EnergyShield,
-                    DamageType.Lightning => PlayerStats.EnergyShield,
+                    DamageType.Fire => StatBlock.GetStat(StatType.EnergyShield),
+                    DamageType.Ice => StatBlock.GetStat(StatType.EnergyShield),
+                    DamageType.Lightning => StatBlock.GetStat(StatType.EnergyShield),
                     _ => 0,
                 };
 
-                var dr = defenseStat / (defenseStat + 5 * dmg.Value);
-                
-                this.PlayerStats.CurrentLife -= (int)(dmg.Value * (1 - dr));
+                var dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
+                StatBlock.AddModifiers(new StatModifier(Damage.SOURCE_MODIFIER_ID, StatType.CurrentLife, StatOp.FlatAdd, -(dmg.Value.DamageNumber * (1 - dr))));
+                ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChange, attacker);
             }
-            
-            Rpc(MethodName.SyncPlayerLife,  Name, PlayerStats.CurrentLife);
-            if (PlayerStats.CurrentLife > 0)
+
+            if (playerIsDead())
             {
-                return;
+                EmitSignal(SignalName.OnKilled, this, attacker);
             }
-
-            PlayerStats.IsDead = true;
-            var attacker = _gameManager.GetPlayerCharacter(attackerId);
-            EmitSignal(SignalName.OnKilled, this, attacker);
-        }
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    public void SyncPlayerLife(string name, int currenLife)
-    {
-        if (Name == name)
-        {
-            PlayerStats.CurrentLife = currenLife;
         }
     }
 
     private void _move(double delta)
     {
         var inputDir = new Vector2(_playerInput.XDirection, _playerInput.YDirection);
-        Velocity = inputDir * PlayerStats.MovementSpeed;
+        Velocity = inputDir * StatBlock.GetStat(StatType.MovementSpeed);
         MoveAndSlide();
     }
 
@@ -211,5 +235,34 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         property.Owner = this;
         cone.SetStats(property);
         _characterCenterPoint.AddChild(cone);
+    }
+
+    private void ApplyDamageTypeAilment(DamageType type, float ailmentChange, PlayerCharacter attacker)
+    {
+        if (ailmentChange < 1)
+        {
+            return;
+        }
+        
+        switch (type)
+        {
+            case DamageType.Fire:
+                _buffManager.ApplyBuff(new BurnDebuff(attacker, this));
+                break;
+            case DamageType.Physical:
+                break;
+            case DamageType.Poison:
+                break;
+            case DamageType.Ice:
+                break;
+            case DamageType.Lightning:
+                break;
+            case DamageType.Darkness:
+                break;
+            case DamageType.Holy:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(type), type, null);
+        }
     }
 }

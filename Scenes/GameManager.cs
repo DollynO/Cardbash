@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using CardBase.Scripts;
+using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
@@ -115,11 +116,7 @@ public partial class GameManager : Node2D
 		{
 			_spawn_player_character(player);
 		}
-
-		foreach (var playerDict in _currentCharacters)
-		{
-			Rpc(MethodName.SyncPlayerStats, playerDict.Key, playerDict.Value.PlayerStats.ToDict());
-		}
+		
 		Rpc(MethodName.StartDrawPhase);
 	}
 
@@ -154,12 +151,12 @@ public partial class GameManager : Node2D
 		node.PlayerName = playerName;
 		node.TeamId = teamId;
 		node.PlayerId = long.Parse(playerId);
-		node.PlayerStats.SetDefault();
+		
 		foreach (var cardCounter in deck.Cards)
 		{
 			for (var i = 0; i < cardCounter.Value.Count; i++)
 			{
-				node.PlayerStats.Cards.Add(cardCounter.Key);
+				node.Cards.Add(cardCounter.Key);
 			}
 		}
 		if (Multiplayer.IsServer())
@@ -184,7 +181,7 @@ public partial class GameManager : Node2D
 			throw new Exception();
 		}
 		
-		var cards = player.PlayerStats.Cards[..5].ToList();
+		var cards = player.Cards[..5].ToList();
 		_hud.ShowDrawUi(true, cards);
 	}
 
@@ -215,8 +212,6 @@ public partial class GameManager : Node2D
 					break;
 			}
 			var currentPlayer = _currentCharacters[id];
-			currentPlayer.PlayerStats.SetDefault();
-			Rpc(MethodName.SyncPlayerStats, id, _currentCharacters[id].PlayerStats.ToDict());
 			
 			_playersReady++;
 			if (_playersReady == _network.CurrentPlayers.Count)
@@ -239,13 +234,6 @@ public partial class GameManager : Node2D
 	}
 
 	[Rpc]
-	public void SyncPlayerStats(long id, Dictionary statsDict)
-	{
-		var player = GetPlayerCharacter(id);
-		player.PlayerStats.Update(PlayerStats.FromDict(statsDict));
-	}
-
-	[Rpc]
 	public void SyncPlayerName(long id, string name)
 	{
 		var player = GetPlayerCharacter(id);
@@ -255,7 +243,13 @@ public partial class GameManager : Node2D
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void StartGamePhase()
 	{
+		foreach (var entry in _currentCharacters)
+		{
+			var character = entry.Value;
+			character.StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
+		}
 		_hud.ShowDrawUi(false, null);
+		
 	}
 
 	public PlayerCharacter GetPlayerCharacter(long id)

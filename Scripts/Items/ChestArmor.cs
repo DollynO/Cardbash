@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
 
@@ -14,6 +15,6 @@ public partial class ChestArmor : Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.PlayerStats.Armor += StatIncrease;
+        player.StatBlock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.Armor, StatOp.FlatAdd, StatIncrease));
     }
 }

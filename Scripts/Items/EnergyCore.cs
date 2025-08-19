@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
 
@@ -14,6 +15,6 @@ public partial class EnergyCore : Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.PlayerStats.EnergyShield += StatIncrease;
+        player.StatBlock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.EnergyShield, StatOp.FlatAdd, StatIncrease));
     }
 }
