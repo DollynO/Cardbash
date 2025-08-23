@@ -33,7 +33,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
     private Rect2 _mapBounds;
 
-    [Export] private BuffManager _buffManager;
+    [Export] private BuffManagerComponent _buffManagerComponent;
     
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
@@ -247,7 +247,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         switch (type)
         {
             case DamageType.Fire:
-                _buffManager.ApplyBuff(new BurnDebuff(attacker, this));
+                _buffManagerComponent.ApplyBuff(new BurnDebuff(attacker, this));
                 break;
             case DamageType.Physical:
                 break;
@@ -264,5 +264,32 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
+    }
+
+    public void ApplyBuff(Buff buff)
+    {
+        if (Multiplayer.IsServer())
+        {
+            _buffManagerComponent.ApplyBuff(buff);
+        }
+        else
+        {
+            var dict = new Godot.Collections.Dictionary<string, Variant>()
+            {
+                { "guid", buff.Guid },
+                { "caller_id", buff.Caller.PlayerId },
+                { "target_id", buff.Target.PlayerId },
+            };
+            RpcId(1, MethodName.applyBuffServer, dict);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void applyBuffServer(Dictionary dict)
+    {
+        var caller = _gameManager.GetPlayerCharacter((long)dict["caller_id"]);
+        var target = _gameManager.GetPlayerCharacter((long)dict["target_id"]);
+        var buff = BuffManager.Create((string)dict["guid"], caller, target);
+        ApplyBuff(buff);
     }
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://hpbx14ma8p0v"]
+[gd_scene load_steps=55 format=3 uid="uid://hpbx14ma8p0v"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerCharacter.cs" id="1_sdal5"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dqboie3r12b81" path="res://Sprites/DirectionArrow/direction_arrow_256.png" id="6_dieop"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/StatBlockComponent.cs" id="7_j8r5e"]
 [ext_resource type="Script" path="res://Scripts/Abilities/Buffs/BuffManager.cs" id="8_djedk"]
+[ext_resource type="PackedScene" uid="uid://rpf5ncb47ax4" path="res://Prefabs/BuffIcon.tscn" id="9_kt5jm"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3kik1"]
 properties/0/path = NodePath(".:position")
@@ -436,5 +437,26 @@ sync = NodePath("StatSync")
 [node name="StatSync" type="MultiplayerSynchronizer" parent="StatBlockComponent"]
 replication_config = SubResource("SceneReplicationConfig_5dv8y")
 
-[node name="BuffManager" type="Node" parent="."]
+[node name="BuffManager" type="Node" parent="." node_paths=PackedStringArray("buffContainer")]
 script = ExtResource("8_djedk")
+buffContainer = NodePath("BuffContainer")
+
+[node name="BuffContainer" type="HBoxContainer" parent="BuffManager"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -1060.0
+offset_top = -630.0
+offset_right = -860.0
+offset_bottom = -610.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="BuffsIcon" parent="BuffManager/BuffContainer" instance=ExtResource("9_kt5jm")]
+layout_mode = 2
+
+[node name="BuffsIcon2" parent="BuffManager/BuffContainer" instance=ExtResource("9_kt5jm")]
+layout_mode = 2

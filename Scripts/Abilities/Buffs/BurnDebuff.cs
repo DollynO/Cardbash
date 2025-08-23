@@ -17,6 +17,7 @@ public class BurnDebuff : Buff
         this.Duration = 5;
         this.base_damage = 200 / this.Duration;
         this.base_damage_type = DamageType.Fire;
+        this.Guid = "088DF86D-7101-4BBF-A331-17B625D11379";
     }
 
     protected override void InternalOnActivate()

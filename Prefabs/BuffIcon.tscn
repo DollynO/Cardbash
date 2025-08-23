@@ -1,0 +1,33 @@
+[gd_scene load_steps=3 format=3 uid="uid://rpf5ncb47ax4"]
+
+[ext_resource type="Script" path="res://Prefabs/BuffIcon.cs" id="1_ffmap"]
+[ext_resource type="Texture2D" uid="uid://cpuk0ljyiknsu" path="res://Sprites/SkillIcons/Fire/19_Ignition.png" id="2_fvvwx"]
+
+[node name="Control" type="TextureRect"]
+custom_minimum_size = Vector2(20, 20)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1900.0
+offset_bottom = -1060.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_fvvwx")
+expand_mode = 3
+stretch_mode = 4
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+value = 30.0
+fill_mode = 2
+show_percentage = false
+
+[node name="BuffsIcon" type="Node2D" parent="." node_paths=PackedStringArray("TimerBar", "IconRect")]
+script = ExtResource("1_ffmap")
+TimerBar = NodePath("../ProgressBar")
+IconRect = NodePath("..")

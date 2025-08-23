@@ -1,14 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities.Buffs;
 
 [GlobalClass]
-public partial class BuffManager : Node
+public partial class BuffManagerComponent : Node
 {
     private List<Buff> activeBuffs = new();
+    [Export] private HBoxContainer buffContainer;
 
     public override void _Ready()
     {
@@ -42,15 +45,31 @@ public partial class BuffManager : Node
         if (existing == null)
         {
             activeBuffs.Add(buff);
+            var buffIcon = new BuffIcon();
+            buffIcon.SetBuff(ref buff);
+            buffContainer.AddChild(buffIcon);
         }
         
         buff.OnActivate();
-        //RpcId(buff.Target.PlayerId, nameof(rpcUpdateBuff), buff.ToDict());
+
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void rpcUpdateBuff(Dictionary buffDict)
     {
-        
+           
+    }
+}
+
+public static class BuffManager
+{
+    public static System.Collections.Generic.Dictionary<string, Func<PlayerCharacter, PlayerCharacter, Buff>> Abilities = new()
+    {
+        {"088DF86D-7101-4BBF-A331-17B625D11379", (creator, target)=>new BurnDebuff(creator, target)},
+    };
+    
+    public static Buff Create(string GUID, PlayerCharacter creator, PlayerCharacter target)
+    {
+        return Abilities.TryGetValue(GUID, out var constructor) ? constructor(creator, target) : null;
     }
 }

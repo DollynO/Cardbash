@@ -1,11 +1,15 @@
+using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using CardBase.Scripts.PlayerScripts;
+using Godot;
+using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities.Buffs;
 
 public abstract class Buff : IBuff
 {
+    public string Guid { get; protected set; }
     public string DisplayName { get; protected set; }
     public string Description { get; protected set; }
     public string IconPath { get; protected set; }

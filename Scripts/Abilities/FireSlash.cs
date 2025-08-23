@@ -20,24 +20,11 @@ public class FireSlash : Ability
     {
         Caller.RequestMeleeCone(new MeleeConeProperties
         {
-            Angle =45,
-            AttackTime = 1,
-            Damage = new System.Collections.Generic.Dictionary<DamageType, Damage>
-            {
-                { DamageType.Physical, new Damage() {DamageNumber = 20f, AilmentChange =Damage.DEFAULT_AILMENT_CHANGE, Type = DamageType.Physical}}
-            },
-            Length = 120,
-            Offset = 0,
-            Owner = Caller,
-        });
-        
-        Caller.RequestMeleeCone(new MeleeConeProperties
-        {
             Angle = 120,
             AttackTime = 2,
             Damage = new System.Collections.Generic.Dictionary<DamageType, Damage>
             {
-                { DamageType.Fire, new Damage() {DamageNumber = 40f, AilmentChange = Damage.DEFAULT_AILMENT_CHANGE + 1, Type = DamageType.Fire}}
+                { DamageType.Fire, new Damage() {DamageNumber = 1f, AilmentChange = Damage.DEFAULT_AILMENT_CHANGE + 1, Type = DamageType.Fire}}
             },
             Length = 80,
             Offset = 0,
