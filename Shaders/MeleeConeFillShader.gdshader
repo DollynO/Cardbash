@@ -7,5 +7,5 @@ void fragment() {
 	vec2 uv = UV;
     if ( length(uv) < fill_amount / 200.0f) {
         COLOR = fill_color;
-    } 
+    }
 }

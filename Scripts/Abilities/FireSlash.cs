@@ -1,6 +1,6 @@
+using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
-using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities;
 
@@ -18,6 +18,7 @@ public class FireSlash : Ability
 
     public override void Use()
     {
+        Caller.ApplyBuff(new BurnDebuff(Caller, Caller));
         Caller.RequestMeleeCone(new MeleeConeProperties
         {
             Angle = 120,

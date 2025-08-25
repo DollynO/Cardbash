@@ -14,8 +14,8 @@ public class BurnDebuff : Buff
         this.Description = "Burns the target";
         this.DisplayName = "Burn";
         this.IconPath = "res://Sprites/SkillIcons/Fire/19_Ignition.png";
-        this.Duration = 5;
-        this.base_damage = 200 / this.Duration;
+        this.Duration = 10;
+        this.base_damage = 1 / this.Duration;
         this.base_damage_type = DamageType.Fire;
         this.Guid = "088DF86D-7101-4BBF-A331-17B625D11379";
     }
