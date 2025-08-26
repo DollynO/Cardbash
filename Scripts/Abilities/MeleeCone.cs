@@ -93,7 +93,7 @@ public partial class MeleeCone : Node2D
         if (Multiplayer.IsServer())
         {
             AddChild(detectArea);
-            detectArea.CollisionMask = 2;
+            detectArea.CollisionMask = 4;
             detectArea.AddChild(collisionPolygon);
         }
 
@@ -189,7 +189,7 @@ public partial class MeleeCone : Node2D
         {
             From = GlobalPosition,
             To = destination,
-            CollisionMask = 1,
+            CollisionMask = 1+2,
             Exclude = new Array<Rid> { Owner.GetRid() },
         };
         

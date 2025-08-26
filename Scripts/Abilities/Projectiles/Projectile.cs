@@ -31,7 +31,7 @@ public partial class Projectile : Node2D, ICustomSpawnObject
     [Export] private CollisionShape2D collisionShape;
     private IHitableObject _lastCollider;
     private PhysicsDirectSpaceState2D _state;
-    private uint collisionMask = 1 + 2;
+    private uint collisionMask = 1 + 4;
 
     [Signal]
     public delegate void OnDestroyedEventHandler(Vector2 position);

@@ -151,6 +151,11 @@ public partial class GameManager : Node2D
 		node.PlayerName = playerName;
 		node.TeamId = teamId;
 		node.PlayerId = long.Parse(playerId);
+		var random = new Random();
+		var mapBounds = GetMapBoundry();
+		node.GlobalPosition = new Vector2(
+			random.Next((int)mapBounds.Position.X + 10, (int)(mapBounds.Size.X - 10 + mapBounds.Position.X)),
+			random.Next((int)mapBounds.Position.Y + 10, (int)(mapBounds.Size.Y - 10 + mapBounds.Position.Y)));
 		
 		foreach (var cardCounter in deck.Cards)
 		{
