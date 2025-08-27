@@ -70,6 +70,8 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         StatBlock.Define(StatType.CritChance, 0);
         StatBlock.Define(StatType.Int, 0);
         StatBlock.Define(StatType.Str, 0);
+        StatBlock.Define(StatType.Darkness, 0);
+        StatBlock.Define(StatType.Blinding, 0);
 
         _playerHealth.MaxValue = 100;
         _gameManager = (GameManager)GetNode("/root/Main/Game");

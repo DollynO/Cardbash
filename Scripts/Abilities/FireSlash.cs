@@ -18,7 +18,10 @@ public class FireSlash : Ability
 
     public override void Use()
     {
-        Caller.ApplyBuff(new BurnDebuff(Caller, Caller));
+        Caller.ApplyBuff(new Darkness(Caller, Caller));
+        Caller.ApplyBuff(new Darkness(Caller, Caller));
+        Caller.ApplyBuff(new Darkness(Caller, Caller));
+        Caller.ApplyBuff(new Darkness(Caller, Caller));
         Caller.RequestMeleeCone(new MeleeConeProperties
         {
             Angle = 120,

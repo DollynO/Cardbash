@@ -23,6 +23,8 @@ public enum StatType
     CritBonus,
     Int,
     Str,
+    Darkness,
+    Blinding,
 }
 
 public sealed class StatBlock

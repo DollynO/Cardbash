@@ -13,6 +13,7 @@ public partial class Hud : CanvasLayer
 	[Export] private TextEdit _statsText;
 	[Export] private Label _waitLabel;
 	[Export] private HBoxContainer _cardBox;
+	[Export] private ColorRect _darknessEffect;
 	
 	private PackedScene _abilityCardTemplate;
 	private PackedScene _itemCardTemplate;
@@ -70,7 +71,7 @@ public partial class Hud : CanvasLayer
 			}
 		}
 		
-		
+		((ShaderMaterial)_darknessEffect.Material).SetShaderParameter("fill_amount", Math.Clamp(player.StatBlock.GetStat(StatType.Darkness) * 0.1, 0, 1));
 		PrintStats(player.StatBlock);
 	}
 	

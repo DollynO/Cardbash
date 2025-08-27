@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=4 uid="uid://dshvuihnhyh7b"]
+[gd_scene load_steps=20 format=4 uid="uid://dshvuihnhyh7b"]
 
 [ext_resource type="Script" path="res://Scenes/GameManager.cs" id="1_awesl"]
 [ext_resource type="PackedScene" uid="uid://hpbx14ma8p0v" path="res://Scenes/PlayerCharacter.tscn" id="2_dr7ob"]
@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://d20d1pbggem0u" path="res://Sprites/GameSprites/Tilesets/TX Tileset Stone Ground.png" id="5_fgcmq"]
 [ext_resource type="PackedScene" uid="uid://cyhc4x42utdgo" path="res://Scenes/Projectile.tscn" id="5_mci88"]
 [ext_resource type="Texture2D" uid="uid://xuhxt6p0201i" path="res://Sprites/GameSprites/Tilesets/TX Tileset Wall.png" id="6_vi2nn"]
+[ext_resource type="Shader" path="res://Shaders/DarknessShader.gdshader" id="10_wx1yi"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_khshi"]
 resource_name = "Background"
@@ -336,6 +337,16 @@ sources/1 = SubResource("TileSetAtlasSource_2j0ra")
 sources/2 = SubResource("TileSetAtlasSource_nthh8")
 sources/3 = SubResource("TileSetAtlasSource_jjjta")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cerkr"]
+shader = ExtResource("10_wx1yi")
+shader_parameter/fill_amount = 0.0
+shader_parameter/edge_softness = 0.187
+shader_parameter/darkness = 1.0
+shader_parameter/center = Vector2(0.5, 0.5)
+shader_parameter/noise_scale = 15.0
+shader_parameter/noise_strength = 0.517
+shader_parameter/noise_speed = 4.0
+
 [node name="Game" type="Node2D" node_paths=PackedStringArray("_spawner", "_hud", "_tileMapLayer")]
 script = ExtResource("1_awesl")
 _playerCharScene = ExtResource("2_dr7ob")
@@ -358,7 +369,7 @@ script = ExtResource("4_t1org")
 projectileScene = ExtResource("5_mci88")
 gameManager = NodePath("..")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect")]
 layer = 5
 script = ExtResource("4_e1s5y")
 _abilityFrames = [NodePath("HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/AbilityFrame4")]
@@ -366,6 +377,18 @@ _drawUiContainer = NodePath("DrawUi")
 _statsText = NodePath("StatsEdit")
 _waitLabel = NodePath("DrawUi/WaitLabel")
 _cardBox = NodePath("DrawUi/VBoxContainer/CardBox")
+_darknessEffect = NodePath("DarknessEffect")
+
+[node name="DarknessEffect" type="ColorRect" parent="HUD"]
+material = SubResource("ShaderMaterial_cerkr")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+color = Color(1, 1, 1, 0)
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HUD"]
 anchors_preset = 7
