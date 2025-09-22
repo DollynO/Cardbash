@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Abilities.Buffs;
@@ -38,6 +39,8 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
     
+    private Random rnd = new Random();
+    
     public string PlayerName
     {
         get => _playerName;
@@ -54,22 +57,22 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
     
+    private System.Collections.Generic.Dictionary<PlayerCharacter, Darkness> _darknessInstances;
+    private System.Collections.Generic.Dictionary<PlayerCharacter, PoisonDebuff> _poisonInstances;
+    
+    [Export]
+    private float _roundMaxLife;
+
     public override void _EnterTree()
     {
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
         StatBlock.Define(StatType.MovementSpeed, 300, 0);
-        StatBlock.Define(StatType.CurrentLife, 100);
-        StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity, new []
-            {
-                StatType.CurrentLife
-            });
+        StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity);
         StatBlock.Define(StatType.Armor, 0);
         StatBlock.Define(StatType.EnergyShield, 0);
         StatBlock.Define(StatType.CritBonus, 0);
         StatBlock.Define(StatType.CritChance, 0);
-        StatBlock.Define(StatType.Int, 0);
-        StatBlock.Define(StatType.Str, 0);
         StatBlock.Define(StatType.Darkness, 0);
         StatBlock.Define(StatType.Blinding, 0);
 
@@ -115,7 +118,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
     private bool playerIsDead()
     {
-        return StatBlock.GetStat(StatType.CurrentLife) <= 0;
+        return StatBlock.GetStat(StatType.Life) <= 0;
     }
 
     public override void _Process(double delta)
@@ -129,9 +132,12 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                 Abilities[i].UpdateCooldown(delta);
             }
             
+        } else if (Multiplayer.IsServer())
+        {
+            
         }
 
-        _playerHealth.Value = StatBlock.GetStat(StatType.CurrentLife) * 100 / StatBlock.GetStat(StatType.Life);
+        _playerHealth.Value = StatBlock.GetStat(StatType.Life) * 100 / this._roundMaxLife;
     }
 
     public Vector2 GetLookAtDirection()
@@ -149,41 +155,44 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         return _characterCenterPoint.GlobalPosition;
     }
 
-    public void ApplyDamage(System.Collections.Generic.Dictionary<DamageType, Damage> damage, PlayerCharacter attacker)
+    public void ApplyDamage(HitContext ctx)
     {
-        var dict = new Godot.Collections.Dictionary<DamageType, Variant>();
-        foreach (var dmg in damage)
-        {
-            dict.Add(dmg.Key, dmg.Value.ToDict());
-        }
-        Rpc(MethodName.applyDamageServer, dict, long.Parse(attacker.Name));
+        
+        Rpc(MethodName.applyDamageServer, ctx.ToDict());
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void applyDamageServer(Dictionary dict, long attackerId)
+    private void applyDamageServer(Godot.Collections.Dictionary<string, Variant> dict)
     {
         if (Multiplayer.IsServer())
         {
-
-            var damage = new System.Collections.Generic.Dictionary<DamageType, Damage>();
-            foreach (var entry in dict)
-            {
-                damage.Add((DamageType)(int)entry.Key,
-                    Damage.FromDict((Godot.Collections.Dictionary<string, Variant>)entry.Value));
-            }
+            var ctx = HitContext.FromDict(dict, _gameManager);
             
             if (playerIsDead())
             {
                 return;
             }
+            
+            var hitMods = ctx.Source.GetHitModifiers();
+            var abilityHitMods = ctx.Source.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid)?.GetHitModifiers();
+            if (abilityHitMods != null)
+            {
+                hitMods.AddRange(abilityHitMods);
+            }
 
-            var attacker = _gameManager.GetPlayerCharacter(attackerId);
-            foreach (var dmg in damage)
+            foreach (var mod in hitMods)
+            {
+                mod.ApplyBefore(ctx);
+            }
+            
+            DamageCalculator.CalculateTotalDamage(ctx.Damages, ctx.Source.DamageModifier);
+
+            // apply mitigation
+            foreach (var dmg in ctx.Damages)
             {
                 var defenseStat = dmg.Key switch
                 {
-                    DamageType.Physical => StatBlock.GetStat(StatType.Armor),
-                    DamageType.Poison => StatBlock.GetStat(StatType.Armor),
+                    DamageType.Physical or DamageType.Poison => StatBlock.GetStat(StatType.Armor),
                     DamageType.Darkness => 0,
                     DamageType.Holy => 0,
                     DamageType.Fire => StatBlock.GetStat(StatType.EnergyShield),
@@ -193,13 +202,20 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                 };
 
                 var dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
-                StatBlock.AddModifiers(new StatModifier(Damage.SOURCE_MODIFIER_ID, StatType.CurrentLife, StatOp.FlatAdd, -(dmg.Value.DamageNumber * (1 - dr))));
-                ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChange, attacker);
+                ctx.Damages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
+                StatBlock.AddModifiers(new StatModifier(Damage.SOURCE_MODIFIER_ID, StatType.Life, StatOp.FlatAdd, -ctx.Damages[dmg.Key].DamageNumber));
+                ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChange, ctx.Source);
             }
 
             if (playerIsDead())
             {
-                EmitSignal(SignalName.OnKilled, this, attacker);
+                EmitSignal(SignalName.OnKilled, this, ctx.Source);
+                _buffManagerComponent.ClearAllBuffs();
+            }
+
+            foreach (var mod in hitMods)
+            {
+                mod.ApplyAfter(ctx);
             }
         }
     }
@@ -239,9 +255,10 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         _characterCenterPoint.AddChild(cone);
     }
 
-    private void ApplyDamageTypeAilment(DamageType type, float ailmentChange, PlayerCharacter attacker)
+    private void ApplyDamageTypeAilment(DamageType type, float ailmentChance, PlayerCharacter attacker)
     {
-        if (ailmentChange < 1)
+        var chance = rnd.Next(0, 100) / 100;
+        if (chance > ailmentChance)
         {
             return;
         }
@@ -254,12 +271,26 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             case DamageType.Physical:
                 break;
             case DamageType.Poison:
+                if (!_poisonInstances.ContainsKey(attacker))
+                {
+                    _poisonInstances.Add(attacker, new PoisonDebuff(attacker, this));
+                }
+                var poison =  _poisonInstances[attacker];
+                _buffManagerComponent.ApplyBuff(poison);
                 break;
             case DamageType.Ice:
+                _buffManagerComponent.ApplyBuff(new Frost(attacker, this));
                 break;
             case DamageType.Lightning:
+                _buffManagerComponent.ApplyBuff(new ShockDebuff(attacker, this));
                 break;
             case DamageType.Darkness:
+                if (!_darknessInstances.ContainsKey(attacker))
+                {
+                    _darknessInstances.Add(attacker, new Darkness(attacker, this));
+                }
+                var darkness =  _darknessInstances[attacker];
+                _buffManagerComponent.ApplyBuff(darkness);
                 break;
             case DamageType.Holy:
                 break;
@@ -286,6 +317,31 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         }
     }
 
+    public int ConsumeBuffType(DamageType type)
+    {
+        if (Multiplayer.IsServer())
+        {
+            return this._buffManagerComponent.ConsumeBuffType(type);
+        }
+
+        return 0;
+    }
+
+    public int ConsumeBuff(Type type)
+    {
+        if (type.BaseType != typeof(Buff))
+        {
+            return 0;
+        }
+        
+        if (Multiplayer.IsServer())
+        {
+            return this._buffManagerComponent.ConsumeBuff(type);
+        }
+
+        return 0;
+    }
+
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void applyBuffServer(Dictionary dict)
     {
@@ -293,5 +349,32 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         var target = _gameManager.GetPlayerCharacter((long)dict["target_id"]);
         var buff = BuffManager.Create((string)dict["guid"], caller, target);
         ApplyBuff(buff);
+    }
+
+    public List<IHitModifier> GetHitModifiers()
+    {
+        return new List<IHitModifier>();
+    }
+
+    public void RequestReposition(Vector2 newPosition)
+    {
+        var dict = new Godot.Collections.Dictionary<string, Variant>
+        {
+            ["position"] = newPosition
+        };
+        RpcId(1, MethodName.repositionServer, dict);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void repositionServer(Godot.Collections.Dictionary<string, Variant> data)
+    {
+        this.GlobalPosition = (Vector2)data["position"];
+    }
+
+    public void RoundReset()
+    {
+        _buffManagerComponent.ClearAllBuffs();
+        StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
+        this._roundMaxLife = StatBlock.GetStat(StatType.Life);
     }
 }

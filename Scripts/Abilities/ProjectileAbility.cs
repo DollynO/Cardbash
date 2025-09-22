@@ -8,20 +8,23 @@ namespace CardBase.Scripts.Abilities;
 public abstract class ProjectileAbility : Ability
 {
     private PackedScene ProjectileScene = GD.Load<PackedScene>("res://Scenes//Projectile.tscn");
+
+    protected int SpawnCount;
+    protected float SpawnDelay;
     
     protected ProjectileAbility(string guid, PlayerCharacter creator) : base(guid, creator)
     {
     }
 
-    protected virtual void InternalUse()
+    protected virtual void PostSpawnProjectile()
     {
         
     }
     
-    public override void Use()
+    public override void InternalUse()
     {
         SpawnProjectile();
-        InternalUse();
+        PostSpawnProjectile();
     }
 
     private void SpawnProjectile()
@@ -29,32 +32,23 @@ public abstract class ProjectileAbility : Ability
         var projectile_stats = GetProjectileStats();
         var abilitySpawner = Caller.GetTree().Root.GetNode<AbilitySpawner>("/root/Main/Game/AbilitySpawner");
 
-        var damage = DamageCalculator.CalculateTotalDamage(
-            new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChange = 0.2f },
-            Caller.DamageModifier);
-        var godotDamage = new Dictionary<DamageType, Variant>();
-        foreach (var entry in damage)
-        {
-            godotDamage.Add(entry.Key, (Dictionary<string, Variant>)entry.Value.ToDict());
-        }
+        var damage = new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChange = BaseAilmentChance };
+        projectile_stats.Damage = damage;
+        projectile_stats.StartPosition = Caller.GetProjectileStartPosition();
+        projectile_stats.Caller = Caller;
         var dict = new Dictionary<string, Variant>
         {
             ["spawn_properties"] = new SpawnerBaseProperties
             {
                 AbilityGuid = GUID,
                 CreatorId = Caller.PlayerId,
-                SpawnType = SpawnType.SpawnTypeProjectile
+                SpawnType = SpawnType.SpawnTypeProjectile,
+                SpawnCount = SpawnCount,
+                SpawnDelay = SpawnDelay,
+                
             }.ToDict(),
-            ["damage"] = godotDamage,
-            ["speed"] = projectile_stats.Speed,
-            ["direction"] = projectile_stats.Direction ?? Caller.GetLookAtDirection(),
-            ["sprite_path"] = projectile_stats.SpritePath,
-            ["time_to_be_a_live"] = projectile_stats.TimeToBeALive,
-            ["caller_id"] = Caller.PlayerId,
-            ["piercing_count"] =  projectile_stats.PiercingCount,
-            ["bouncing_count"] = projectile_stats.BouncingCount,
-            ["start_position"] = Caller.GetProjectileStartPosition()
-        };
+            ["object_stats"] = projectile_stats.ToDict(),
+            };
         abilitySpawner.SpawnObject(dict);
     }
 

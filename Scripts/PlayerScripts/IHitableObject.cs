@@ -5,5 +5,5 @@ namespace CardBase.Scripts.PlayerScripts;
 
 public interface IHitableObject
 {
-    public void ApplyDamage(Dictionary<DamageType, Damage> damage, PlayerCharacter attacker);
+    public void ApplyDamage(HitContext ctx);
 }

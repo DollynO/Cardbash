@@ -148,11 +148,13 @@ public partial class LobbyManager : ColorRect
 	private void _on_team_selected(int index)
 	{
 		_currentPlayer.TeamNumber = index;
+		_currentPlayer.IsReady = false;
 	}
 
 	private void _on_deck_selected(int index)
 	{
 		_currentPlayer.SelectedDeck = GlobalCardManager.Instance.Decks[index];
+		_currentPlayer.IsReady = false;
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]

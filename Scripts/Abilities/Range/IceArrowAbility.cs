@@ -10,13 +10,11 @@ public class IceArrowAbility : ProjectileAbility
        this.DisplayName = "Ice Arrow";
        this.Description = "Fires an ice arrow";
        this.IconPath = "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png";
-       this.BaseCooldown = 1;
-       this.BaseDamage = 50;
+       this.BaseCooldown = 10;
+       this.BaseDamage = 5;
        this.BaseType = DamageType.Ice;
-    }
-
-    protected override void InternalUse()
-    {
+       this.SpawnCount = 2;
+       this.SpawnDelay = 0.5f;
     }
 
     protected override ProjectileStats GetProjectileStats()
@@ -25,11 +23,13 @@ public class IceArrowAbility : ProjectileAbility
         {
             Caller = Caller,
             Direction = null,
-            Speed = 300,
+            Speed = 500,
             TimeToBeALive = 4,
             SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
             BouncingCount = 3,
-            PiercingCount = 1
+            PiercingCount = 1,
+            Scale = new Vector2(0.33f, 0.33f),
+            Color = new Vector3(0.256f, 0.757f, 0.914f),
         };
     }
 

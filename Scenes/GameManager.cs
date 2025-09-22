@@ -4,6 +4,7 @@ using System.Linq;
 using Godot;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities;
+using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
@@ -20,6 +21,7 @@ public partial class GameManager : Node2D
 	[Export] private MultiplayerSpawner _spawner;
 	[Export] private Hud _hud;
 	[Export] private TileMapLayer _tileMapLayer;
+	[Export] private Node2D _spawnPoint;
 	
 	private Godot.Collections.Dictionary<long, PlayerCharacter> _currentCharacters = new();
 	private PlayerCharacter _currentPlayer;
@@ -131,8 +133,6 @@ public partial class GameManager : Node2D
 			{ "deck", deckDict}
 		};
 		_spawner.Spawn(dict);
-		//_spawner.AddChild(character, true);
-		//Rpc(MethodName.SyncPlayerName, int.Parse(player.Name), player.Username);
 	}
 	
 	private Node CustomSpawner(Variant data)
@@ -152,11 +152,13 @@ public partial class GameManager : Node2D
 		node.TeamId = teamId;
 		node.PlayerId = long.Parse(playerId);
 		var random = new Random();
-		var mapBounds = GetMapBoundry();
-		node.GlobalPosition = new Vector2(
-			random.Next((int)mapBounds.Position.X + 10, (int)(mapBounds.Size.X - 10 + mapBounds.Position.X)),
-			random.Next((int)mapBounds.Position.Y + 10, (int)(mapBounds.Size.Y - 10 + mapBounds.Position.Y)));
+		var offset = 600;
+		var angle = random.NextDouble() * Math.Tau;
+		var randomSpawn = new Vector2(
+			(float)Math.Cos(angle) * offset,
+			(float)Math.Sin(angle) * offset);
 		
+		node.GlobalPosition = _spawnPoint.GlobalPosition + randomSpawn;
 		foreach (var cardCounter in deck.Cards)
 		{
 			for (var i = 0; i < cardCounter.Value.Count; i++)
@@ -186,7 +188,24 @@ public partial class GameManager : Node2D
 			throw new Exception();
 		}
 		
-		var cards = player.Cards[..5].ToList();
+		var cards = new List<Card>();
+		if (player.Cards.Count <= 5)
+		{
+			cards.AddRange(player.Cards);
+		}
+		else
+		{
+			var rng = new Random();
+			while (cards.Count < 5)
+			{
+				var card = player.Cards[rng.Next(0, player.Cards.Count)];
+				if (!cards.Contains(card))
+				{
+					cards.Add(card);
+				}
+			}
+		}
+
 		_hud.ShowDrawUi(true, cards);
 	}
 
@@ -217,6 +236,7 @@ public partial class GameManager : Node2D
 					break;
 			}
 			var currentPlayer = _currentCharacters[id];
+			currentPlayer.Cards.Remove(currentPlayer.Cards.FirstOrDefault(c => c.EffectGUID == card.EffectGUID));
 			
 			_playersReady++;
 			if (_playersReady == _network.CurrentPlayers.Count)
@@ -251,7 +271,7 @@ public partial class GameManager : Node2D
 		foreach (var entry in _currentCharacters)
 		{
 			var character = entry.Value;
-			character.StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
+			character.RoundReset();
 		}
 		_hud.ShowDrawUi(false, null);
 		

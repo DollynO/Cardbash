@@ -14,10 +14,12 @@ public abstract class Buff : IBuff
     public string Description { get; protected set; }
     public string IconPath { get; protected set; }
     public float Duration { get; protected set; }
-    public float RemainingDuration { get; protected set; }
+    public float RemainingDuration { get; set; }
     public PlayerCharacter Caller { get; protected set; }
     public PlayerCharacter Target { get; protected set; }
     
+    public DamageType BuffType { get; protected set; }
+
     protected bool IsStackable { get; set; }
     protected bool StackedDeactivation { get; set; }
     public int StackCount { get; private set; }
@@ -71,6 +73,7 @@ public abstract class Buff : IBuff
     public void OnDeactivate()
     {
         InternalOnDeactivate();
+        this.StackCount = 0;
     }
     
     protected abstract void InternalOnDeactivate();

@@ -13,6 +13,9 @@
 properties/0/path = NodePath(".:position")
 properties/0/spawn = true
 properties/0/replication_mode = 1
+properties/1/path = NodePath(".:_roundMaxLife")
+properties/1/spawn = true
+properties/1/replication_mode = 1
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_fv7tp"]
 properties/0/path = NodePath("InputSynchronizer:XDirection")
@@ -350,7 +353,7 @@ properties/0/replication_mode = 2
 
 [node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "_buffManagerComponent") groups=["Player"]]
 collision_layer = 4
-collision_mask = 6
+collision_mask = 7
 script = ExtResource("1_sdal5")
 _inputSync = NodePath("InputSynchronizer")
 _playerAnimation = NodePath("AnimatedSprite2D")

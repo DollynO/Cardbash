@@ -15,7 +15,8 @@ public partial class BuffManagerComponent : Node2D
     private System.Collections.Generic.Dictionary<string, Buff> queuedBuffs = new();
     private BuffRow2D buffRow;
     private MultiplayerSpawner spawner;
-    
+    private bool processRunning;
+
 
     public override void _Ready()
     {
@@ -53,12 +54,18 @@ public partial class BuffManagerComponent : Node2D
 
         foreach (var buff in expiredBuffs)
         {
+            RemoveBuff(buff);
             activeBuffs.Remove(buff);
-            if (buffIcons.ContainsKey(buff))
-            {
-                buffRow.RemoveBuffIcon(buffIcons[buff]);
-                buffIcons.Remove(buff);
-            }
+        }
+    }
+
+    private void RemoveBuff(Buff buff)
+    {
+        buff.OnDeactivate();
+        if (buffIcons.ContainsKey(buff))
+        {
+            buffRow.RemoveBuffIcon(buffIcons[buff]);
+            buffIcons.Remove(buff);
         }
     }
 
@@ -83,7 +90,35 @@ public partial class BuffManagerComponent : Node2D
         }
         
         buff.OnActivate();
+    }
 
+    public int ConsumeBuff(Type consumeType)
+    {
+        if (consumeType.BaseType != typeof(Buff))
+        {
+            throw new ArgumentException("wrong consume type");
+        }
+        
+        var buffCounts = this.activeBuffs.Where(b => b.GetType() == consumeType).ToList();
+        var count = buffCounts.Count;
+        foreach (var buff in buffCounts)
+        {
+            buff.RemainingDuration = 0;
+        }
+
+        return count;  
+    }
+    
+    public int ConsumeBuffType(DamageType type)
+    {
+        var buffCounts = this.activeBuffs.Where(b => b.BuffType == type).ToList();
+        var count = buffCounts.Count;
+        foreach (var buff in buffCounts)
+        {
+            buff.RemainingDuration = 0;
+        }
+
+        return count;  
     }
     
     private Node CustomSpawner(Variant data)
@@ -99,5 +134,22 @@ public partial class BuffManagerComponent : Node2D
     private void OnIconSpawned(Node node)
     {
         buffRow.AddBuffIcon((BuffIconTemplate)node);
+    }
+
+    public void ClearAllBuffs()
+    {
+        if (!Multiplayer.IsServer())
+            return;
+        
+        SetProcess(false);
+
+        foreach (var activeBuff in activeBuffs)
+        {
+            RemoveBuff(activeBuff);
+        }
+
+        activeBuffs.Clear();
+        
+        SetProcess(true);
     }
 }

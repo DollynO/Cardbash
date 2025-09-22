@@ -9,13 +9,19 @@ public class SpawnerBaseProperties : IDictAble<SpawnerBaseProperties>
     public long CreatorId { get; set; }
     public string AbilityGuid { get; set; }
 
+    public int SpawnCount;
+    
+    public float SpawnDelay;
+
     public Dictionary<string, Variant> ToDict()
     {
         return new Dictionary<string, Variant>
         {
-            { "spawn_type", (int)SpawnType },
-            { "creator_id", CreatorId },
-            { "ability_guid", AbilityGuid }
+            { nameof(SpawnType), (int)SpawnType },
+            { nameof(CreatorId), CreatorId },
+            { nameof(AbilityGuid), AbilityGuid },
+            {nameof(SpawnDelay), SpawnDelay},
+            {nameof(SpawnCount), SpawnCount}
         };
     }
 	
@@ -23,9 +29,11 @@ public class SpawnerBaseProperties : IDictAble<SpawnerBaseProperties>
     {
         return new SpawnerBaseProperties
         {
-            SpawnType = (SpawnType)(int)dict["spawn_type"],
-            CreatorId = (long)dict["creator_id"],
-            AbilityGuid = (string)dict["ability_guid"],
+            SpawnType = (SpawnType)(int)dict[nameof(SpawnType)],
+            CreatorId = (long)dict[nameof(CreatorId)],
+            AbilityGuid = (string)dict[nameof(AbilityGuid)],
+            SpawnCount = (int)dict[nameof(SpawnCount)],
+            SpawnDelay = (float)dict[nameof(SpawnDelay)],
         };
     }
 }

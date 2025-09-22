@@ -131,10 +131,8 @@ public partial class Hud : CanvasLayer
 	public void PrintStats(StatBlockComponent stats)
 	{
 		_statsText.Text = $"Movement Speed: {stats.GetStat(StatType.MovementSpeed)}\n" +
-		                  $"Armor: {stats.GetStat(StatType.Armor)}\n"+
-		                  $"Life: {stats.GetStat(StatType.Life)}\n"+
-		                  $"Energy Shield: {stats.GetStat(StatType.EnergyShield)}\n"+
-		                  $"INT: {stats.GetStat(StatType.Int)}\n"+
-		                  $"STR: {stats.GetStat(StatType.Str)}\n";
+		                  $"Armor: {stats.GetStat(StatType.Armor)}\n" +
+		                  $"Life: {stats.GetStat(StatType.Life)}\n" +
+		                  $"Energy Shield: {stats.GetStat(StatType.EnergyShield)}\n";
 	}
 }

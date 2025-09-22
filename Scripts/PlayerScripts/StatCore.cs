@@ -15,16 +15,23 @@ public enum StatOp
 public enum StatType
 {
     Life,
-    CurrentLife,
     Armor,
     EnergyShield,
     MovementSpeed,
     CritChance,
     CritBonus,
-    Int,
-    Str,
     Darkness,
     Blinding,
+    
+    DmgBonus,
+    // typed damage bonus
+    DmgLightningBonus,
+    DmgIceBonus,
+    DmgFireBonus,
+    DmgHolyBonus,
+    DmgDarknessBonus,
+    DmgPhysicalBonus,
+    DmgPoisonBonus,
 }
 
 public sealed class StatBlock

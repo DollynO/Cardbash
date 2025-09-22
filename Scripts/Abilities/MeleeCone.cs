@@ -14,7 +14,8 @@ public class MeleeConeProperties : IDictAble<MeleeConeProperties>
     public float Length { get; init; }
     public float AttackTime { get; init; }
     public PlayerCharacter Owner { get; set; }
-    public System.Collections.Generic.Dictionary<DamageType, Damage> Damage { get; init; }
+    public Damage Damage { get; init; }
+    public string AbilityGUID { get; init; }
 
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -25,7 +26,8 @@ public class MeleeConeProperties : IDictAble<MeleeConeProperties>
             ["Length"] = Length,
             ["AttackTime"] = AttackTime,
             ["OwnerId"] = Owner.PlayerId,
-            ["Damage"] = DamageCalculator.ConvertDmgDictToGodotDict(Damage),
+            ["Damage"] = Damage.ToDict(),
+            ["AbilityGUID"] = AbilityGUID,
         };
         
         return dict;
@@ -39,7 +41,8 @@ public class MeleeConeProperties : IDictAble<MeleeConeProperties>
             Offset = (float)dict["Offset"],
             Length = (float)dict["Length"],
             AttackTime = (float)dict["AttackTime"],
-            Damage = DamageCalculator.ConvertGodotDmgDictToSystemDict((Godot.Collections.Dictionary<DamageType, Variant>)dict["Damage"])
+            Damage = Damage.FromDict((Godot.Collections.Dictionary<string, Variant>)dict["Damage"]),
+            AbilityGUID = (string)dict["AbilityGUID"],
         };
     } 
 }
@@ -52,7 +55,8 @@ public partial class MeleeCone : Node2D
     [Export] public float Length;
     [Export] public PlayerCharacter Owner;
     [Export] public float AttackTime;
-    private System.Collections.Generic.Dictionary<DamageType, Damage> Damage = new();
+    public string AbilityGuid;
+    private Damage Damage = new();
     
     private float piOffset;
     private List<Vector2> points = new();
@@ -124,7 +128,8 @@ public partial class MeleeCone : Node2D
         this.Length = stats.Length;
         this.AttackTime = stats.AttackTime;
         this.Owner = stats.Owner;
-        this.Damage = new System.Collections.Generic.Dictionary<DamageType, Damage>(stats.Damage);
+        this.Damage = stats.Damage;
+        this.AbilityGuid = stats.AbilityGUID;
 
     }
     
@@ -143,8 +148,15 @@ public partial class MeleeCone : Node2D
                     if ((hitableObject is PlayerCharacter player && player.TeamId != Owner.TeamId) 
                         || hitableObject is not PlayerCharacter)
                     {
-                        
-                        hitableObject.ApplyDamage(this.Damage, this.Owner);
+                        var ctx = new HitContext();
+                        ctx.Target = hitableObject as PlayerCharacter;
+                        ctx.Source = Owner;
+                        ctx.AbilityGuid = AbilityGuid;
+                        ctx.Damages = new System.Collections.Generic.Dictionary<DamageType, Damage>
+                        {
+                            { Damage.Type, Damage }
+                        };
+                        hitableObject.ApplyDamage(ctx);
                     }
                 }
             }

@@ -26,10 +26,17 @@ public class BurnDebuff : Buff
 
     protected override void InternalOnTick(float delta)
     {
-        var damages = DamageCalculator.CalculateTotalDamage(
-            new Damage { DamageNumber = base_damage * delta, AilmentChange = 0, Type = base_damage_type },
-            Caller.DamageModifier);
-        Target.ApplyDamage(damages, Caller);
+        var damage = new Damage { DamageNumber = base_damage * delta, AilmentChange = 0, Type = base_damage_type };
+        var ctx = new HitContext
+        {
+            Source = Caller,
+            Target = Target,
+            Damages = new System.Collections.Generic.Dictionary<DamageType, Damage>()
+            {
+                { damage.Type, damage },
+            }
+        }; 
+        Target.ApplyDamage(ctx);
     }
 
     protected override void InternalOnDeactivate()

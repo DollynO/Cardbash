@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.Abilities.TriggerStrategy;
+﻿using System.Collections.Generic;
+using CardBase.Scripts.Abilities.TriggerStrategy;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -58,12 +59,35 @@ public abstract class Ability : BaseCardableObject
      */
     protected PlayerCharacter Caller;
     
+    /**
+     * @brief  The on hit modifier assigned to the ability.
+     */
+    protected List<IHitModifier> _hitModifiers = new List<IHitModifier>();
+    
+    /**
+     * @brief The base alignment chance of the ability. 
+     */
+    protected float BaseAilmentChance;
+
+    protected float ChargeAmount;
+
+    protected float ChargeTime;
+
+    protected float ChargePower;
+
+    private bool activated;
+    
     protected Ability(string guid, PlayerCharacter creator) : base(guid)
     {
         TriggerStrategy = new SimpleTriggerStrategy();
         MaxStack = 1;
         BaseCooldown = 1.0;
         Caller = creator;
+    }
+
+    public virtual List<IHitModifier> GetHitModifiers()
+    {
+        return _hitModifiers;
     }
     
     /**
@@ -95,15 +119,30 @@ public abstract class Ability : BaseCardableObject
         }
         
         CurrentStack--;
+        this.activated = true;
         
         return true;
     }
 
     public void Charge(double delta)
     {
+        if (ChargeAmount < 1)
+        {
+            ChargeAmount += (float)delta / ChargeTime;
+        }
     }
 
-    public virtual void Use()
+    public void Use()
+    {
+        ChargeAmount = 0;
+        if (this.activated)
+        {
+            InternalUse();
+            this.activated = false;
+        }
+    }
+    
+    public virtual void InternalUse()
     {
         
     }
@@ -128,7 +167,7 @@ public abstract class Ability : BaseCardableObject
 
     public void ApplyUpdate()
     {
-        if (UpdateCounter > 3)
+        if (UpdateCounter > 2)
         {
             return;
         }
@@ -140,4 +179,9 @@ public abstract class Ability : BaseCardableObject
     protected abstract void InternalUpdate();
 
     public abstract void RegisterSpawnedNode(Node node);
+
+    public void CancleAbility()
+    {
+        
+    }
 }

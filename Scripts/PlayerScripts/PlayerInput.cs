@@ -53,14 +53,29 @@ public partial class PlayerInput : MultiplayerSynchronizer
         XDirection = Input.GetAxis("MoveLeft", "MoveRight");
         YDirection = Input.GetAxis("MoveUp", "MoveDown");
         var state = AbilityKeyState.ABILITY_NONE;
-        setKeyState(ref state, "Ability1");
-        KeyState[0] = state;
-        setKeyState(ref state, "Ability2");
-        KeyState[1] = state;
-        setKeyState(ref state, "Ability3");
-        KeyState[2] = state;
-        setKeyState(ref state, "Ability4");
-        KeyState[3] = state;
+        if ((int)KeyState[1] + (int)KeyState[2] + (int)KeyState[3] == 0)
+        {
+            setKeyState(ref state, "Ability1");
+            KeyState[0] = state;
+        }
+
+        if ((int)KeyState[0] + (int)KeyState[2] + (int)KeyState[3] == 0)
+        {
+            setKeyState(ref state, "Ability2");
+            KeyState[1] = state;
+        }
+
+        if ((int)KeyState[1] + (int)KeyState[0] + (int)KeyState[3] == 0)
+        {
+            setKeyState(ref state, "Ability3");
+            KeyState[2] = state;
+        }
+
+        if ((int)KeyState[1] + (int)KeyState[2] + (int)KeyState[0] == 0)
+        {
+            setKeyState(ref state, "Ability4");
+            KeyState[3] = state;
+        }
 
         KeyState = new Array<AbilityKeyState>(KeyState);
         

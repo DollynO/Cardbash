@@ -22,9 +22,9 @@ public partial class StatBlockComponent : Node
         sync.SetMultiplayerAuthority(1);   
     }
 
-    public void Define(StatType stat, float baseValue, float? minValue = null, float? maxValue = null, IEnumerable<StatType> linkedStats = null)
+    public void Define(StatType stat, float baseValue, float? minValue = null, float? maxValue = null)
     {
-        _stats.Define(stat, baseValue, minValue, maxValue,linkedStats);
+        _stats.Define(stat, baseValue, minValue, maxValue);
         pushCurrent();
     }
 

@@ -1,14 +1,20 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
-using Godot.Collections;
 
 public enum SpawnType{
 	Undefined,
 	SpawnTypeProjectile,
+}
+
+public sealed class QueueObjectProperties
+{
+	public float Delay;
+	public Godot.Collections.Dictionary<string, Variant> Dict;
 }
 
 public partial class AbilitySpawner : MultiplayerSpawner
@@ -18,6 +24,8 @@ public partial class AbilitySpawner : MultiplayerSpawner
 	
 	[Export]
 	GameManager gameManager;
+
+	private List<QueueObjectProperties> queuedObjects = new();
 	public override void _EnterTree()
 	{ 
 		SpawnFunction = new Callable(this, MethodName.customSpawner);
@@ -35,20 +43,37 @@ public partial class AbilitySpawner : MultiplayerSpawner
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		SetProcess(Multiplayer.IsServer());
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+		var executeQueueObjects = new List<QueueObjectProperties>();
+		foreach (var t in queuedObjects)
+		{
+			t.Delay -= (float)delta;
+			if (t.Delay <= 0f)
+			{
+				executeQueueObjects.Add(t);
+			}
+		}
+
+		foreach (var t in executeQueueObjects)
+		{
+			SpawnObject(t.Dict);
+		}
+		
+		queuedObjects.RemoveAll(o => o.Delay <= 0f);
 	}
 
-	public void SpawnObject(Dictionary<string, Variant> dict)
+	public void SpawnObject(Godot.Collections.Dictionary<string, Variant> dict)
 	{
 		Rpc(MethodName.spawnOnHost, dict);
 	}
 	
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void spawnOnHost(Dictionary<string, Variant> dict)
+	private void spawnOnHost(Godot.Collections.Dictionary<string, Variant> dict)
 	{
 		if (Multiplayer.IsServer())
 		{
@@ -65,10 +90,10 @@ public partial class AbilitySpawner : MultiplayerSpawner
 		}
 		
 		var spawnProperties = SpawnerBaseProperties.FromDict(spawnPropertiesDict.AsGodotDictionary<string, Variant>());
-
+		var objectStat = dic["object_stats"].AsGodotDictionary<string, Variant>();
 		var node = spawnProperties.SpawnType switch
 		{
-			SpawnType.SpawnTypeProjectile => spawnProjectile(dic),
+			SpawnType.SpawnTypeProjectile => spawnProjectile(objectStat),
 			_ => null
 		};
 
@@ -77,33 +102,37 @@ public partial class AbilitySpawner : MultiplayerSpawner
 			customSpawnObject.CreatorId = spawnProperties.CreatorId;
 			customSpawnObject.AbilityGuid = spawnProperties.AbilityGuid;
 		}
-		
+
+		if (Multiplayer.IsServer())
+		{
+			if (spawnProperties.SpawnCount > 0)
+			{
+				(dic["spawn_properties"].AsGodotDictionary<string, Variant>())[nameof(spawnProperties.SpawnCount)] = --spawnProperties.SpawnCount;
+				queuedObjects.Add(new QueueObjectProperties(){Delay = spawnProperties.SpawnDelay, Dict = dic});
+			}
+		}
+
 		return node;
 	}
 
-	private Node spawnProjectile(Dictionary<string, Variant> data)
+	private Node spawnProjectile(Godot.Collections.Dictionary<string, Variant> data)
 	{
-		if (projectileScene.Instantiate() is Projectile projectile)
+		Projectile projectile;
+		if (data.TryGetValue("custom_projectile", out var customProjectile))
 		{
-			var speed = (float)data["speed"];
-			speed = speed > Projectile.MAX_SPEED ? Projectile.MAX_SPEED : speed;
-			var damage = new System.Collections.Generic.Dictionary<DamageType, Damage>();
-			foreach (var entry in (Dictionary<DamageType, Variant>)data["damage"])
-			{
-				damage.Add(entry.Key, Damage.FromDict((Dictionary<string, Variant>)entry.Value));
-			}
-			var projectileStats = new ProjectileStats()
-			{
-				Damage = damage,
-				Direction = (Vector2)data["direction"],
-				Speed = speed,
-				SpritePath = (string)data["sprite_path"],
-				TimeToBeALive = (float)data["time_to_be_a_live"],
-				Caller = gameManager.GetPlayerCharacter((long)data["caller_id"]),
-				PiercingCount = (int)data["piercing_count"],
-				BouncingCount = (int)data["bouncing_count"],
-				StartPosition = (Vector2)data["start_position"],
-			};
+			projectile = GD.Load<PackedScene>((string)customProjectile).Instantiate() as Projectile;
+		}
+		else
+		{
+			projectile = (Projectile)projectileScene.Instantiate();
+		}
+		
+		
+		if (projectile != null)
+		{
+			var projectileStats = ProjectileStats.FromDict(data, gameManager);
+			projectileStats.Direction = ((PlayerCharacter)projectileStats.Caller).GetLookAtDirection();
+			projectileStats.StartPosition = ((PlayerCharacter)projectileStats.Caller).GetProjectileStartPosition();
 			projectile.SetStats(projectileStats);
 			projectile.GlobalPosition = projectileStats.StartPosition;
 			return projectile;

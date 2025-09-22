@@ -10,6 +10,7 @@ public interface IBuff : IBaseProperty
     public float RemainingDuration { get; }
     public PlayerCharacter Caller { get; }
     public PlayerCharacter Target { get; }
+    public DamageType BuffType { get; }
 
     public void OnActivate();
     public bool OnTick(float delta);

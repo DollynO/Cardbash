@@ -70,7 +70,7 @@ public partial class TeamDeathMatch : GameMode
 
     private int getLastLivingTeamId(IList<PlayerCharacter> players)
     {
-        var teamsInGame = players.Where(p => p.StatBlock.GetStat(StatType.CurrentLife) > 0)
+        var teamsInGame = players.Where(p => p.StatBlock.GetStat(StatType.Life) > 0)
             .DistinctBy(p => p.TeamId);
         var playerCharacters = teamsInGame.ToList();
         if (playerCharacters.Count != 1)
