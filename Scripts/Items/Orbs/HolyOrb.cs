@@ -16,7 +16,7 @@ public class HolyOrb: Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.DamageModifier.Add(new DamageModifier()
+        player.RequestAddDamageModifier(new DamageModifier()
         {
             TargetDamageType = DamageType.Holy,
             OutputDamageType = DamageType.Holy,

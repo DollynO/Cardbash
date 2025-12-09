@@ -1,14 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Cards;
 using Godot;
 using Godot.Collections;
+using Array = Godot.Collections.Array;
 
 namespace CardBase.Scripts.PlayerScripts;
+
+
+public class AbilityTransferStat
+{
+    public string ImagePath { get; set; }
+    public Vector2 Stacks { get; set; }
+    public double RemainingCooldown { get; set; }
+    public string Description { get; set; }
+    public string GUID { get; set; }
+}
 
 public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 {
@@ -18,11 +28,9 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     private GameManager _gameManager;
 
     [Export] public StatBlockComponent StatBlock;
-    public readonly List<Ability> Abilities = new();
     public readonly List<DamageModifier> DamageModifier = new();
 
     [Export] private Label _playerNameLabel;
-    [Export] private ProgressBar _playerHealth;
     
     [Export] private Sprite2D _lookAtIndicator;
     [Export] private Node2D _lookAtDirectionPoint;
@@ -34,7 +42,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
     private Rect2 _mapBounds;
 
-    [Export] private BuffManagerComponent _buffManagerComponent;
+    [Export] public BuffManagerComponent BuffManagerComponent;
     
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
@@ -57,30 +65,69 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
     
-    private System.Collections.Generic.Dictionary<PlayerCharacter, Darkness> _darknessInstances;
-    private System.Collections.Generic.Dictionary<PlayerCharacter, PoisonDebuff> _poisonInstances;
-    
-    [Export]
-    private float _roundMaxLife;
+    private System.Collections.Generic.Dictionary<PlayerCharacter, Darkness> _darknessInstances = new();
+    private System.Collections.Generic.Dictionary<PlayerCharacter, PoisonDebuff> _poisonInstances = new();
+    private System.Collections.Generic.Dictionary<PlayerCharacter, Frost> _frostInstances = new();
 
+    public AbilityController AbilityController;
+    public MoveController MoveController;
+    public HealthController HealthController;
+
+    public event EventHandler<AbilityEventArgs>? AbilityCasted;
+    public void NotifyAbilityCasted(Ability ability)
+    {
+        this.AbilityCasted?.Invoke(this, new AbilityEventArgs(ability));
+    }
+    
+    public event EventHandler<PlayerEventArgs>? KilledPlayer;
+    public void NotifyPlayerKilled(PlayerCharacter victim)
+    {
+        this.KilledPlayer?.Invoke(this, new PlayerEventArgs(victim));
+    }
+    
+    public event EventHandler<DamageEventArgs>? DamageDealt;
+    public void NotifyDamageDealt(List<Damage> damage)
+    {
+        this.DamageDealt?.Invoke(this, new DamageEventArgs(damage));
+    }
+    
+    public event EventHandler<DamageEventArgs>? DamageTaken;
+    public void NotifyDamageTaken(List<Damage> damage)
+    {
+        this.DamageTaken?.Invoke(this, new DamageEventArgs(damage));
+    }
+    
+    public event EventHandler<DamageEventArgs>? DamageMitigated;
+    public void NotifyDamageMitigated(List<Damage> damage)
+    {
+        this.DamageMitigated?.Invoke(this, new DamageEventArgs(damage));
+    }
+    
+    public event EventHandler<BuffEventArgs>? BuffApplied;
+    public void NotifyBuffApplied(Buff buff)
+    {
+        this.BuffApplied?.Invoke(this, new BuffEventArgs(buff));
+    }
+    
+    public event EventHandler<BuffEventArgs>? BuffRemoved;
+    public void NotifyBuffRemoved(Buff buff)
+    {
+        this.BuffRemoved?.Invoke(this, new BuffEventArgs(buff));
+    }
+
+    public event EventHandler? NewRoundStarted;
+    
+    
     public override void _EnterTree()
     {
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
-        StatBlock.Define(StatType.MovementSpeed, 300, 0);
-        StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity);
-        StatBlock.Define(StatType.Armor, 0);
-        StatBlock.Define(StatType.EnergyShield, 0);
-        StatBlock.Define(StatType.CritBonus, 0);
-        StatBlock.Define(StatType.CritChance, 0);
-        StatBlock.Define(StatType.Darkness, 0);
-        StatBlock.Define(StatType.Blinding, 0);
-
-        _playerHealth.MaxValue = 100;
+        defineCharacterStats();
+        
         _gameManager = (GameManager)GetNode("/root/Main/Game");
         _playerAnimation.Material = _playerAnimation.Material.Duplicate() as ShaderMaterial;
         var spriteMaterial = _playerAnimation.Material as ShaderMaterial;
-        var teamColor = TeamColor.GetColor(TeamId);
+        var teamColor = ColorPlate.GetColor(TeamId);
         
         spriteMaterial?.SetShaderParameter("team_color", teamColor);
 
@@ -89,7 +136,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             _lookAtIndicator.Visible = true;
             _lookAtIndicator.Material = _lookAtIndicator.Material.Duplicate() as ShaderMaterial;
             spriteMaterial = _lookAtIndicator.Material as ShaderMaterial;
-            spriteMaterial?.SetShaderParameter("mask_color", new Color(1f, 1f, 1f));
+            spriteMaterial?.SetShaderParameter("mask_color", new Godot.Color(1f, 1f, 1f));
             spriteMaterial?.SetShaderParameter("team_color", teamColor);
             spriteMaterial?.SetShaderParameter("tolerance", 0.4);
             _camera.Enabled = true;
@@ -99,45 +146,49 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             _camera.LimitRight = (int)_mapBounds.Position.X + (int)_mapBounds.Size.X;
             _camera.LimitBottom = (int)_mapBounds.Position.Y + (int)_mapBounds.Size.Y;
         }
+        
+        AbilityController = new AbilityController(this);
+        AddChild(AbilityController);
 
-        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Ice, Type = DamageModifierType.ExtraDamage, Value = 10.0f});
-        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Ice, TargetDamageType = DamageType.Ice, Type = DamageModifierType.Modifier, Value = 10.0f});
-        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Fire, Type = DamageModifierType.Modifier, Value = 10.0f});
+        MoveController = new MoveController(this);
+        AddChild(MoveController);
+
+        HealthController = new HealthController();
+        AddChild(HealthController);
+    }
+
+    private void defineCharacterStats()
+    {
+        StatBlock.Define(StatType.MovementSpeed, 300, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.Armor, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.EnergyShield, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.CritBonus, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.CritChance, 0, 0, 100);
+        StatBlock.Define(StatType.Darkness, 0, 0, 20);
+        StatBlock.Define(StatType.Blinding, 0, 0, 20);
+        
+        StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.AddPullStrength, 0, 0,  float.PositiveInfinity);
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        if (Multiplayer.IsServer())
-        {
-            if (!this.playerIsDead())
-            {
-                _move(delta);
-            }
-        }
-    }
-
-    private bool playerIsDead()
-    {
-        return StatBlock.GetStat(StatType.Life) <= 0;
+        MoveController.ProcessMovement(delta, new Vector2(_playerInput.XDirection,  _playerInput.YDirection));
     }
 
     public override void _Process(double delta)
     {
         ((PlayerAnimation)_playerAnimation).UpdateAnimation();
-        if (_inputSync.GetMultiplayerAuthority() == Multiplayer.GetUniqueId())
+        if (Multiplayer.IsServer())
         {
-            for (var i = 0; i < Abilities.Count; i++)
-            {   
-                Abilities[i].HandleInput(_playerInput.KeyState[i] ,delta);
-                Abilities[i].UpdateCooldown(delta);
-            }
-            
-        } else if (Multiplayer.IsServer())
-        {
-            
+            AbilityController.ProcessAbilities(delta, _playerInput.KeyState.ToArray());
         }
-
-        _playerHealth.Value = StatBlock.GetStat(StatType.Life) * 100 / this._roundMaxLife;
+    }
+    
+    public bool IsDead()
+    {
+        return StatBlock.GetStat(StatType.Life) <= 0;
     }
 
     public Vector2 GetLookAtDirection()
@@ -155,26 +206,23 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         return _characterCenterPoint.GlobalPosition;
     }
 
-    public void ApplyDamage(HitContext ctx)
+    public Node2D GetCharacterCenterPoint()
     {
-        
-        Rpc(MethodName.applyDamageServer, ctx.ToDict());
+        return _characterCenterPoint;
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void applyDamageServer(Godot.Collections.Dictionary<string, Variant> dict)
+    public void ApplyDamage(HitContext ctx)
     {
         if (Multiplayer.IsServer())
         {
-            var ctx = HitContext.FromDict(dict, _gameManager);
-            
-            if (playerIsDead())
+            if (IsDead())
             {
                 return;
             }
             
             var hitMods = ctx.Source.GetHitModifiers();
-            var abilityHitMods = ctx.Source.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid)?.GetHitModifiers();
+            var abilityHitMods 
+                = ctx.Source.AbilityController.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid)?.GetHitModifiers();
             if (abilityHitMods != null)
             {
                 hitMods.AddRange(abilityHitMods);
@@ -203,38 +251,21 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
                 var dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
                 ctx.Damages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
-                StatBlock.AddModifiers(new StatModifier(Damage.SOURCE_MODIFIER_ID, StatType.Life, StatOp.FlatAdd, -ctx.Damages[dmg.Key].DamageNumber));
+                HealthController.ApplyDamage(ctx.Damages[dmg.Key].DamageNumber);
                 ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChange, ctx.Source);
             }
-
-            if (playerIsDead())
+            
+            if (IsDead())
             {
                 EmitSignal(SignalName.OnKilled, this, ctx.Source);
-                _buffManagerComponent.ClearAllBuffs();
+                BuffManagerComponent.ClearAllBuffs();
             }
 
+            NotifyDamageTaken(ctx.Damages.Values.ToList());
+            
             foreach (var mod in hitMods)
             {
                 mod.ApplyAfter(ctx);
-            }
-        }
-    }
-
-    private void _move(double delta)
-    {
-        var inputDir = new Vector2(_playerInput.XDirection, _playerInput.YDirection);
-        Velocity = inputDir * StatBlock.GetStat(StatType.MovementSpeed);
-        MoveAndSlide();
-    }
-
-    public void RegisterAbilityObject(Node node)
-    {
-        if (node is ICustomSpawnObject customSpawnObject)
-        {
-            if (Multiplayer.GetUniqueId() == customSpawnObject.CreatorId)
-            {
-                Abilities.FirstOrDefault(a => a.GUID == customSpawnObject.AbilityGuid)?
-                    .RegisterSpawnedNode(node);
             }
         }
     }
@@ -266,7 +297,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         switch (type)
         {
             case DamageType.Fire:
-                _buffManagerComponent.ApplyBuff(new BurnDebuff(attacker, this));
+                BuffManagerComponent.ApplyBuff(new BurnDebuff(attacker, this));
                 break;
             case DamageType.Physical:
                 break;
@@ -276,21 +307,26 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                     _poisonInstances.Add(attacker, new PoisonDebuff(attacker, this));
                 }
                 var poison =  _poisonInstances[attacker];
-                _buffManagerComponent.ApplyBuff(poison);
+                BuffManagerComponent.ApplyBuff(poison);
                 break;
             case DamageType.Ice:
-                _buffManagerComponent.ApplyBuff(new Frost(attacker, this));
+                if (!_frostInstances.ContainsKey(attacker))
+                {
+                    _frostInstances.Add(attacker, new Frost(attacker, this));
+                }
+                var frost = _frostInstances[attacker];
+                BuffManagerComponent.ApplyBuff(frost);
                 break;
             case DamageType.Lightning:
-                _buffManagerComponent.ApplyBuff(new ShockDebuff(attacker, this));
+                BuffManagerComponent.ApplyBuff(new ShockDebuff(attacker, this));
                 break;
-            case DamageType.Darkness:
+            case DamageType.Darkness: 
                 if (!_darknessInstances.ContainsKey(attacker))
                 {
                     _darknessInstances.Add(attacker, new Darkness(attacker, this));
                 }
                 var darkness =  _darknessInstances[attacker];
-                _buffManagerComponent.ApplyBuff(darkness);
+                BuffManagerComponent.ApplyBuff(darkness);
                 break;
             case DamageType.Holy:
                 break;
@@ -299,82 +335,97 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         }
     }
 
-    public void ApplyBuff(Buff buff)
-    {
-        if (Multiplayer.IsServer())
-        {
-            _buffManagerComponent.ApplyBuff(buff);
-        }
-        else
-        {
-            var dict = new Godot.Collections.Dictionary<string, Variant>()
-            {
-                { "guid", buff.Guid },
-                { "caller_id", buff.Caller.PlayerId },
-                { "target_id", buff.Target.PlayerId },
-            };
-            RpcId(1, MethodName.applyBuffServer, dict);
-        }
-    }
-
-    public int ConsumeBuffType(DamageType type)
-    {
-        if (Multiplayer.IsServer())
-        {
-            return this._buffManagerComponent.ConsumeBuffType(type);
-        }
-
-        return 0;
-    }
-
-    public int ConsumeBuff(Type type)
-    {
-        if (type.BaseType != typeof(Buff))
-        {
-            return 0;
-        }
-        
-        if (Multiplayer.IsServer())
-        {
-            return this._buffManagerComponent.ConsumeBuff(type);
-        }
-
-        return 0;
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void applyBuffServer(Dictionary dict)
-    {
-        var caller = _gameManager.GetPlayerCharacter((long)dict["caller_id"]);
-        var target = _gameManager.GetPlayerCharacter((long)dict["target_id"]);
-        var buff = BuffManager.Create((string)dict["guid"], caller, target);
-        ApplyBuff(buff);
-    }
-
     public List<IHitModifier> GetHitModifiers()
     {
         return new List<IHitModifier>();
     }
 
-    public void RequestReposition(Vector2 newPosition)
-    {
-        var dict = new Godot.Collections.Dictionary<string, Variant>
-        {
-            ["position"] = newPosition
-        };
-        RpcId(1, MethodName.repositionServer, dict);
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void repositionServer(Godot.Collections.Dictionary<string, Variant> data)
-    {
-        this.GlobalPosition = (Vector2)data["position"];
-    }
-
     public void RoundReset()
     {
-        _buffManagerComponent.ClearAllBuffs();
+        BuffManagerComponent.ClearAllBuffs();
         StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
-        this._roundMaxLife = StatBlock.GetStat(StatType.Life);
+        HealthController.Reset(StatBlock.GetStat(StatType.Life));
+        this.NewRoundStarted?.Invoke(this,  EventArgs.Empty);
+    }
+
+    public void RequestAddDamageModifier(DamageModifier  modifier)
+    {
+        var dict = DamageModifierHelper.ToDict(modifier);
+        Rpc(MethodName.AddDamageModifierServer, dict);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void AddDamageModifierServer(Variant data)
+    {
+        var dict = data.AsGodotDictionary<string, Variant>();
+        var mod = DamageModifierHelper.FromDict(dict);
+        
+        DamageModifier.Add(mod);
+    }
+
+    public void EnterStealth()
+    {
+        Rpc(MethodName.enterStealthServer);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void enterStealthServer()
+    {
+        if (Multiplayer.GetUniqueId() == this.PlayerId)
+        {
+            this.Modulate = new Godot.Color(this.Modulate, 0.5f);
+        }
+        else
+        {
+            this.Modulate = new Godot.Color(this.Modulate, 0.0f);
+        }
+    }
+    
+    public void ExitStealth()
+    {
+        Rpc(MethodName.exitStealthServer);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority,  CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void exitStealthServer()
+    {
+        this.Modulate = new Godot.Color(this.Modulate, 1.0f);
+    }
+}
+
+public class AbilityEventArgs : EventArgs
+{
+    public readonly Ability Ability;
+    public AbilityEventArgs(Ability ability)
+    {
+        Ability = ability;
+    }
+}
+
+public class PlayerEventArgs : EventArgs
+{
+    public readonly PlayerCharacter Player;
+    public PlayerEventArgs(PlayerCharacter player)
+    {
+        Player = player;
+    }
+}
+
+public class DamageEventArgs : EventArgs
+{
+    public readonly List<Damage> Damage;
+    public DamageEventArgs(List<Damage> damage)
+    {
+        Damage = damage;
+    }
+    
+}
+
+public class BuffEventArgs : EventArgs
+{
+    public readonly Buff Buff;
+    public BuffEventArgs(Buff buff)
+    {
+        Buff = buff;
     }
 }

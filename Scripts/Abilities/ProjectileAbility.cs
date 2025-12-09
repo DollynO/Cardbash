@@ -7,7 +7,7 @@ namespace CardBase.Scripts.Abilities;
 
 public abstract class ProjectileAbility : Ability
 {
-    private PackedScene ProjectileScene = GD.Load<PackedScene>("res://Scenes//Projectile.tscn");
+    private PackedScene ProjectileScene = GD.Load<PackedScene>("res://Scenes//Projectiles//Projectile.tscn");
 
     protected int SpawnCount;
     protected float SpawnDelay;
@@ -30,26 +30,13 @@ public abstract class ProjectileAbility : Ability
     private void SpawnProjectile()
     {
         var projectile_stats = GetProjectileStats();
-        var abilitySpawner = Caller.GetTree().Root.GetNode<AbilitySpawner>("/root/Main/Game/AbilitySpawner");
+        var projectileManager = Caller.GetTree().Root.GetNode<ProjectileManager>("/root/Main/Game/ProjectileManager");
 
         var damage = new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChange = BaseAilmentChance };
         projectile_stats.Damage = damage;
         projectile_stats.StartPosition = Caller.GetProjectileStartPosition();
         projectile_stats.Caller = Caller;
-        var dict = new Dictionary<string, Variant>
-        {
-            ["spawn_properties"] = new SpawnerBaseProperties
-            {
-                AbilityGuid = GUID,
-                CreatorId = Caller.PlayerId,
-                SpawnType = SpawnType.SpawnTypeProjectile,
-                SpawnCount = SpawnCount,
-                SpawnDelay = SpawnDelay,
-                
-            }.ToDict(),
-            ["object_stats"] = projectile_stats.ToDict(),
-            };
-        abilitySpawner.SpawnObject(dict);
+        projectileManager.CreateProjectile(projectile_stats, this);
     }
 
     public override void RegisterSpawnedNode(Node node)

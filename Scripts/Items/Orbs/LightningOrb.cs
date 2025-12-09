@@ -16,7 +16,7 @@ public class LightningOrb: Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.DamageModifier.Add(new DamageModifier()
+        player.RequestAddDamageModifier(new DamageModifier()
         {
             TargetDamageType = DamageType.Lightning,
             OutputDamageType = DamageType.Lightning,

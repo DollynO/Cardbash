@@ -69,13 +69,16 @@ public abstract class Ability : BaseCardableObject
      */
     protected float BaseAilmentChance;
 
+    
     protected float ChargeAmount;
 
-    protected float ChargeTime;
+    public float ChargeTime { get; protected set; }
 
     protected float ChargePower;
-
+    
     private bool activated;
+
+    protected bool AutoCast = false;
     
     protected Ability(string guid, PlayerCharacter creator) : base(guid)
     {
@@ -89,28 +92,60 @@ public abstract class Ability : BaseCardableObject
     {
         return _hitModifiers;
     }
+
+    public virtual void ProcessAbility(float delta)
+    {
+        
+    }
     
     /**
      * @brief Updates the cooldown of the ability. Updates the stack count.
      */
     public void UpdateCooldown(double delta)
     {
-        if (CurrentStack == MaxStack)
+        if (AutoCast)
         {
-            return;
-        }
-        
-        CurrentCooldown -= delta;
-        if (CurrentCooldown <= 0)
-        {
-            CurrentStack++;
-            if (CurrentStack <= MaxStack)
+            if (CurrentCooldown > 0)
             {
+                CurrentCooldown -= delta;
+            }
+            else
+            {
+                if (preventAutoCast())
+                {
+                    return;
+                }
+
+                CurrentStack++;
+                Activate();
+                Use();
                 CurrentCooldown = BaseCooldown;
+            }
+        }
+        else
+        {
+            if (CurrentStack == MaxStack)
+            {
+                return;
+            }
+
+            CurrentCooldown -= delta;
+            if (CurrentCooldown <= 0)
+            {
+                CurrentStack++;
+                if (CurrentStack >= MaxStack)
+                {
+                    CurrentCooldown = BaseCooldown;
+                }
             }
         }
     }
 
+    protected virtual bool preventAutoCast()
+    {
+        return false;
+    }
+    
     public virtual bool Activate()
     {
         if (CurrentStack == 0)
@@ -126,6 +161,12 @@ public abstract class Ability : BaseCardableObject
 
     public void Charge(double delta)
     {
+        if (!activated)
+        {
+            ChargeAmount = 0;
+            return;
+        }
+        
         if (ChargeAmount < 1)
         {
             ChargeAmount += (float)delta / ChargeTime;
@@ -139,6 +180,7 @@ public abstract class Ability : BaseCardableObject
         {
             InternalUse();
             this.activated = false;
+            this.Caller.NotifyAbilityCasted(this);
         }
     }
     
@@ -180,7 +222,13 @@ public abstract class Ability : BaseCardableObject
 
     public abstract void RegisterSpawnedNode(Node node);
 
-    public void CancleAbility()
+    public void CancelAbility()
+    {
+        this.activated = false;
+        this.InternalCancel();
+    }
+
+    protected virtual void InternalCancel()
     {
         
     }

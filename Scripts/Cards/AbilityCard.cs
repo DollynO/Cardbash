@@ -18,20 +18,6 @@ public partial class AbilityCard : Card
             return;
         }
 
-        if (playerContext.player == null)
-        {
-            return;
-        }
-        
-        var ability = playerContext.player.Abilities.FirstOrDefault(x => x.GUID == EffectGUID);
-        if (ability == null)
-        {
-            ability = (Ability)AbilityManager.Create(EffectGUID, playerContext.player);
-            playerContext.player.Abilities.Add(ability);
-        }
-        else
-        {
-            ability.ApplyUpdate();
-        }
+        playerContext.player?.AbilityController.AddUpdateAbility(EffectGUID);
     }
 }

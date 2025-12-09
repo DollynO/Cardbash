@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class PoisonJab : Ability
 {
-    public PoisonJab(PlayerCharacter creator) : base("DC432A01-3394-4AF4-BE1B-9289A4E88268", creator)
+    public PoisonJab(PlayerCharacter creator) : base(AbilityIds.PoisonJabGuid, creator)
     {
         this.DisplayName = "Poison Jab";
         this.Description = "Well poison jab";

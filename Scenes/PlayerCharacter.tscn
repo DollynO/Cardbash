@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3 uid="uid://hpbx14ma8p0v"]
+[gd_scene load_steps=57 format=3 uid="uid://hpbx14ma8p0v"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerCharacter.cs" id="1_sdal5"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://c37nsb5ilblyd" path="res://Sprites/GameSprites/player.png" id="3_kf8vq"]
 [ext_resource type="Script" path="res://Scenes/PlayerAnimation.cs" id="4_xt6qq"]
 [ext_resource type="Texture2D" uid="uid://dqboie3r12b81" path="res://Sprites/DirectionArrow/direction_arrow_256.png" id="6_dieop"]
+[ext_resource type="Script" path="res://Scripts/PlayerScripts/OverheadDisplayComponent.cs" id="6_jdw73"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/StatBlockComponent.cs" id="7_j8r5e"]
 [ext_resource type="Script" path="res://Scripts/Abilities/Buffs/BuffManagerComponent.cs" id="8_hqshk"]
 
@@ -13,9 +14,6 @@
 properties/0/path = NodePath(".:position")
 properties/0/spawn = true
 properties/0/replication_mode = 1
-properties/1/path = NodePath(".:_roundMaxLife")
-properties/1/spawn = true
-properties/1/replication_mode = 1
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_fv7tp"]
 properties/0/path = NodePath("InputSynchronizer:XDirection")
@@ -337,6 +335,12 @@ bg_color = Color(0.862304, 0.343347, 0.27235, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fwnwc"]
 bg_color = Color(0.6, 0.886275, 0.6, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qqv7w"]
+bg_color = Color(0.485703, 0.485704, 0.485703, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c7her"]
+bg_color = Color(0.758192, 0.758192, 0.758192, 1)
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_th5e4"]
 shader = ExtResource("3_hy4ar")
 shader_parameter/team_color = Color(1, 1, 1, 1)
@@ -351,7 +355,7 @@ properties/0/path = NodePath(".:ReplicatedCurrent")
 properties/0/spawn = true
 properties/0/replication_mode = 2
 
-[node name="Player" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_playerHealth", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "_buffManagerComponent") groups=["Player"]]
+[node name="PlayerCharacter" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "BuffManagerComponent") groups=["Player"]]
 collision_layer = 4
 collision_mask = 7
 script = ExtResource("1_sdal5")
@@ -359,12 +363,12 @@ _inputSync = NodePath("InputSynchronizer")
 _playerAnimation = NodePath("AnimatedSprite2D")
 StatBlock = NodePath("StatBlockComponent")
 _playerNameLabel = NodePath("Label")
-_playerHealth = NodePath("Lifebar")
 _lookAtIndicator = NodePath("CenterNode/LookAtIndicator")
 _lookAtDirectionPoint = NodePath("CenterNode/LookAtDirectionPoint")
 _characterCenterPoint = NodePath("CenterNode")
 _camera = NodePath("Camera2D")
-_buffManagerComponent = NodePath("BuffManagerComponent")
+BuffManagerComponent = NodePath("BuffManagerComponent")
+metadata/_edit_horizontal_guides_ = [-43.0]
 
 [node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_3kik1")
@@ -378,7 +382,7 @@ LookAtRotation = NodePath("../CenterNode")
 z_index = 10
 texture_filter = 1
 material = SubResource("ShaderMaterial_81jb4")
-position = Vector2(0, -36.11)
+position = Vector2(0, -38.11)
 scale = Vector2(2.09375, 2.09375)
 sprite_frames = SubResource("SpriteFrames_h7wyx")
 animation = &"move_side"
@@ -396,20 +400,44 @@ offset_top = -63.0
 offset_right = 22.0
 offset_bottom = -37.0
 
-[node name="Lifebar" type="ProgressBar" parent="."]
+[node name="OverheadDisplayComponent" type="Node2D" parent="." node_paths=PackedStringArray("_lifeBar", "_stunBar", "_player")]
+position = Vector2(-18, -63)
+script = ExtResource("6_jdw73")
+_lifeBar = NodePath("Lifebar")
+_stunBar = NodePath("Stunbar")
+_player = NodePath("..")
+
+[node name="Lifebar" type="ProgressBar" parent="OverheadDisplayComponent"]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -23.0
-offset_top = -63.0
-offset_right = 23.0
-offset_bottom = -58.0
+offset_left = -5.0
+offset_right = 41.0
+offset_bottom = 5.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_exawg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fwnwc")
+value = 33.0
+allow_greater = true
+show_percentage = false
+
+[node name="Stunbar" type="ProgressBar" parent="OverheadDisplayComponent"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -5.0
+offset_top = 8.0
+offset_right = 41.0
+offset_bottom = 13.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_qqv7w")
+theme_override_styles/fill = SubResource("StyleBoxFlat_c7her")
 value = 33.0
 allow_greater = true
 show_percentage = false

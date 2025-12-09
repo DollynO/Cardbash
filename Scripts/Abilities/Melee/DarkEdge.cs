@@ -7,7 +7,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class DarkEdge : Ability
 {
-    public DarkEdge(PlayerCharacter creator) : base("92DF5DEB-48D7-48A7-B884-9DF358573157", creator)
+    public DarkEdge(PlayerCharacter creator) : base(AbilityIds.DarkEdgeGuid, creator)
     {
         this.DisplayName = "Dark Edge";
         this.Description = "Consumes all darkness / active debuffs on the target and deals damage for each consumed.";

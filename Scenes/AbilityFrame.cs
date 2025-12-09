@@ -24,7 +24,7 @@ public partial class AbilityFrame : TextureRect
 	{
 	}
 
-	public void UpdateUi(Ability ability)
+	public void UpdateUi(NetAbility ability)
 	{
 		if (ability == null)
 		{
@@ -35,12 +35,12 @@ public partial class AbilityFrame : TextureRect
 			return;
 		}
 		
-		if (ability.CurrentStack < ability.MaxStack)
+		if (ability.Stacks.X < ability.Stacks.Y)
 		{
 			_cdBar.Visible = true;
 			_cdNumber.Visible = true;
-			_cdBar.Value = ability.CurrentCooldown / ability.BaseCooldown * 100;
-			_cdNumber.Text = ability.CurrentCooldown.ToString("0.0");
+			_cdBar.Value = ability.Cooldowns.X / ability.Cooldowns.Y * 100;
+			_cdNumber.Text = ability.Cooldowns.X.ToString("0.0");
 		}
 		else
 		{
@@ -48,7 +48,7 @@ public partial class AbilityFrame : TextureRect
 			_cdNumber.Visible = false;
 		}
 
-		_stackCount.Text = ability.MaxStack > 1 ? $"{ability.CurrentStack} / {ability.MaxStack}" : string.Empty;
+		_stackCount.Text = ability.Stacks.Y > 1 ? $"{ability.Stacks.X} / {ability.Stacks.Y}" : string.Empty;
 		_abilityIcon.Texture ??= IconLoader.Instance.LoadImage(ability.IconPath);
 	}
 }

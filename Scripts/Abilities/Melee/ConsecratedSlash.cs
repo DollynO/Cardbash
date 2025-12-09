@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class ConsecratedSlash : Ability
 {
-    public ConsecratedSlash(PlayerCharacter creator) : base("C9BA2A80-C3D3-4EB7-B6E9-92D6020B62CE", creator)
+    public ConsecratedSlash(PlayerCharacter creator) : base(AbilityIds.ConsecratedSlashGuid, creator)
     {
         this.DisplayName = "Consecrated Slash";
         this.Description = "Let the crusade begin";

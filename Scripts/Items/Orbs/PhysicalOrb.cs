@@ -16,7 +16,7 @@ public class PhysicalOrb : Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.DamageModifier.Add(new DamageModifier()
+        player.RequestAddDamageModifier(new DamageModifier()
         {
             TargetDamageType = DamageType.Physical,
             OutputDamageType = DamageType.Physical,

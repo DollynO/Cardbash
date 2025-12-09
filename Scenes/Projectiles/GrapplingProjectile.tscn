@@ -1,0 +1,41 @@
+[gd_scene load_steps=5 format=3 uid="uid://prm4imph6ynn"]
+
+[ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/GrapplingHook.cs" id="1_r487b"]
+[ext_resource type="Texture2D" uid="uid://nqdvi7a10btn" path="res://Sprites/Projectiles/generic_orb.png" id="2_v5wuc"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]
+radius = 333.486
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_07f7a"]
+radius = 0.01
+
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("_line", "timer", "sprite", "collisionShape", "pullArea", "pullAreaShape")]
+script = ExtResource("1_r487b")
+_line = NodePath("Line2D")
+timer = NodePath("LiveTimeTimer")
+sprite = NodePath("CollisionShape/Sprite2D")
+collisionShape = NodePath("CollisionShape")
+pullArea = NodePath("PullArea")
+pullAreaShape = NodePath("PullArea/PullAreaShape")
+
+[node name="LiveTimeTimer" type="Timer" parent="."]
+
+[node name="CollisionShape" type="CollisionShape2D" parent="."]
+modulate = Color(0.909216, 0.264117, 0.446309, 1)
+scale = Vector2(0.1, 0.1)
+shape = SubResource("CircleShape2D_e0kvs")
+
+[node name="Sprite2D" type="Sprite2D" parent="CollisionShape"]
+texture = ExtResource("2_v5wuc")
+
+[node name="PullArea" type="Area2D" parent="."]
+collision_mask = 4
+
+[node name="PullAreaShape" type="CollisionShape2D" parent="PullArea"]
+modulate = Color(0.588977, 0.130064, 0.489551, 1)
+shape = SubResource("CircleShape2D_07f7a")
+one_way_collision_margin = 0.0
+
+[node name="Line2D" type="Line2D" parent="."]
+
+[connection signal="timeout" from="LiveTimeTimer" to="." method="_on_timer_timeout"]

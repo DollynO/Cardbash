@@ -16,7 +16,7 @@ public class DarknessOrb: Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.DamageModifier.Add(new DamageModifier()
+        player.RequestAddDamageModifier(new DamageModifier()
         {
             TargetDamageType = DamageType.Darkness,
             OutputDamageType = DamageType.Darkness,

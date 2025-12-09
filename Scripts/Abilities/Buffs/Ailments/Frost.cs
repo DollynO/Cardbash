@@ -5,7 +5,8 @@ namespace CardBase.Scripts.Abilities.Buffs;
 public class Frost : Buff
 {
     private StatModifier slow_modifier;
-    private float base_reduction = 30;
+    private float base_reduction = 0.20f;
+    private float stack_increase = 0.04f;
     
     public Frost(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
     {
@@ -15,12 +16,16 @@ public class Frost : Buff
         this.Duration = 10;
         this.Guid = "44069072-354D-482A-97BE-C14BABCC8966";
         slow_modifier = new StatModifier(System.Guid.NewGuid().ToString("N"), StatType.MovementSpeed, StatOp.PercentAdd, -base_reduction);
-        this.IsStackable = false;
+        this.IsStackable = true;
+        this.MaxStacks = 5;
         this.IsRefreshable = true;
     }
 
     protected override void InternalOnActivate()
     {
+        
+        Target.StatBlock.RemoveModifierSource(slow_modifier.SourceId);
+        slow_modifier.Value = -(base_reduction + StackCount * stack_increase);
         Target.StatBlock.AddModifiers(slow_modifier);
     }
 

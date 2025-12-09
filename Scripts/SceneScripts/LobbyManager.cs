@@ -41,7 +41,7 @@ public partial class LobbyManager : ColorRect
 			_teamSelect.RemoveItem(0);
 		}
 		
-		foreach (var color in TeamColor.Colors)
+		foreach (var color in CardBase.Scripts.ColorPlate.Colors)
 		{
 			var image = new Image();
 			var dummy = new byte[20 * 20 * 3];

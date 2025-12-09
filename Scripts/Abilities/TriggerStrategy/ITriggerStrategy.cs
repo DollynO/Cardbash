@@ -43,3 +43,23 @@ public class SimpleTriggerStrategy : ITriggerStrategy
     {
     }
 }
+
+public class PressAndReleaseStrategy : ITriggerStrategy
+{
+    public void OnKeyJustPressed(Ability ability)
+    {
+        if (ability.Activate())
+        {
+            ability.Use();
+        }
+    }
+
+    public void OnKeyPressed(Ability ability, double delta)
+    {
+    }
+
+    public void OnKeyReleased(Ability ability)
+    {
+        ability.CancelAbility();
+    }
+}

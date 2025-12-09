@@ -32,6 +32,9 @@ public enum StatType
     DmgDarknessBonus,
     DmgPhysicalBonus,
     DmgPoisonBonus,
+    
+    AddPullRadius,
+    AddPullStrength,
 }
 
 public sealed class StatBlock
@@ -152,7 +155,7 @@ public sealed class StatModifier
     public readonly string SourceId;    // optional: group/removal
     public readonly StatType Stat;
     public readonly StatOp Op;
-    public readonly float Value;
+    public float Value;
 
     public StatModifier(string sourceId, StatType stat, StatOp op, float value)
     {

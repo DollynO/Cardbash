@@ -13,14 +13,15 @@ public abstract class Buff : IBuff
     public string DisplayName { get; protected set; }
     public string Description { get; protected set; }
     public string IconPath { get; protected set; }
-    public float Duration { get; protected set; }
+    public float Duration { get; set; }
     public float RemainingDuration { get; set; }
     public PlayerCharacter Caller { get; protected set; }
-    public PlayerCharacter Target { get; protected set; }
+    public PlayerCharacter Target { get; set; }
     
     public DamageType BuffType { get; protected set; }
 
     protected bool IsStackable { get; set; }
+    protected int MaxStacks { get; set; } = 0;
     protected bool StackedDeactivation { get; set; }
     public int StackCount { get; private set; }
     
@@ -34,12 +35,12 @@ public abstract class Buff : IBuff
 
     public void OnActivate()
     {
-        if (IsRefreshable || RemainingDuration == 0)
+        if (IsRefreshable || RemainingDuration <= 0)
         {
             RemainingDuration = Duration;
         }
 
-        if (IsStackable || StackCount == 0)
+        if (IsStackable && StackCount <= MaxStacks || StackCount == 0)
         {
             StackCount++;
             InternalOnActivate();

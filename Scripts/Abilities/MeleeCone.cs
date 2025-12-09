@@ -68,8 +68,8 @@ public partial class MeleeCone : Node2D
     private Shader fillAmountShader = GD.Load<Shader>("res://Shaders/MeleeConeFillShader.gdshader");
     private Texture2D fillAmountTexture = GD.Load<Texture2D>("res://Sprites/whiteBox.png");
 
-    private Color outline = Colors.Aqua;
-    private Color fillColor = Colors.Aqua;
+    private Godot.Color outline = Colors.Aqua;
+    private Godot.Color fillColor = Colors.Aqua;
     private PhysicsDirectSpaceState2D _space;
     private Node2D Parent;
     private float attackTimeCount;
@@ -221,7 +221,7 @@ public partial class MeleeCone : Node2D
         for (var i = 1; i < points.Count; i++)
         {
             to = points[i];
-            DrawLine(from, to, new Color(1.0f, 1.0f, 1.0f, 0.5f));
+            DrawLine(from, to, new Godot.Color(1.0f, 1.0f, 1.0f, 0.5f));
             from = to;
         }
     }

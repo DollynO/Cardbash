@@ -6,7 +6,7 @@ namespace CardBase.Scripts.Abilities;
 public class FireballAbility : ProjectileAbility
 {
     private float chargePower = 0;
-    public FireballAbility(PlayerCharacter creator) : base("EE277E3F-A8D2-4AE8-9DE4-01B8158DD000", creator)
+    public FireballAbility(PlayerCharacter creator) : base(AbilityIds.FireballGuid, creator)
     {
        this.DisplayName = "Fireball";
        this.Description = "Fireball Description";
@@ -27,15 +27,14 @@ public class FireballAbility : ProjectileAbility
         return new ProjectileStats
         {
             Caller = Caller,
-            Direction = null,
+            Direction = Vector2.Zero,
             Speed = 300,
-            TimeToBeALive = 4,
+            TimeToBeALive = 15,
             SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
             BouncingCount = 3,
             PiercingCount = 1,
             Scale = new Vector2(0.33f, 0.33f),
-            Color = new Vector3(0.909f, 0.264f, 0.446f)
-            
+            Color = new Vector3(0.909f, 0.264f, 0.446f),
         };
     }
 }

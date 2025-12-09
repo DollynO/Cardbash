@@ -101,10 +101,10 @@ public static class DamageCalculator
             {
                 modifierMaxList[mod.OutputDamageType] += mod.Value;
             }
-
-            foreach (var mod in modifierList.Where(mod => totalDamageList.ContainsKey(mod.TargetDamageType)))
+            
+            foreach (var mod in modifierMaxList)
             {
-                totalDamageList[mod.TargetDamageType].DamageNumber *= (1 + mod.Value / 100);
+                totalDamageList[mod.Key].DamageNumber *= 1 + mod.Value;
             }
 
             foreach (var dmg in totalDamageList)
@@ -116,6 +116,14 @@ public static class DamageCalculator
                         = Math.Max(calculatedDamages[dmg.Key].AilmentChange, dmg.Value.AilmentChange);
                 }
             }
+        }
+
+        if (calculatedDamages.Count <= 0) return;
+        
+        orgDamages.Clear();
+        foreach (var calculatedDamage in calculatedDamages)
+        {
+            orgDamages.Add(calculatedDamage.Key, calculatedDamage.Value);
         }
     }
 

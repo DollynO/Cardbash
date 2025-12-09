@@ -6,7 +6,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class ShatterStrike : Ability
 {
-    public ShatterStrike(PlayerCharacter creator) : base("61B5DDB4-A447-4942-87F9-BBF93C3E125A", creator)
+    public ShatterStrike(PlayerCharacter creator) : base(AbilityIds.ShatterStrikeGuid, creator)
     {
         this.DisplayName = "Shatter Strike";
         this.Description = "A brutal melee blow that consumes all stacks of Frost on the target, detonating the icy buildup. The chill explodes into shards, stunning the enemy briefly while dealing heavy cold-infused damage.";

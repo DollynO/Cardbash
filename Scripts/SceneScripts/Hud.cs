@@ -61,9 +61,9 @@ public partial class Hud : CanvasLayer
 		
 		for (var i = 0; i < _abilityFrames.Count; i++)
 		{
-			if (player.Abilities.Count > i)
+			if (player.AbilityController.Abilities.Count > i)
 			{
-				_abilityFrames[i].UpdateUi(player.Abilities[i]);
+				_abilityFrames[i].UpdateUi(player.AbilityController.GetNetAbilities()[i]);
 			}
 			else
 			{
@@ -72,7 +72,7 @@ public partial class Hud : CanvasLayer
 		}
 		
 		((ShaderMaterial)_darknessEffect.Material).SetShaderParameter("fill_amount", Math.Clamp(player.StatBlock.GetStat(StatType.Darkness) * 0.1, 0, 1));
-		PrintStats(player.StatBlock);
+		PrintStats(player);
 	}
 	
 	private void _clear_card_box()
@@ -128,11 +128,12 @@ public partial class Hud : CanvasLayer
 		_selectedCard = card;
 	}
 	
-	public void PrintStats(StatBlockComponent stats)
+	public void PrintStats(PlayerCharacter player)
 	{
+		var stats = player.StatBlock;
 		_statsText.Text = $"Movement Speed: {stats.GetStat(StatType.MovementSpeed)}\n" +
 		                  $"Armor: {stats.GetStat(StatType.Armor)}\n" +
-		                  $"Life: {stats.GetStat(StatType.Life)}\n" +
+		                  $"Life: {player.HealthController.CurrentHealth} / {player.HealthController.MaxHealth}\n" +
 		                  $"Energy Shield: {stats.GetStat(StatType.EnergyShield)}\n";
 	}
 }

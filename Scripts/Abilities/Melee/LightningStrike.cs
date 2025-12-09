@@ -6,7 +6,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class LightningStrike : Ability
 {
-    public LightningStrike(PlayerCharacter creator) : base("2970A4C5-0C86-4EB2-8CB3-067750622083", creator)
+    public LightningStrike(PlayerCharacter creator) : base(AbilityIds.LightningStrikeGuid, creator)
     {
         this.DisplayName = "Lightning Strike";
         this.Description = "Fast lightning strike";

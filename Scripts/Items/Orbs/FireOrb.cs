@@ -16,7 +16,7 @@ public class FireOrb : Item
 
     public override void ApplyItem(PlayerCharacter player)
     {
-        player.DamageModifier.Add(new DamageModifier()
+        player.RequestAddDamageModifier(new DamageModifier()
         {
             TargetDamageType = DamageType.Fire,
             OutputDamageType = DamageType.Fire,

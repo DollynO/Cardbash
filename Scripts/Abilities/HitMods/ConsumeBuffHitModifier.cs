@@ -6,14 +6,14 @@ namespace CardBase.Scripts.Abilities.HitMods;
 
 public class ConsumeBuffHitModifier : IHitModifier
 {
-    private Action<int> onBuffConsume;
+    private Action<int, HitContext> onBuffConsume;
     private Type consumeType;
     private bool beforeAfter;
     
-    public ConsumeBuffHitModifier(Action<int> on_buff_consume, Type type, bool beforeAfter)
+    public ConsumeBuffHitModifier(Action<int, HitContext> on_buff_consume, Type type, bool beforeAfter)
     {
         onBuffConsume = on_buff_consume ?? throw new ArgumentNullException(nameof(on_buff_consume));
-        if (type.BaseType != typeof(Buff))
+        if (!type.IsSubclassOf(typeof(Buff)))
         {
             throw new ArgumentException("Wrong consumable type");
         }
@@ -39,10 +39,10 @@ public class ConsumeBuffHitModifier : IHitModifier
 
     private void consume(HitContext ctx)
     {
-        var consumed_buff_count = ctx.Target.ConsumeBuff(consumeType);
+        var consumed_buff_count = ctx.Target.BuffManagerComponent.ConsumeBuff(consumeType);
         if (consumed_buff_count > 0)
         {
-            onBuffConsume(consumed_buff_count);
+            onBuffConsume(consumed_buff_count, ctx);
         } 
     }
 }

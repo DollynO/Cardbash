@@ -6,7 +6,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class FireSlash : Ability
 {
-    public FireSlash(PlayerCharacter creator) : base("1DD05202-6BE7-489E-9411-CC968BF5BCB5", creator)
+    public FireSlash(PlayerCharacter creator) : base(AbilityIds.FireSlashGuid, creator)
     {
         this.DisplayName = "Fire Slash";
         this.Description = "Melee fire strike. ";

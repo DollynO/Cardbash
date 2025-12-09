@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class IceArrowAbility : ProjectileAbility
 {
-    public IceArrowAbility(PlayerCharacter creator) : base("8E481FBF-DE0A-4673-BDF1-50EE9CC041D4", creator)
+    public IceArrowAbility(PlayerCharacter creator) : base(AbilityIds.IceArrowGuid, creator)
     {
        this.DisplayName = "Ice Arrow";
        this.Description = "Fires an ice arrow";
@@ -22,7 +22,7 @@ public class IceArrowAbility : ProjectileAbility
         return new ProjectileStats
         {
             Caller = Caller,
-            Direction = null,
+            Direction = Vector2.Zero,
             Speed = 500,
             TimeToBeALive = 4,
             SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",

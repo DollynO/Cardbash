@@ -38,7 +38,7 @@ public partial class Player : Node
     public int TeamNumber
     {
         get => _teamNumber;
-        set => _teamNumber = value % TeamColor.MaxTeams;
+        set => _teamNumber = value % ColorPlate.MaxTeams;
     }
     private int _teamNumber;
 

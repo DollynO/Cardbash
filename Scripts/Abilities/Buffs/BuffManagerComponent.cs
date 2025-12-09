@@ -12,11 +12,16 @@ public partial class BuffManagerComponent : Node2D
 {
     private List<Buff> activeBuffs = new();
     private System.Collections.Generic.Dictionary<Buff, BuffIconTemplate> buffIcons = new();
-    private System.Collections.Generic.Dictionary<string, Buff> queuedBuffs = new();
     private BuffRow2D buffRow;
     private MultiplayerSpawner spawner;
     private bool processRunning;
+    public PlayerCharacter Owner;
 
+    public override void _EnterTree()
+    {
+        base._EnterTree();
+        Owner = this.GetParent<PlayerCharacter>();
+    }
 
     public override void _Ready()
     {
@@ -39,23 +44,23 @@ public partial class BuffManagerComponent : Node2D
 
     public override void _Process(double delta)
     {
-        var expiredBuffs = new List<Buff>();
-        foreach (var buff in activeBuffs)
+        var tmpActiveBuffs = new List<Buff>(activeBuffs);
+        foreach (var buff in tmpActiveBuffs)
         {
             if (buff.OnTick((float)delta))
             {
-                expiredBuffs.Add(buff);
+                
+                RemoveBuff(buff);
+                activeBuffs.Remove(buff);
             }
             else
             {
-                buffIcons[buff].UpdateTimer(buff.RemainingDuration, buff.Duration);
+                if (buffIcons.ContainsKey(buff))
+                {
+                    buffIcons[buff].UpdateTimer(buff.RemainingDuration, buff.Duration);
+                    buffIcons[buff].UpdateStacks(buff.StackCount);
+                }
             }
-        }
-
-        foreach (var buff in expiredBuffs)
-        {
-            RemoveBuff(buff);
-            activeBuffs.Remove(buff);
         }
     }
 
@@ -73,28 +78,30 @@ public partial class BuffManagerComponent : Node2D
     {
         var existing = activeBuffs
             .FirstOrDefault(b => b.GetType() == buff.GetType() && b.Caller == buff.Caller);
+        
         if (existing == null)
         {
+            buff.Target ??= Owner;
             activeBuffs.Add(buff);
             var dict = new Godot.Collections.Dictionary<string, Variant>
             {
                 ["texture"] = buff.IconPath,
                 ["syncGuid"] = Guid.NewGuid().ToString("N")
             };
-            queuedBuffs.Add((string)dict["syncGuid"], buff);
             var node = spawner.Spawn(dict);       
-            buffIcons.Add(queuedBuffs[node.Name], (BuffIconTemplate)node);
-            queuedBuffs.Remove(node.Name);
+            buffIcons.Add(buff, (BuffIconTemplate)node);
             buffRow.AddBuffIcon((BuffIconTemplate)node);
-
+            buff.OnActivate();
         }
-        
-        buff.OnActivate();
+        else
+        {
+            existing.OnActivate();
+        }
     }
 
     public int ConsumeBuff(Type consumeType)
     {
-        if (consumeType.BaseType != typeof(Buff))
+        if (!consumeType.IsSubclassOf(typeof(Buff)))
         {
             throw new ArgumentException("wrong consume type");
         }
@@ -119,6 +126,18 @@ public partial class BuffManagerComponent : Node2D
         }
 
         return count;  
+    }
+
+    public int CountBuff(Type consumeType)
+    {
+        if (!consumeType.IsSubclassOf(typeof(Buff)))
+        {
+            throw new ArgumentException("wrong consume type");
+        }
+        
+        var buffs = this.activeBuffs.Where(b => b.GetType() == consumeType).ToList();
+        var count = buffs.Sum(buff => buff.StackCount);
+        return  count;
     }
     
     private Node CustomSpawner(Variant data)

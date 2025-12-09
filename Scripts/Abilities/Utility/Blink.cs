@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Abilities.Utility;
 
 public class Blink : Ability
 {
-    public Blink(PlayerCharacter creator) : base("ECD03AF9-850B-457C-A799-2D9E99D29B7F", creator)
+    public Blink(PlayerCharacter creator) : base(AbilityIds.BlinkGuid, creator)
     {
         this.DisplayName = "Blink";
         this.Description = "Teleports to the target position.";
@@ -18,7 +18,7 @@ public class Blink : Ability
     public override void InternalUse()
     {
         var mousePosition = this.Caller.GetGlobalMousePosition();
-        this.Caller.RequestReposition(mousePosition);
+        this.Caller.MoveController.RequestReposition(mousePosition, 0);
     }
 
     protected override void InternalUpdate()
