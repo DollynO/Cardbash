@@ -1336,7 +1336,7 @@ position = Vector2(1000, 1000)
 [node name="ProjectileManager" type="Node" parent="."]
 script = ExtResource("12_fi2wn")
 
-[node name="GlobalAbilitySpawner" type="Node" parent="." node_paths=PackedStringArray("GameManager")]
+[node name="GlobalAbilitySpawner" type="Node2D" parent="." node_paths=PackedStringArray("GameManager")]
 script = ExtResource("13_v4tnd")
 GameManager = NodePath("..")
 

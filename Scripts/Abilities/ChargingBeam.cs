@@ -66,18 +66,33 @@ public class ChargingBeam : Ability
             shockDebuff = new ShockDebuff(ctx.Source, ctx.Target);
             ctx.Target.BuffManagerComponent.ApplyBuff(shockDebuff);
 
-            if ((shockBuffCount + 1) % 5 == 0)
+            if (shockBuffCount % 5 == 0)
             {
-                var consumed = target.BuffManagerComponent.ConsumeBuff(typeof(ShockDebuff));
-                var aoeStats = new AoeBaseStats();
+                if (false)
+                {
+                    var consumed = target.BuffManagerComponent.ConsumeBuff(typeof(ShockDebuff));
+                }
+
+                var aoeStats = new AoeBaseStats
+                {
+                    Radius = 100,
+                    ActivationTime = 0.5f,
+                    Duration = 0,
+                    IsStationary = true,
+                    StationaryPosition = ctx.Target.GlobalPosition,
+                    OnActivation = null,
+                    OnDeactivation = null,
+                    OnTick = null,
+                    Owner = Caller,
+                };
                 globalAbilitySpawner.SpawnAoe(aoeStats);
-                GD.Print("consumed");
             }
         }
     }
     
     protected override void InternalCancel()
     {
+        if (_ray == null) return;
         _ray.Destroy();
         _ray = null;
     }

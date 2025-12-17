@@ -288,7 +288,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
 
     private void ApplyDamageTypeAilment(DamageType type, float ailmentChance, PlayerCharacter attacker)
     {
-        var chance = rnd.Next(0, 100) / 100;
+        var chance = rnd.NextDouble();
         if (chance > ailmentChance)
         {
             return;

@@ -80,6 +80,8 @@ public abstract class Ability : BaseCardableObject
 
     protected bool AutoCast = false;
     
+    protected GlobalAbilitySpawner globalAbilitySpawner;
+    
     protected Ability(string guid, PlayerCharacter creator) : base(guid)
     {
         TriggerStrategy = new SimpleTriggerStrategy();
@@ -148,6 +150,9 @@ public abstract class Ability : BaseCardableObject
     
     public virtual bool Activate()
     {
+        globalAbilitySpawner ??= this.Caller.GetTree().Root
+            .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
+            
         if (CurrentStack == 0)
         {
             return false;

@@ -6,8 +6,13 @@ using Godot.Collections;
 namespace CardBase.Scripts.Abilities;
 
 [GlobalClass]
-public partial class GlobalAbilitySpawner : Node
+public partial class GlobalAbilitySpawner : Node2D
 {
+    public override void _Ready()
+    {
+        SetMultiplayerAuthority(1);
+    }
+
     [Export] private GameManager GameManager;
     public Ray SpawnRay(RayStats props)
     {
@@ -30,22 +35,29 @@ public partial class GlobalAbilitySpawner : Node
 
     public AoeBase SpawnAoe(AoeBaseStats aoeStats)
     {
-        var aoe = new AoeBase(aoeStats);
+        var aoe = new AoeBase();
+        aoe.Initialize(aoeStats);
         var name = generateName(SpawnType.AOE);
         aoe.Name = name;
         var dict = aoeStats.ToDict();
+        this.AddChild(aoe);
         Rpc(MethodName.spawnAoeOnClient, dict, name);
         return aoe;
     }
 
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void spawnAoeOnClient(Variant dict, string name)
     {
         var stats = AoeBaseStats.FromDict((Dictionary<string, Variant>)dict, GameManager);
+        var aoe = new AoeBase();
+        aoe.Initialize(stats);
+        aoe.Name = name;
+        this.AddChild(aoe);
     }
 
     private string generateName(SpawnType type)
     {
-        return $"{nameof(type)}_{Guid.NewGuid()}";
+        return $"{type}_{Guid.NewGuid()}";
     }
     
     
