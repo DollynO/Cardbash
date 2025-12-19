@@ -356,6 +356,7 @@ properties/0/spawn = true
 properties/0/replication_mode = 2
 
 [node name="PlayerCharacter" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "BuffManagerComponent") groups=["Player"]]
+z_index = 5
 collision_layer = 4
 collision_mask = 7
 script = ExtResource("1_sdal5")
@@ -423,6 +424,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_fwnwc")
 value = 33.0
 allow_greater = true
 show_percentage = false
+metadata/_edit_use_anchors_ = true
 
 [node name="Stunbar" type="ProgressBar" parent="OverheadDisplayComponent"]
 anchors_preset = 8
@@ -441,6 +443,7 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_c7her")
 value = 33.0
 allow_greater = true
 show_percentage = false
+metadata/_edit_use_anchors_ = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 enabled = false

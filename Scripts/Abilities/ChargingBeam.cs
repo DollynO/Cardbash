@@ -29,10 +29,12 @@ public class ChargingBeam : Ability
         var rayStats = new RayStats()
         {
             Caster = Caller,
-            InnerColor = ColorPlate.GetColor((int)ColorPlateName.LightBlue),
-            OuterColor = ColorPlate.GetColor((int)ColorPlateName.DarkBlue),
             Range = 400,
             CollisionTick = onHit,
+            AnimationResource = "res://AnimationRes/OrangeBeam.tres",
+            CenterLoopCount = 8,
+            CenterLoopFolder = "res://Sprites/Projectiles/laser_beam_A_large_orange/center_loop",
+            PierceCount = 1,
         };
         
         _ray = (globalAbilitySpawner ??= this.Caller.GetTree().Root.GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner"))
