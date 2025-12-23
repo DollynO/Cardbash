@@ -12,6 +12,7 @@ public class ChargingBeam : Ability
     private GlobalAbilitySpawner globalAbilitySpawner;
     private float deltaSum = 0;
     private ShockDebuff shockDebuff;
+    private float aoeBaseDamage = 20;
     
     public ChargingBeam(PlayerCharacter creator) : base(AbilityIds.ChargingBeamGuid, creator)
     {
@@ -82,7 +83,7 @@ public class ChargingBeam : Ability
                     Duration = 0,
                     IsStationary = true,
                     StationaryPosition = ctx.Target.GlobalPosition,
-                    OnActivation = null,
+                    OnActivation = onAoeActivation,
                     OnDeactivation = null,
                     OnTick = null,
                     Owner = Caller,
@@ -91,7 +92,34 @@ public class ChargingBeam : Ability
             }
         }
     }
-    
+
+    private void onAoeActivation(List<PlayerCharacter> obj)
+    {
+        var dict = new Dictionary<DamageType, Damage>();
+        var damage = new Damage()
+        {
+            AilmentChange = BaseAilmentChance,
+            Type = BaseType,
+            DamageNumber = aoeBaseDamage,
+        };
+        dict.Add(BaseType, damage);
+        
+        foreach (var playerCharacter in obj)
+        {
+            if (playerCharacter.TeamId != Caller.TeamId)
+            {
+                var hitContext = new HitContext
+                {
+                    Source = Caller,
+                    Target = playerCharacter,
+                    AbilityGuid = GUID,
+                    Damages = dict
+                };
+                playerCharacter.ApplyDamage(hitContext);
+            }
+        }
+    }
+
     protected override void InternalCancel()
     {
         if (_ray == null) return;
