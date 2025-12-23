@@ -19,6 +19,8 @@ public partial class Ray : Node2D
     private AnimatedSprite2D _originSprite;
     private AnimatedSprite2D _endSprite;
 
+    private ShapeCast2D _shapeCast2D;
+
     public Ray(RayStats rayStats)
     {
         _rayStats = rayStats;
@@ -60,15 +62,26 @@ public partial class Ray : Node2D
         
         _innerLine.Texture = _centerTextureList[0];
         _innerLine.Width = _innerLine.Texture.GetHeight();
-
+        
         if (!Multiplayer.IsServer())
         {
             SetPhysicsProcess(false);
             return;
         }
-        
-        _state = GetWorld2D().GetDirectSpaceState();
 
+        _shapeCast2D = new ShapeCast2D();
+        AddChild(_shapeCast2D);
+        _state = GetWorld2D().GetDirectSpaceState();
+        var rectShape = new RectangleShape2D();
+        rectShape.Size = new Vector2(5, width); // width x length
+        _shapeCast2D.Shape = rectShape;
+        
+        _shapeCast2D.Position = Vector2.Zero;
+        _shapeCast2D.TargetPosition = Vector2.Right * _rayStats.Range;
+        _shapeCast2D.Rotation = Mathf.Pi / 2;
+        _shapeCast2D.CollisionMask = _rayStats.CollisionMask;
+        _shapeCast2D.AddExceptionRid((_rayStats.Caster).GetRid());
+        _shapeCast2D.MaxResults = 10;
     }
 
     public override void _Process(double delta)
@@ -87,49 +100,70 @@ public partial class Ray : Node2D
 
     public override void _PhysicsProcess(double delta)
     {
-        var from = GlobalPosition + this._rayStats.Caster.GetLookAtDirection() * 32;
-        var max_to = GlobalPosition + this._rayStats.Caster.GetLookAtDirection() * _rayStats.Range;
-        var to = Vector2.Zero;
-        var tmp_from = from;
-        var hitPlayers = new List<PlayerCharacter>();
+        var pierceCount = _rayStats.PierceCount + 1;
+        var from = ToGlobal(_shapeCast2D.Position);
+        var direction = _rayStats.Caster.GetLookAtDirection();
+        var to = GlobalPosition + direction * _rayStats.Range;
+
+        var hittedObjects = new List<IHitableObject>();
+        var lastHitPosition = Vector2.Zero;
         
-        while(to.DistanceSquaredTo(from) < max_to.DistanceSquaredTo(from) && hitPlayers.Count < _rayStats.PierceCount + 1)
+        if (_shapeCast2D.IsColliding())
         {
-            var query = new PhysicsRayQueryParameters2D
+            while (pierceCount > 0)
             {
-                From = tmp_from,
-                To = max_to,
-                CollisionMask = _rayStats.CollisionMask,
-                Exclude = new Array<Rid> { (_rayStats.Caster).GetRid() },
-            };
-            var results = _state.IntersectRay(query);
-            if (results.Count > 0)
-            {
-                var collider = (GodotObject)results["collider"];
-                to = results.TryGetValue("position", out var value) ? (Vector2)value : max_to;
-                if (collider is PlayerCharacter player)
+                _shapeCast2D.ForceShapecastUpdate();
+                if (_shapeCast2D.IsColliding())
                 {
-                    hitPlayers.Add(player);
+                    for (var i = 0; i < _shapeCast2D.GetCollisionCount(); i++)
+                    {
+                        var hitPosition = _shapeCast2D.GetCollisionPoint(i);
+                        var hitObject = _shapeCast2D.GetCollider(i);
+                        
+                        if (hitObject is IHitableObject hitableObject)
+                        {
+                            hittedObjects.Add(hitableObject);
+                            _shapeCast2D.AddExceptionRid(_shapeCast2D.GetColliderRid(i));
+                            pierceCount--;
+                        }
+                        else
+                        {
+                            lastHitPosition = hitPosition;
+                            pierceCount = 0;
+                        }
+
+                        if (pierceCount == 0)
+                        {
+                            break;
+                        }
+                    }
                 }
-                tmp_from = to;
+                else
+                {
+                    lastHitPosition = to;
+                    pierceCount = 0;
+                }
             }
-            else
+
+            foreach (var hitableObject in hittedObjects)
             {
-                to = max_to;
+                _rayStats.CollisionTick(hitableObject, (float)delta);
             }
+            
+            var toHit = lastHitPosition - from;
+            var length = toHit.Dot(direction);
+            to = GlobalPosition + direction * length;
         }
-
-        foreach (var player in hitPlayers)
-        {
-            _rayStats.CollisionTick(player, (float)delta);
-        }
-
-        var newPoints = new [] { ToLocal(from), ToLocal(to) };
+        
+        var newPoints = new [] { ToLocal(GlobalPosition + _rayStats.Caster.GetLookAtDirection() * 32), ToLocal(to)};
         var dict = new Godot.Collections.Dictionary<string, Variant>
         {
             ["points"] = newPoints
         };
         Rpc(MethodName.syncClient, dict);
+        
+        _shapeCast2D.ClearExceptions();
+        _shapeCast2D.AddExceptionRid((_rayStats.Caster).GetRid());
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
