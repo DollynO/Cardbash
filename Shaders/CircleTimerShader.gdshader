@@ -11,17 +11,17 @@ void fragment() {
 	vec2 uv = UV * 2.0 - 1.0;
 	float angle = atan(uv.y, uv.x) + PI/2.0f;
 	float PI2 = PI * 2.0f;
-	
+
 	if (angle< 0.0) {
 		angle += PI2;
 	}
-	
+
 	float dist = length(uv);
 	float cutoff = fill_amount * PI2;
-	
+
 	bool inside_circle = dist <=  1.0;
 	bool inside_sector = angle <= cutoff;
-	
+
 	if (inside_sector) {
 		COLOR = (COLOR + fill_color) / 2.0f;
 	}
