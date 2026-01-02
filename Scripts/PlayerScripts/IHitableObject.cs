@@ -5,5 +5,5 @@ namespace CardBase.Scripts.PlayerScripts;
 
 public interface IHitableObject
 {
-    public void ApplyDamage(HitContext ctx);
+    public bool ReceiveHit(in Hit hit);
 }

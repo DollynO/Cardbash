@@ -43,6 +43,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     private Rect2 _mapBounds;
 
     [Export] public BuffManagerComponent BuffManagerComponent;
+    [Export] public RingContainer RingContainer;
     
     [Signal]
     public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
@@ -116,6 +117,8 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     }
 
     public event EventHandler? NewRoundStarted;
+
+    public List<IHitInterceptor> _HitInterceptors = new List<IHitInterceptor>();
     
     
     public override void _EnterTree()
@@ -211,7 +214,22 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         return _characterCenterPoint;
     }
 
-    public void ApplyDamage(HitContext ctx)
+    public bool ReceiveHit(in Hit hit)
+    {
+        foreach (var interceptor in _HitInterceptors)
+        {
+            if (interceptor.TryBlock(hit))
+            {
+                return false;
+            }
+        }
+
+        var ctx = hit.Context;
+        ApplyDamage(ctx);
+        return true;
+    }
+    
+    private void ApplyDamage(HitContext ctx)
     {
         if (Multiplayer.IsServer())
         {
@@ -252,7 +270,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
                 var dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
                 ctx.Damages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
                 HealthController.ApplyDamage(ctx.Damages[dmg.Key].DamageNumber);
-                ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChange, ctx.Source);
+                ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChance, ctx.Source);
             }
             
             if (IsDead())
@@ -269,23 +287,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
             }
         }
     }
-
-    public void RequestMeleeCone(MeleeConeProperties properties)
-    {
-        var dict = properties.ToDict();
-        Rpc(MethodName.CreateMeleeCone, dict);
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void CreateMeleeCone(Godot.Collections.Dictionary<string, Variant>dict)
-    {
-        var cone = new MeleeCone();
-        var property = MeleeConeProperties.FromDict(dict);
-        property.Owner = this;
-        cone.SetStats(property);
-        _characterCenterPoint.AddChild(cone);
-    }
-
+    
     private void ApplyDamageTypeAilment(DamageType type, float ailmentChance, PlayerCharacter attacker)
     {
         var chance = rnd.NextDouble();

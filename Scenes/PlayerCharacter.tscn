@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3 uid="uid://hpbx14ma8p0v"]
+[gd_scene load_steps=58 format=3 uid="uid://hpbx14ma8p0v"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerCharacter.cs" id="1_sdal5"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/OverheadDisplayComponent.cs" id="6_jdw73"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/StatBlockComponent.cs" id="7_j8r5e"]
 [ext_resource type="Script" path="res://Scripts/Abilities/Buffs/BuffManagerComponent.cs" id="8_hqshk"]
+[ext_resource type="Script" path="res://Scripts/Abilities/RingContainer.cs" id="10_0bkvh"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3kik1"]
 properties/0/path = NodePath(".:position")
@@ -355,7 +356,7 @@ properties/0/path = NodePath(".:ReplicatedCurrent")
 properties/0/spawn = true
 properties/0/replication_mode = 2
 
-[node name="PlayerCharacter" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "BuffManagerComponent") groups=["Player"]]
+[node name="PlayerCharacter" type="CharacterBody2D" node_paths=PackedStringArray("_inputSync", "_playerAnimation", "StatBlock", "_playerNameLabel", "_lookAtIndicator", "_lookAtDirectionPoint", "_characterCenterPoint", "_camera", "BuffManagerComponent", "RingContainer") groups=["Player"]]
 z_index = 5
 collision_layer = 4
 collision_mask = 7
@@ -369,6 +370,7 @@ _lookAtDirectionPoint = NodePath("CenterNode/LookAtDirectionPoint")
 _characterCenterPoint = NodePath("CenterNode")
 _camera = NodePath("Camera2D")
 BuffManagerComponent = NodePath("BuffManagerComponent")
+RingContainer = NodePath("RingContainer")
 metadata/_edit_horizontal_guides_ = [-43.0]
 
 [node name="PlayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
@@ -473,3 +475,6 @@ replication_config = SubResource("SceneReplicationConfig_5dv8y")
 
 [node name="BuffManagerComponent" type="Node2D" parent="."]
 script = ExtResource("8_hqshk")
+
+[node name="RingContainer" type="Node2D" parent="."]
+script = ExtResource("10_0bkvh")

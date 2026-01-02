@@ -17,7 +17,7 @@ public class BaseDoTBuff : Buff
 
     protected override void InternalOnTick(float delta)
     {
-        var damage = new Damage { DamageNumber = BaseDamage * StackCount * delta, AilmentChange = 0, Type = BaseDamageType };
+        var damage = new Damage { DamageNumber = BaseDamage * StackCount * delta, AilmentChance = 0, Type = BaseDamageType };
         var ctx = new HitContext
         {
             Source = Caller,
@@ -26,8 +26,9 @@ public class BaseDoTBuff : Buff
             {
                 { damage.Type, damage },
             }
-        }; 
-        Target.ApplyDamage(ctx);
+        };
+        var hit = new Hit(null, ctx);
+        Target.ReceiveHit(hit);
     }
 
     protected override void InternalOnDeactivate()

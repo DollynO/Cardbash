@@ -1,13 +1,14 @@
 using System;
+using System.Collections.Generic;
 using CardBase.Scripts.GameSettings;
 using Godot;
-using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities;
 
 [GlobalClass]
 public partial class GlobalAbilitySpawner : Node2D
 {
+    private Dictionary<string, PackedScene> LoadedScenes = new Dictionary<string, PackedScene>();
     public override void _Ready()
     {
         SetMultiplayerAuthority(1);
@@ -27,7 +28,7 @@ public partial class GlobalAbilitySpawner : Node2D
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void spawnRayOnClient(Variant dict, string name)
     {
-        var props = RayStats.FromDict((Dictionary<string, Variant>)dict, GameManager);
+        var props = RayStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
         var ray = new Ray(props);
         ray.Name = name;
         props.Caster.GetCharacterCenterPoint().AddChild(ray);
@@ -48,13 +49,61 @@ public partial class GlobalAbilitySpawner : Node2D
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void spawnAoeOnClient(Variant dict, string name)
     {
-        var stats = AoeBaseStats.FromDict((Dictionary<string, Variant>)dict, GameManager);
+        var stats = AoeBaseStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
         var aoe = new AoeBase();
         aoe.Initialize(stats);
         aoe.Name = name;
         this.AddChild(aoe);
     }
 
+    public Projectile SpawnProjectile(ProjectileStats projectileStats)
+    {
+        var projectile = instantiateProjectile(projectileStats.CustomProjectilePath);
+        var name = generateName(SpawnType.PROJECTILE);
+        projectile.Name = name;
+
+        projectile.SetStats(projectileStats);
+        
+        var dict = projectileStats.ToDict();
+        if (projectileStats.Parent == null)
+        {
+            this.AddChild(projectile);
+        }
+        
+        Rpc(MethodName.spawnProjectileOnClient, dict, name);
+        return projectile;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void spawnProjectileOnClient(Variant dict, string name)
+    {
+        var projectileStats = ProjectileStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
+        var projectile = instantiateProjectile(projectileStats.CustomProjectilePath);
+        projectile.Name = name;
+        projectile.SetStats(projectileStats);
+        if (projectileStats.Parent == null)
+        {
+            this.AddChild(projectile);
+        }
+    }
+
+    private Projectile instantiateProjectile(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            path = "res://Scenes/Projectiles/Projectile.tscn";
+        }
+
+        if (!LoadedScenes.TryGetValue(path, out var loadedScene))
+        {
+            loadedScene = GD.Load<PackedScene>(path);
+            LoadedScenes.Add(path, loadedScene);
+        }
+
+        var projectile = loadedScene.Instantiate();
+        return (Projectile)projectile;
+    }
+    
     private string generateName(SpawnType type)
     {
         return $"{type}_{Guid.NewGuid()}";
@@ -67,5 +116,6 @@ public partial class GlobalAbilitySpawner : Node2D
         AOE,
         MELEE,
         AURA,
+        PROJECTILE,
     }
 }

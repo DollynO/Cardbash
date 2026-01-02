@@ -26,7 +26,7 @@ public class GrapplingHookAbility : ProjectileAbility
         this.Caller.MoveController.ApplyRoot();
     }
 
-    protected override void _onProjectileDestroyed(Vector2 position)
+    protected override void _onProjectileDestroyed(Vector2 position, Projectile projectile)
     {
         this.Caller.MoveController.RemoveRoot();
     }
@@ -41,12 +41,10 @@ public class GrapplingHookAbility : ProjectileAbility
             Direction = Vector2.Zero,
             Speed = 500,
             TimeToBeALive = 4,
-            SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
+            AnimationResourcePath = "res://Sprites/Projectiles/fireBallProjectile.png",
             CustomProjectilePath = "res://Scenes/Projectiles/GrapplingProjectile.tscn",
             BouncingCount = 0,
             PiercingCount = 0,
-            Scale = new Vector2(0.33f, 0.33f),
-            Color = new Vector3(0.33f, 0.33f, 0.33f),
         };
     }
 }

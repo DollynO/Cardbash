@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardBase.Scripts.Abilities.HitMods;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
@@ -18,23 +19,45 @@ public class LightningStrike : Ability
     
     public override void InternalUse()
     {
-        Caller.RequestMeleeCone(new MeleeConeProperties
+        var stats = new AoeBaseStats()
         {
             Angle = 15,
-            AttackTime = 0.3f,
-            Damage = new Damage
-            {
-                DamageNumber = (float)BaseDamage,
-                AilmentChange = Damage.DEFAULT_AILMENT_CHANGE,
-                Type = BaseType
-            },
-            Length = 150,
-            Offset = 0,
+            ActivationTime = 0.3f,
+            Radius = 150,
             Owner = Caller,
             AbilityGUID = GUID,
-        });
+            OnActivation = OnActivation,
+        };
+        globalAbilitySpawner.SpawnAoe(stats);
     }
 
+    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    {
+        
+        foreach (var playerCharacter in arg1)
+        {
+            var damage = new Damage
+            {
+                DamageNumber = (float)BaseDamage,
+                AilmentChance = BaseAilmentChance,
+                Type = BaseType
+            };
+            var damageDict = new Dictionary<DamageType, Damage>()
+            {
+                { BaseType, damage }
+            };
+            var ctx = new HitContext()
+            {
+                AbilityGuid = GUID,
+                Target = playerCharacter,
+                Damages = damageDict,
+                Source = Caller,
+            };
+            var hit = new Hit(arg2, ctx);
+            playerCharacter.ReceiveHit(hit);
+        }
+    }
+    
     protected override void InternalUpdate()
     {
         if (UpdateCounter == 1)
@@ -46,10 +69,5 @@ public class LightningStrike : Ability
         {
             this.BaseCooldown = 5;
         }
-    }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
-        
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardBase.Scripts.Abilities.HitMods;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
@@ -21,28 +22,47 @@ public class ShatterStrike : Ability
 
     public override void InternalUse()
     {
-        Caller.RequestMeleeCone(new MeleeConeProperties
+        var aoeStats = new AoeBaseStats()
         {
             Angle = 45,
-            AttackTime = 0.5f,
-            Damage = new Damage
-            {
-                DamageNumber = (float)BaseDamage,
-                AilmentChange = BaseAilmentChance,
-                Type = BaseType
-            },
-            Length = 150,
-            Offset = 0,
-            Owner = Caller,
+            ActivationTime = 0.5f,
+            OnActivation = OnActivation,
+            Radius = 150,
+            AngleOffset = 0,
             AbilityGUID = GUID,
-        });
-    }
-    
-    protected override void InternalUpdate()
-    {
+            Owner = Caller
+        };
+        globalAbilitySpawner.SpawnAoe(aoeStats);
     }
 
-    public override void RegisterSpawnedNode(Node node)
+    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    {
+        
+        foreach (var playerCharacter in arg1)
+        {
+            var damage = new Damage
+            {
+                DamageNumber = (float)BaseDamage,
+                AilmentChance = BaseAilmentChance,
+                Type = BaseType
+            };
+            var damageDict = new Dictionary<DamageType, Damage>()
+            {
+                { BaseType, damage }
+            };
+            var ctx = new HitContext()
+            {
+                AbilityGuid = GUID,
+                Target = playerCharacter,
+                Damages = damageDict,
+                Source = Caller,
+            };
+            var hit = new Hit(arg2, ctx);
+            playerCharacter.ReceiveHit(hit);
+        }
+    }
+
+    protected override void InternalUpdate()
     {
     }
 }

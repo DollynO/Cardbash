@@ -27,9 +27,4 @@ public class EscapeJump : Ability
     {
         return;
     }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
-        return;
-    }
 }

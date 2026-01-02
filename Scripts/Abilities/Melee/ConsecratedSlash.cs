@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -17,32 +18,50 @@ public class ConsecratedSlash : Ability
 
     public override void InternalUse()
     {
+        var stats = new AoeBaseStats()
+        {
+            Angle = 45,
+            ActivationTime = 0.8f,
+            OnActivation = OnActivation,
+            Radius = 60,
+            AngleOffset = 0,
+            Owner = Caller,
+            AbilityGUID = GUID,
+        };
         for (var i = 0; i < 4; i++)
         {
-            Caller.RequestMeleeCone(new MeleeConeProperties
+            stats.AngleOffset = 0 + i * 90;
+            globalAbilitySpawner.SpawnAoe(stats);
+        }
+    }
+    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    {
+        
+        foreach (var playerCharacter in arg1)
+        {
+            var damage = new Damage
             {
-                Angle = 45,
-                AttackTime = 0.8f,
-                Damage = new Damage
-                {
-                    DamageNumber = (float)BaseDamage,
-                    AilmentChange = Damage.DEFAULT_AILMENT_CHANGE,
-                    Type = BaseType
-                },
-                Length = 60,
-                Offset = 0 + i * 90,
-                Owner = Caller,
-                AbilityGUID = GUID,
-            });
+                DamageNumber = (float)BaseDamage,
+                AilmentChance = BaseAilmentChance,
+                Type = BaseType
+            };
+            var damageDict = new Dictionary<DamageType, Damage>()
+            {
+                { BaseType, damage }
+            };
+            var ctx = new HitContext()
+            {
+                AbilityGuid = GUID,
+                Target = playerCharacter,
+                Damages = damageDict,
+                Source = Caller,
+            };
+            var hit = new Hit(arg2, ctx);
+            playerCharacter.ReceiveHit(hit);
         }
     }
 
     protected override void InternalUpdate()
-    {
-        
-    }
-
-    public override void RegisterSpawnedNode(Node node)
     {
         
     }

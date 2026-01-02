@@ -225,8 +225,6 @@ public abstract class Ability : BaseCardableObject
 
     protected abstract void InternalUpdate();
 
-    public abstract void RegisterSpawnedNode(Node node);
-
     public void CancelAbility()
     {
         this.activated = false;

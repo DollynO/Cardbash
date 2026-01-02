@@ -24,8 +24,4 @@ public class Blink : Ability
     protected override void InternalUpdate()
     {
     }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
-    }
 }

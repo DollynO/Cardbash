@@ -23,7 +23,7 @@ public enum DamageType
 public class Damage : IDictAble<Damage>
 {
     public DamageType Type;
-    public float AilmentChange;
+    public float AilmentChance;
     public float DamageNumber;
 
     public const float DEFAULT_AILMENT_CHANGE = 0.1f;
@@ -34,7 +34,7 @@ public class Damage : IDictAble<Damage>
         return new Dictionary<string, Variant>
         {
             { "type", (int)Type },
-            { "ailment_change", AilmentChange },
+            { "ailment_change", AilmentChance },
             { "damage_number", DamageNumber }
         };
     }
@@ -44,7 +44,7 @@ public class Damage : IDictAble<Damage>
         return new Damage()
         {
             Type = (DamageType)(int)dict["type"],
-            AilmentChange = (float)dict["ailment_change"],
+            AilmentChance = (float)dict["ailment_change"],
             DamageNumber = (float)dict["damage_number"]
         };
     }

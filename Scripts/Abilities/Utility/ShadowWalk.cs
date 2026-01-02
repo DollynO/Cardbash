@@ -65,10 +65,6 @@ public class ShadowWalk : Ability
                 break;
         }
     }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
-    }
     
     private void removeBuff()
     {

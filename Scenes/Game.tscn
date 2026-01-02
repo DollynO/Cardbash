@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=4 uid="uid://dshvuihnhyh7b"]
+[gd_scene load_steps=26 format=4 uid="uid://dshvuihnhyh7b"]
 
 [ext_resource type="Script" path="res://Scenes/GameManager.cs" id="1_awesl"]
 [ext_resource type="PackedScene" uid="uid://hpbx14ma8p0v" path="res://Scenes/PlayerCharacter.tscn" id="2_dr7ob"]
@@ -11,7 +11,6 @@
 [ext_resource type="Texture2D" uid="uid://d20d1pbggem0u" path="res://Sprites/GameSprites/Tilesets/TX Tileset Stone Ground.png" id="5_fgcmq"]
 [ext_resource type="Texture2D" uid="uid://xuhxt6p0201i" path="res://Sprites/GameSprites/Tilesets/TX Tileset Wall.png" id="6_vi2nn"]
 [ext_resource type="Shader" path="res://Shaders/DarknessShader.gdshader" id="10_wx1yi"]
-[ext_resource type="Script" path="res://Scripts/Abilities/ProjectileManager.cs" id="12_fi2wn"]
 [ext_resource type="Script" path="res://Scripts/Abilities/GlobalAbilitySpawner.cs" id="13_v4tnd"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_iwi0f"]
@@ -1726,9 +1725,6 @@ editable = false
 
 [node name="Spawn Point" type="Node2D" parent="."]
 position = Vector2(1000, 1000)
-
-[node name="ProjectileManager" type="Node" parent="."]
-script = ExtResource("12_fi2wn")
 
 [node name="GlobalAbilitySpawner" type="Node2D" parent="." node_paths=PackedStringArray("GameManager")]
 script = ExtResource("13_v4tnd")

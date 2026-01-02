@@ -30,11 +30,9 @@ public class FireballAbility : ProjectileAbility
             Direction = Vector2.Zero,
             Speed = 300,
             TimeToBeALive = 15,
-            SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
+            AnimationResourcePath = "res://Sprites/Projectiles/fireBallProjectile.png",
             BouncingCount = 3,
             PiercingCount = 1,
-            Scale = new Vector2(0.33f, 0.33f),
-            Color = new Vector3(0.909f, 0.264f, 0.446f),
         };
     }
 }

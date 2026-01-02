@@ -1,16 +1,17 @@
 [gd_scene load_steps=5 format=3 uid="uid://cyhc4x42utdgo"]
 
 [ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/Projectile.cs" id="1_7wxbw"]
-[ext_resource type="Texture2D" uid="uid://nqdvi7a10btn" path="res://Sprites/Projectiles/generic_orb.png" id="2_uta4t"]
+[ext_resource type="SpriteFrames" uid="uid://bwv0qdein7c2d" path="res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres" id="2_ib2se"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]
-radius = 333.486
+radius = 110.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_07f7a"]
 radius = 0.01
 
 [node name="Node2D" type="Area2D" node_paths=PackedStringArray("timer", "sprite", "collisionShape", "pullArea", "pullAreaShape")]
-collision_mask = 4
+collision_layer = 8
+collision_mask = 5
 script = ExtResource("1_7wxbw")
 timer = NodePath("LiveTimeTimer")
 sprite = NodePath("CollisionShape/Sprite2D")
@@ -21,14 +22,16 @@ pullAreaShape = NodePath("PullArea/PullAreaShape")
 [node name="LiveTimeTimer" type="Timer" parent="."]
 
 [node name="CollisionShape" type="CollisionShape2D" parent="."]
-modulate = Color(0.909216, 0.264117, 0.446309, 1)
 scale = Vector2(0.1, 0.1)
 shape = SubResource("CircleShape2D_e0kvs")
 
-[node name="Sprite2D" type="Sprite2D" parent="CollisionShape"]
-texture = ExtResource("2_uta4t")
+[node name="Sprite2D" type="AnimatedSprite2D" parent="CollisionShape"]
+scale = Vector2(6, 6)
+sprite_frames = ExtResource("2_ib2se")
+frame_progress = 0.751687
 
 [node name="PullArea" type="Area2D" parent="."]
+collision_layer = 0
 collision_mask = 4
 
 [node name="PullAreaShape" type="CollisionShape2D" parent="PullArea"]

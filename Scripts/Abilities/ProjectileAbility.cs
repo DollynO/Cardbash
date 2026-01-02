@@ -30,46 +30,30 @@ public abstract class ProjectileAbility : Ability
     private void SpawnProjectile()
     {
         var projectile_stats = GetProjectileStats();
-        var projectileManager = Caller.GetTree().Root.GetNode<ProjectileManager>("/root/Main/Game/ProjectileManager");
 
-        var damage = new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChange = BaseAilmentChance };
-        projectile_stats.Damage = damage;
         projectile_stats.StartPosition = Caller.GetProjectileStartPosition();
         projectile_stats.Caller = Caller;
-        projectileManager.CreateProjectile(projectile_stats, this);
+        var projectile = globalAbilitySpawner.SpawnProjectile(projectile_stats);
+        
+        projectile.OnCollision += _onProjectileCollided;
+        projectile.OnPiercing += _onProjectilePierced;
+        projectile.OnDestroyed += _onProjectileDestroyed;
     }
 
-    public override void RegisterSpawnedNode(Node node)
-    {
-        if (node is Projectile projectile)
-        {
-            projectile.OnCollision += _onProjectileCollided;
-            projectile.OnPiercing += _onProjectilePierced;
-            projectile.OnDestroyed += _onProjectileDestroyed;
-            
-            InternalRegisterSpawnedNode(node);
-        }
-    }
-
-    protected virtual void _onProjectileDestroyed(Vector2 position)
+    protected virtual void _onProjectileDestroyed(Vector2 position, Projectile projectile)
     {
         return;
     }
 
-    protected virtual void _onProjectilePierced(Vector2 position)
+    protected virtual void _onProjectilePierced(Vector2 position, Projectile projectile)
     {
         return;
     }
 
-    protected virtual void _onProjectileCollided(Vector2 position)
+    protected virtual void _onProjectileCollided(Vector2 position, Projectile projectile)
     {
         return;
         
-    }
-
-    protected virtual void InternalRegisterSpawnedNode(Node node)
-    {
-        return;
     }
 
     protected abstract ProjectileStats GetProjectileStats();

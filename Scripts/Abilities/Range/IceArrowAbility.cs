@@ -22,15 +22,19 @@ public class IceArrowAbility : ProjectileAbility
         return new ProjectileStats
         {
             Caller = Caller,
-            Direction = Vector2.Zero,
+            Direction = Caller.GetLookAtDirection(),
             Speed = 500,
             TimeToBeALive = 4,
-            SpritePath = "res://Sprites/Projectiles/fireBallProjectile.png",
+            AnimationResourcePath = "res://AnimationRes/Projectile/Ice/I_LargeBlue.tres",
             BouncingCount = 3,
             PiercingCount = 1,
-            Scale = new Vector2(0.33f, 0.33f),
-            Color = new Vector3(0.256f, 0.757f, 0.914f),
+            OnHit = OnHit,
         };
+    }
+
+    private void OnHit(IHitableObject arg1, Projectile arg2)
+    {
+        
     }
 
 

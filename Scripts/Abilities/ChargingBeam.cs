@@ -49,7 +49,7 @@ public class ChargingBeam : Ability
         {
             var target = (PlayerCharacter)obj;
             var shockBuffCount = Mathf.Max(target.BuffManagerComponent.CountBuff(typeof(ShockDebuff)), 1);
-            var dmg = new Damage() { AilmentChange = this.BaseAilmentChance, DamageNumber = (float)this.BaseDamage * shockBuffCount * deltaSum, Type = this.BaseType };
+            var dmg = new Damage() { AilmentChance = this.BaseAilmentChance, DamageNumber = (float)this.BaseDamage * shockBuffCount * deltaSum, Type = this.BaseType };
             deltaSum = 0;
             
             var dict = new Dictionary<DamageType, Damage>
@@ -64,8 +64,9 @@ public class ChargingBeam : Ability
                 Source = Caller,
                 Target = (PlayerCharacter)obj,
             };
+            var hit = new Hit(_ray, ctx);
             
-            obj.ApplyDamage(ctx);
+            obj.ReceiveHit(hit);
             shockDebuff = new ShockDebuff(ctx.Source, ctx.Target);
             ctx.Target.BuffManagerComponent.ApplyBuff(shockDebuff);
 
@@ -93,12 +94,12 @@ public class ChargingBeam : Ability
         }
     }
 
-    private void onAoeActivation(List<PlayerCharacter> obj)
+    private void onAoeActivation(List<PlayerCharacter> obj, AoeBase aoeBase)
     {
         var dict = new Dictionary<DamageType, Damage>();
         var damage = new Damage()
         {
-            AilmentChange = BaseAilmentChance,
+            AilmentChance = BaseAilmentChance,
             Type = BaseType,
             DamageNumber = aoeBaseDamage,
         };
@@ -115,7 +116,8 @@ public class ChargingBeam : Ability
                     AbilityGuid = GUID,
                     Damages = dict
                 };
-                playerCharacter.ApplyDamage(hitContext);
+                var hit = new Hit(aoeBase,  hitContext);
+                playerCharacter.ReceiveHit(hit);
             }
         }
     }
@@ -129,10 +131,5 @@ public class ChargingBeam : Ability
 
     protected override void InternalUpdate()
     {
-    }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
-        return;
     }
 }

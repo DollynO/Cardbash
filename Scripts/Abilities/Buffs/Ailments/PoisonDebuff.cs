@@ -18,7 +18,7 @@ public class PoisonDebuff : Buff
         poisonDamage = new Damage()
         {
             Type = DamageType.Poison,
-            AilmentChange = 0,
+            AilmentChance = 0,
             DamageNumber = baseDamage,
         };
     }
@@ -39,7 +39,8 @@ public class PoisonDebuff : Buff
                 { poisonDamage.Type, poisonDamage },
             }
         };
-        Target.ApplyDamage(ctx);
+        var hit = new Hit(null, ctx);
+        Target.ReceiveHit(hit);
     }
 
     protected override void InternalOnDeactivate()

@@ -16,7 +16,7 @@ public partial class Projectile : Area2D, ICustomSpawnObject
     protected ProjectileStats stats;
 
     [Export] private Timer timer;
-    [Export] private Sprite2D sprite;
+    [Export] private AnimatedSprite2D sprite;
     [Export] private CollisionShape2D collisionShape;
     [Export] private Area2D pullArea;
     [Export] private CollisionShape2D pullAreaShape;
@@ -28,49 +28,25 @@ public partial class Projectile : Area2D, ICustomSpawnObject
     private List<PlayerCharacter> playerInPullArea = new List<PlayerCharacter>();
 
     [Signal]
-    public delegate void OnDestroyedEventHandler(Vector2 position);
+    public delegate void OnDestroyedEventHandler(Vector2 position, Projectile projectile);
     [Signal]
-    public delegate void OnPiercingEventHandler(Vector2 position);
+    public delegate void OnPiercingEventHandler(Vector2 position, Projectile projectile);
     [Signal]
-    public delegate void OnCollisionEventHandler(Vector2 position);
-    
-    private Vector2 syncDirection = Vector2.Zero;
-    private float syncSpeed = 0;
-    private int syncCounter = 0;
-    private float theta = 0;
-    public float Theta => theta;
+    public delegate void OnCollisionEventHandler(Vector2 position, Projectile projectile);
+
+    private const float UpdateTime = 0.05f;
+    private float syncTime = UpdateTime;
 
     public void SetStats(ProjectileStats pStats)
     {
         stats = pStats;
-        theta = pStats.AngleOffset;
-        
         stats.PullRadius += stats.Caller?.StatBlock.GetStat(StatType.AddPullRadius) ?? 0;
-        stats.PullStrength += stats.Caller?.StatBlock.GetStat(StatType.AddPullStrength) ?? 0;
-        
-        Scale = stats.Scale;
-        Modulate = new Godot.Color(stats.Color.X, stats.Color.Y, stats.Color.Z);
-        
-        if (pStats.CustomCollisionMask > 0)
+        if (stats.PullRadius > 0)
         {
-            this.collisionMask = pStats.CustomCollisionMask;
-        }
-        
-        if (!(stats.PullRadius > 0) || !(stats.PullStrength > 0))
-        {
-            return;
+            pullArea.Visible = true;
         }
 
-        pullArea.Visible = true;
-        if (Multiplayer.IsServer())
-        {
-            pullArea.BodyEntered += PullAreaOnBodyEntered;
-            pullArea.BodyExited += PullAreaOnBodyExit;
-            if (pullAreaShape.Shape is CircleShape2D circleShape)
-            {
-                circleShape.Radius = stats.PullRadius * 35;
-            }
-        }
+        Scale = stats.Scale;
     }
 
     public override void _Draw()
@@ -90,17 +66,47 @@ public partial class Projectile : Area2D, ICustomSpawnObject
 
             _state = GetWorld2D().GetDirectSpaceState();
             this.BodyEntered += OnBodyEntered;
+
+            stats.PullStrength += stats.Caller?.StatBlock.GetStat(StatType.AddPullStrength) ?? 0;
+            if (stats.CollisionMask > 0)
+            {
+                this.collisionMask = stats.CollisionMask;
+            }
+        }
+        pullArea.Visible = stats.PullRadius > 0;
+        if (stats.PullRadius > 0)
+        {
+            pullArea.BodyEntered += PullAreaOnBodyEntered;
+            pullArea.BodyExited += PullAreaOnBodyExit;
+            if (pullAreaShape.Shape is CircleShape2D circleShape)
+            {
+                circleShape.Radius = stats.PullRadius * 35;
+            }
+        }
+        
+        if (!string.IsNullOrEmpty(stats.AnimationResourcePath))
+        {
+            sprite.SpriteFrames = IconLoader.Instance.LoadAnimation(stats.AnimationResourcePath);
         }
 
-        pullArea.Visible = false;
+        sprite.Play();
+        GlobalPosition = stats.StartPosition;
+        Rotation = stats.Direction.Angle();
     }
 
     private void OnBodyEntered(Node2D body)
     {
-        if (body is IHitableObject hitObject)
+        switch (body)
         {
-            onHitableObjectCollided(hitObject);
+            case IHitableObject hitObject:
+                HitableObjectCollided(hitObject);
+                break;
+            case TileMapLayer tile:
+                DestroyProjectile();
+                break;
         }
+        
+        EmitSignal(SignalName.OnCollision, Position, this);
     }
 
     private void PullAreaOnBodyEntered(Node2D body)
@@ -139,13 +145,10 @@ public partial class Projectile : Area2D, ICustomSpawnObject
     {
         switch (stats.MovementMode)
         {
-            case MovementMode.Straight:
+            case MovementMode.STRAIGHT:
                 return GlobalPosition + pStats.Direction * pStats.Speed * delta;
-            case MovementMode.Orbit:
-                theta += pStats.Speed * delta;
-                var offset = new Vector2(Mathf.Cos(theta), Mathf.Sin(theta)) * pStats.Distance;
-                return stats.Caller.GetCharacterCenterPosition() + offset;
-            case MovementMode.Curve:
+            case MovementMode.CURVE:
+            case MovementMode.NONE:
             default:
                 return Vector2.Zero;
         }
@@ -157,76 +160,63 @@ public partial class Projectile : Area2D, ICustomSpawnObject
         {
             var from = GlobalPosition;
             var to = getNextPosition(stats, (float)delta);
-            
-            if (Multiplayer.IsServer())
+        
+            var query = new PhysicsRayQueryParameters2D
             {
+                From = from,
+                To = to,
+                CollisionMask = collisionMask,
+                Exclude = new Array<Rid> { (stats.Caller).GetRid() },
+            };
 
-                var query = new PhysicsRayQueryParameters2D
+            var results = _state.IntersectRay(query);
+            if (results.Count > 0)
+            {
+                var collider = (GodotObject)results["collider"];
+                switch (collider)
                 {
-                    From = from,
-                    To = to,
-                    CollisionMask = collisionMask,
-                    Exclude = new Array<Rid> { (stats.Caller).GetRid() },
-                };
-
-                var results = _state.IntersectRay(query);
-                if (results.Count > 0)
-                {
-                    var collider = (GodotObject)results["collider"];
-                    switch (collider)
-                    {
-                        case TileMapLayer layer when stats.BouncingCount-- > 0:
-                            stats.Direction = stats.Direction.Bounce((Vector2)results["normal"]);
-                            var dcDict = new Godot.Collections.Dictionary<string, Variant>
-                                {
-                                    ["global_position"] = to,
-                                    ["direction"] = stats.Direction,
-                                    ["speed"] = stats.Speed
-                                };
-                            Rpc(MethodName.clientSyncPosition, dcDict);
-                            break;
-                        case TileMapLayer layer:
-                            DestroyProjectile();
-                            break;
-                        case IHitableObject hitObject:
+                    case TileMapLayer layer when stats.BouncingCount-- > 0:
+                        stats.Direction = stats.Direction.Bounce((Vector2)results["normal"]);
+                        Rotation = stats.Direction.Angle();
+                        var dcDict = new Godot.Collections.Dictionary<string, Variant>
                         {
-                            onHitableObjectCollided(hitObject);
-                            break;
-                        }
+                            ["global_position"] = to,
+                            ["direction"] = stats.Direction,
+                            ["speed"] = stats.Speed
+                        };
+                        Rpc(MethodName.clientSyncPosition, dcDict);
+                        break;
+                    case TileMapLayer layer:
+                        DestroyProjectile();
+                        break;
+                    case IHitableObject hitObject:
+                    {
+                        HitableObjectCollided(hitObject);
+
+                        break;
                     }
                 }
+                
+                EmitSignal(SignalName.OnCollision, Position, this);
+            }
+        
+
+            if (stats.Speed != 0)
+            {
+                GlobalPosition = to;
             }
 
-            GlobalPosition = to;
-            var syncDict = new Godot.Collections.Dictionary<string, Variant>
+            if (syncTime >= UpdateTime)
             {
-                ["global_position"] = GlobalPosition,
-                ["speed"] = stats.Speed,
-                ["direction"] = stats.Direction
-            };
-            Rpc(MethodName.clientSyncPosition, syncDict);
-        }
-        else
-        {
-            if (syncCounter == 0)
-            {
-                this.GlobalPosition += syncDirection * syncSpeed * (float)delta;
+                syncTime = 0;
+                var syncDict = new Godot.Collections.Dictionary<string, Variant>
+                {
+                    ["global_position"] = GlobalPosition,
+                };
+                Rpc(MethodName.clientSyncPosition, syncDict);
             }
 
-            syncCounter++;
-            syncCounter %= 15;
-        }
-    }
-
-    private void onHitableObjectCollided(IHitableObject hitObject)
-    {
-        if (stats.CustomProjectileCollided != null)
-        {
-            stats.CustomProjectileCollided(hitObject);
-        }
-        else
-        {
-            HitableObjectCollided(hitObject);
+            syncTime += (float)delta;
         }
     }
 
@@ -235,21 +225,13 @@ public partial class Projectile : Area2D, ICustomSpawnObject
      */
     protected virtual void HitableObjectCollided(IHitableObject hitObject)
     {
-        var ctx = new HitContext
+        stats.OnHit?.Invoke(hitObject, this);
+        stats.PiercingCount--;
+        if (stats.PiercingCount <= 0)
         {
-            Source = stats.Caller,
-            Target = hitObject as PlayerCharacter,
-            Damages = new System.Collections.Generic.Dictionary<DamageType, Damage>
-            {
-                { stats.Damage.Type, stats.Damage }
-            },
-            AbilityGuid = AbilityGuid
-        };
-        hitObject.ApplyDamage(ctx);
-        if (stats.PiercingCount-- <= 0)
-        {
+            EmitSignal(SignalName.OnPiercing, Position, this);
             DestroyProjectile();
-        } 
+        }
     }
 
     
@@ -270,7 +252,7 @@ public partial class Projectile : Area2D, ICustomSpawnObject
      */
     private void DestroyProjectile()
     {
-        EmitSignal(SignalName.OnDestroyed, Position);
+        EmitSignal(SignalName.OnDestroyed, Position, this);
         Rpc(MethodName.destroyClientProjectile);
     }
 
@@ -285,38 +267,90 @@ public partial class Projectile : Area2D, ICustomSpawnObject
     {
         var dict = data.AsGodotDictionary<string, Variant>();
         var globalPosition = (Vector2)dict["global_position"];
-        var speed = (float)dict["speed"];
-        var direction = (Vector2)dict["direction"];
         
         this.GlobalPosition = globalPosition;
-        this.syncSpeed = speed;
-        this.syncDirection = direction;
     }
+}
 
-    public static double EvenDistributedAngle(List<Projectile> projectiles, int maxProjectiles, int delta)
+public class ProjectileStats
+{
+    public Node2D? Parent;
+    public string AnimationResourcePath;
+    public float Speed = 0;
+    public Action<IHitableObject, Projectile> OnHit;
+    public Vector2 StartPosition = new (-10000, -10000);
+    public Vector2 Direction;
+    public float TimeToBeALive = 0;
+    public PlayerCharacter Caller;
+    public int PiercingCount = 0;
+    public int BouncingCount = 0;
+    public Vector2 Scale = Vector2.One;
+    public float KnockbackForce = 0;
+    public float PullStrength = 0;
+    public float PullRadius = 0;
+    public string CustomProjectilePath = string.Empty;
+    public MovementMode MovementMode = MovementMode.STRAIGHT;
+    public float Distance = -1;
+    public uint CollisionMask;
+    public float AngleOffset = 0;
+
+    public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
-        if (projectiles.Count <= 0 || maxProjectiles <= 0)
+        var dict = new Godot.Collections.Dictionary<string, Variant>()
         {
-            return 0;
-        }
-        
-        var angles = projectiles.Select(x 
-            => Math.Round((Mathf.RadToDeg(x.Theta) % 360 + 360) % 360,0)
-        ).ToList();
-        
-        if (angles.Any())
-        {
-            var offset = angles.Min();
-            for (var i = 0; i < maxProjectiles; i++)
-            {
-                var a = offset + 360 / maxProjectiles * i;
-                if (!angles.Any(x => x - delta < a && x + delta > a))
-                {
-                    return a;
-                }    
-            }
-        }
-
-        return 0;
+            { nameof(Parent), Parent?.GetPath() ?? string.Empty },
+            {nameof(AnimationResourcePath), AnimationResourcePath},
+            { nameof(Speed), Speed },
+            { nameof(StartPosition), StartPosition },
+            { nameof(Direction), Direction },
+            { nameof(TimeToBeALive), TimeToBeALive },
+            { nameof(Caller), Caller.PlayerId },
+            { nameof(PiercingCount), PiercingCount },
+            { nameof(BouncingCount), BouncingCount },
+            { nameof(Scale), Scale },
+            { nameof(KnockbackForce), KnockbackForce },
+            { nameof(PullRadius), PullRadius },
+            { nameof(PullStrength), PullStrength },
+            { nameof(CustomProjectilePath), CustomProjectilePath },
+            { nameof(MovementMode), (int)MovementMode },
+            { nameof(Distance), Distance },
+            { nameof(CollisionMask), CollisionMask },
+            { nameof(AngleOffset), AngleOffset },
+        };
+        return dict;
     }
+
+    public static ProjectileStats FromDict(Godot.Collections.Dictionary<string, Variant> dict, GameManager manager)
+    {
+        var parentString = (string)dict[nameof(Parent)];
+        var stats = new ProjectileStats()
+        {
+            AngleOffset = (float)dict[nameof(AngleOffset)],
+            CollisionMask = (uint)dict[nameof(CollisionMask)],
+            Distance = (float)dict[nameof(Distance)],
+            MovementMode = (MovementMode)(int)dict[nameof(MovementMode)],
+            CustomProjectilePath = (string)dict[nameof(CustomProjectilePath)],
+            PullStrength = (float)dict[nameof(PullStrength)],
+            PullRadius = (float)dict[nameof(PullRadius)],
+            KnockbackForce = (float)dict[nameof(KnockbackForce)],
+            Scale = (Vector2)dict[nameof(Scale)],
+            BouncingCount = (int)dict[nameof(BouncingCount)],
+            PiercingCount = (int)dict[nameof(PiercingCount)],
+            Caller = manager.GetPlayerCharacter((long)dict[nameof(Caller)]),
+            TimeToBeALive = (float)dict[nameof(TimeToBeALive)],
+            Direction = (Vector2)dict[nameof(Direction)],
+            StartPosition = (Vector2)dict[nameof(StartPosition)],
+            Speed = (float)dict[nameof(Speed)],
+            AnimationResourcePath = (string)dict[nameof(AnimationResourcePath)],
+            Parent = !string.IsNullOrEmpty(parentString) ? (Node2D)manager.GetNode((string)dict[nameof(Parent)]) : null
+        };
+        return stats;
+    }
+}
+
+public enum MovementMode
+{
+    NONE,
+    STRAIGHT,
+    CURVE
 }

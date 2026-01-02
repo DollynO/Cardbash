@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.HitMods;
 using CardBase.Scripts.PlayerScripts;
@@ -25,29 +26,47 @@ public class DarkEdge : Ability
 
     public override void InternalUse()
     {
-        Caller.RequestMeleeCone(new MeleeConeProperties
+        var stats = new AoeBaseStats()
         {
             Angle = 160,
-            AttackTime = 0.8f,
-            Damage = new Damage
+            ActivationTime = 0.8f,
+            Radius = 60,
+            AngleOffset = 0,
+            Owner = Caller,
+            OnActivation = OnActivation,
+        };
+        globalAbilitySpawner.SpawnAoe(stats);
+
+    }
+    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    {
+        
+        foreach (var playerCharacter in arg1)
+        {
+            var damage = new Damage
             {
                 DamageNumber = (float)BaseDamage,
-                AilmentChange = Damage.DEFAULT_AILMENT_CHANGE,
+                AilmentChance = BaseAilmentChance,
                 Type = BaseType
-            },
-            Length = 60,
-            Offset = 0,
-            Owner = Caller,
-            AbilityGUID = GUID,
-        });
+            };
+            var damageDict = new Dictionary<DamageType, Damage>()
+            {
+                { BaseType, damage }
+            };
+            var ctx = new HitContext()
+            {
+                AbilityGuid = GUID,
+                Target = playerCharacter,
+                Damages = damageDict,
+                Source = Caller,
+            };
+            var hit = new Hit(arg2, ctx);
+            playerCharacter.ReceiveHit(hit);
+        }
     }
 
     protected override void InternalUpdate()
     {
         
-    }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
     }
 }

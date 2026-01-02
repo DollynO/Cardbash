@@ -29,6 +29,7 @@ public static class AbilityManager
         { AbilityIds.BlinkGuid, creator => new Blink(creator) },
         { AbilityIds.EscapeJumpGuid, creator => new EscapeJump(creator) },
         { AbilityIds.ShadowWalkGuid, creator => new ShadowWalk(creator) },
+        { AbilityIds.AegisGuid, creator => new Aegis(creator)},
         
         // Ray
         { AbilityIds.ChargingBeamGuid, creator => new ChargingBeam(creator) },
@@ -58,4 +59,5 @@ public static class AbilityIds
     public static string ShadowWalkGuid = "51741359-9A12-439B-99DA-5527407ACC71";
     public static string OrbitingIceShard = "10633462-9097-41ED-9331-6454F0AEAF93";
     public static string ChargingBeamGuid = "F760C46C-28B3-4F34-929B-7F140EB9C683";
+    public static string AegisGuid = "C19D6DD4-E8D5-488B-A89C-58A20211BA26";
 }

@@ -23,11 +23,11 @@ public class AoeBaseStats
     public float ShapeUpdateInterval { get; set; } = 0.15f; // How often to recalculate collision shape
     
     // Callbacks
-    public Action<List<PlayerCharacter>> OnActivation { get; set; }
-    public Action<List<PlayerCharacter>> OnDeactivation { get; set; }
-    public Action<PlayerCharacter, double> OnTick { get; set; }
-    public Action<PlayerCharacter> OnPlayerEnter { get; set; }
-    public Action<PlayerCharacter> OnPlayerExit { get; set; }
+    public Action<List<PlayerCharacter>, AoeBase> OnActivation { get; set; }
+    public Action<List<PlayerCharacter>, AoeBase> OnDeactivation { get; set; }
+    public Action<PlayerCharacter, double, AoeBase> OnTick { get; set; }
+    public Action<PlayerCharacter, AoeBase> OnPlayerEnter { get; set; }
+    public Action<PlayerCharacter, AoeBase> OnPlayerExit { get; set; }
     
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -169,7 +169,7 @@ public partial class AoeBase : Node2D
             if (ShouldAffectPlayer(player))
             {
                 playersInArea.Add(player);
-                stats.OnPlayerEnter?.Invoke(player);
+                stats.OnPlayerEnter?.Invoke(player, this);
             }
         }
     }
@@ -179,7 +179,7 @@ public partial class AoeBase : Node2D
         if (body is PlayerCharacter player && playersInArea.Contains(player))
         {
             playersInArea.Remove(player);
-            stats.OnPlayerExit?.Invoke(player);
+            stats.OnPlayerExit?.Invoke(player, this);
         }
     }
     
@@ -194,7 +194,7 @@ public partial class AoeBase : Node2D
         
         var affectedPlayers = GetAffectedPlayers();
         
-        stats.OnActivation?.Invoke(affectedPlayers);
+        stats.OnActivation?.Invoke(affectedPlayers, this);
 
         if (stats.Duration > 0)
         {
@@ -250,7 +250,7 @@ public partial class AoeBase : Node2D
         if (Multiplayer.IsServer())
         {
             var affectedPlayers = playersInArea.ToList();
-            stats.OnDeactivation?.Invoke(affectedPlayers);
+            stats.OnDeactivation?.Invoke(affectedPlayers, this);
         }
 
         Rpc(MethodName.destroyOnClient);
@@ -300,7 +300,7 @@ public partial class AoeBase : Node2D
                 {
                     foreach (var player in playersInArea)
                     {
-                        stats.OnTick?.Invoke(player, delta);
+                        stats.OnTick?.Invoke(player, delta, this);
                     }
                 }
             }

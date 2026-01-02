@@ -32,29 +32,28 @@ public class Plagueburst : Ability
             ActivationTime = 3f,
             Radius = 100,
             Duration = 0,
-            OnActivation = onAoeActivation,
+            OnActivation = OnActivation,
             Owner = Caller,
             AbilityGUID = GUID,
             Angle = 90,
         });
     }
 
-    private void onAoeActivation(List<PlayerCharacter> playersHit)
+    private void OnActivation(List<PlayerCharacter> playersHit, AoeBase source)
     {
         if (playersHit.Count > 0)
         {
-            var damage = new Damage
-            {
-                DamageNumber = (float)BaseDamage,
-                AilmentChange = Damage.DEFAULT_AILMENT_CHANGE,
-                Type = BaseType
-            };
-            var damageDict = new Dictionary<DamageType, Damage> { { damage.Type, damage } };
-
             foreach (var player in playersHit)
             {
                 if (player.TeamId != Caller.TeamId)
                 {
+                    var damage = new Damage
+                    {
+                        DamageNumber = (float)BaseDamage,
+                        AilmentChance = Damage.DEFAULT_AILMENT_CHANGE,
+                        Type = BaseType
+                    };
+                    var damageDict = new Dictionary<DamageType, Damage> { { damage.Type, damage } };
                     var ctx = new HitContext()
                     {
                         AbilityGuid = GUID,
@@ -62,8 +61,8 @@ public class Plagueburst : Ability
                         Target = player,
                         Damages = damageDict
                     };
-                    
-                    player.ApplyDamage(ctx);
+                    var hit = new Hit(source, ctx);
+                    player.ReceiveHit(hit);
                 }
             }
         }
@@ -72,10 +71,5 @@ public class Plagueburst : Ability
     protected override void InternalUpdate()
     {
         
-    }
-
-    public override void RegisterSpawnedNode(Node node)
-    {
-        return;
     }
 }
