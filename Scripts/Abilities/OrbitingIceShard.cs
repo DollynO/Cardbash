@@ -19,7 +19,7 @@ public class OrbitingIceShard : Ability
         this.Description = "";
         this.IconPath = "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png";
         this.MaxStack = 1;
-        this.BaseCooldown = 5;
+        this.BaseCooldown = 2;
         this.BaseDamage = 1;
         this.BaseType = DamageType.Ice;
         this.BaseAilmentChance = 1f;
@@ -79,7 +79,10 @@ public class OrbitingIceShard : Ability
         ctx.Damages = damageDict;
 
         var hit = new Hit(source, ctx);
-        target.ReceiveHit(hit);
+        if (!target.ReceiveHit(hit))
+        {
+            return;
+        }
         
         if (ctx.Target.BuffManagerComponent.CountBuff(typeof(Frost)) > 5)
         {

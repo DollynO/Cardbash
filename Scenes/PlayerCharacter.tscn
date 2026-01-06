@@ -9,7 +9,7 @@
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/OverheadDisplayComponent.cs" id="6_jdw73"]
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/StatBlockComponent.cs" id="7_j8r5e"]
 [ext_resource type="Script" path="res://Scripts/Abilities/Buffs/BuffManagerComponent.cs" id="8_hqshk"]
-[ext_resource type="Script" path="res://Scripts/Abilities/RingContainer.cs" id="10_0bkvh"]
+[ext_resource type="Script" path="res://Scripts/Abilities/RingContainer/RingContainer.cs" id="10_01uyd"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3kik1"]
 properties/0/path = NodePath(".:position")
@@ -477,4 +477,5 @@ replication_config = SubResource("SceneReplicationConfig_5dv8y")
 script = ExtResource("8_hqshk")
 
 [node name="RingContainer" type="Node2D" parent="."]
-script = ExtResource("10_0bkvh")
+position = Vector2(0, -21)
+script = ExtResource("10_01uyd")

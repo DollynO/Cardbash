@@ -38,8 +38,7 @@ public class ChargingBeam : Ability
             PierceCount = 1,
         };
         
-        _ray = (globalAbilitySpawner ??= this.Caller.GetTree().Root.GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner"))
-            .SpawnRay(rayStats);
+        _ray = globalAbilitySpawner.SpawnRay(rayStats);
     }
 
     private void onHit(IHitableObject obj, float delta)

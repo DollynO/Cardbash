@@ -107,21 +107,19 @@ public abstract class Ability : BaseCardableObject
     {
         if (AutoCast)
         {
-            if (CurrentCooldown > 0)
+            if (!preventAutoCast())
             {
-                CurrentCooldown -= delta;
-            }
-            else
-            {
-                if (preventAutoCast())
+                if (CurrentCooldown > 0)
                 {
-                    return;
+                    CurrentCooldown -= delta;
                 }
-
-                CurrentStack++;
-                Activate();
-                Use();
-                CurrentCooldown = BaseCooldown;
+                else
+                {
+                    CurrentStack++;
+                    Activate();
+                    Use();
+                    CurrentCooldown = BaseCooldown * Caller.StatBlock.GetStat(StatType.CooldownReduction);
+                }
             }
         }
         else
@@ -137,7 +135,7 @@ public abstract class Ability : BaseCardableObject
                 CurrentStack++;
                 if (CurrentStack >= MaxStack)
                 {
-                    CurrentCooldown = BaseCooldown;
+                    CurrentCooldown = BaseCooldown * Caller.StatBlock.GetStat(StatType.CooldownReduction);
                 }
             }
         }

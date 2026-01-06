@@ -22,6 +22,7 @@ public enum StatType
     CritBonus,
     Darkness,
     Blinding,
+    CooldownReduction,
     
     DmgBonus,
     // typed damage bonus

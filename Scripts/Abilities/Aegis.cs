@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -6,6 +8,18 @@ namespace CardBase.Scripts.Abilities;
 public class Aegis : Ability, IHitInterceptor
 {
     private Ring ring;
+    private AoeBase detectRing;
+    private float ringRadius = 50;
+    private List<PlayerCharacter> charactersInRange =  new ();
+    private bool isCharInRange => charactersInRange.Count > 0;
+
+    private Color emptyColor = new (0f, 1f, 0f);
+    private Color occupiedColor = new (1f, 0f, 0f);
+    
+    private Vector2 spriteScale = new (0.2f, 0.2f);
+    private string shieldPath = "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png";
+
+    private AegisDamageIncreaseBuff buff;
     
     public Aegis(PlayerCharacter creator) : base(AbilityIds.AegisGuid, creator)
     {
@@ -13,7 +27,7 @@ public class Aegis : Ability, IHitInterceptor
         Description = "AAAEEEGIIIS";
         IconPath = "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png";
         MaxStack = 1;
-        BaseCooldown = 5;
+        BaseCooldown = 10;
         BaseDamage = 0;
         BaseType = DamageType.Holy;
         BaseAilmentChance = 0;
@@ -21,22 +35,73 @@ public class Aegis : Ability, IHitInterceptor
         
         if (creator != null)
         {
-            ring = creator.RingContainer.AddRing(50, 0.5f, 3);
+            ring = creator.RingContainer.AddRing(ringRadius, 0.5f, 3);
             creator._HitInterceptors.Add(this);
+            buff = new AegisDamageIncreaseBuff(creator, creator);
         }
     }
 
     public override void InternalUse()
     {
-        var iconNode = new Sprite2D();
-        iconNode.Scale = new Vector2(0.2f, 0.2f);
-        iconNode.Texture = IconLoader.Instance.LoadImage("res://Sprites/SkillIcons/Holy/15_Holy_Shield.png");
-        ring.AddNode(iconNode);
+        if (detectRing == null)
+        {
+            var stats = new AoeBaseStats()
+            {
+                Radius = ringRadius,
+                ActivationTime = 0.1f,
+                OnActivation = OnActivation,
+                Duration = -1,
+                OnPlayerEnter = OnPlayerEnter,
+                OnPlayerExit = OnPlayerExit,
+                AbilityGUID = GUID,
+                IsStationary = false,
+                Owner = Caller,
+            };
+            detectRing = globalAbilitySpawner.SpawnAoe(stats);
+        }
+        
+        ring.AddTextureNode(shieldPath, spriteScale );
+    }
+
+    private void OnPlayerExit(PlayerCharacter arg1, AoeBase arg2)
+    {
+        if (charactersInRange.Contains(arg1))
+        {
+            charactersInRange.Remove(arg1);
+        }
+
+        if (!isCharInRange)
+        {
+            detectRing.ChangeFillColor(emptyColor);
+        }
+    }
+
+    private void OnPlayerEnter(PlayerCharacter arg1, AoeBase arg2)
+    {
+        if (!charactersInRange.Contains(arg1))
+        {
+            charactersInRange.Add(arg1);
+        }
+        
+        if (isCharInRange)
+        {
+            detectRing.ChangeFillColor(occupiedColor);
+        }
+    }
+
+    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    {
+        charactersInRange = arg1;
+        
+        if (isCharInRange)
+        {
+            detectRing.ChangeFillColor(occupiedColor);
+        }
     }
 
     protected override bool preventAutoCast()
     {
-        return ring.GetStackCount() == ring.MaxStacks;
+        return ring.GetStackCount() == ring.MaxStacks || isCharInRange;
     }
 
     protected override void InternalUpdate()
@@ -49,7 +114,8 @@ public class Aegis : Ability, IHitInterceptor
         var stackCount = ring.GetStackCount();
         if (hit.Source is Projectile projectile && stackCount > 0)
         {
-            ring.RemoveNodeAtSlot(stackCount);
+            ring.RemoveNodeAtSlot(stackCount - 1);
+            Caller.BuffManagerComponent.ApplyBuff(buff);
             return true;
         }
 

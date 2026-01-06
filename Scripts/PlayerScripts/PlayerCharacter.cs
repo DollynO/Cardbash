@@ -173,6 +173,7 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
         
         StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.AddPullStrength, 0, 0,  float.PositiveInfinity);
+        StatBlock.Define(StatType.CooldownReduction, 1, 0.2f, 1.8f); // max +-80% cooldown 
     }
 
     public override void _PhysicsProcess(double delta)

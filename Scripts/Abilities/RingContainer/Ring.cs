@@ -23,6 +23,14 @@ public partial class Ring : Node2D
     private Dictionary<int, Node2D> anchoredNodes = new Dictionary<int, Node2D>();
     private float currentRotation = 0.0f;
     private float angleStep = Mathf.Tau / 3;
+    
+    private Area2D radiusArea;
+    private GlobalAbilitySpawner globalAbilitySpawner;
+
+    public override void _Ready()
+    {
+    }
+
     public override void _Process(double delta)
     {
         currentRotation += RotationSpeed * (float)delta;
@@ -34,15 +42,7 @@ public partial class Ring : Node2D
     public void AddNode(Node2D node, bool externalParent = false)
     {
         //find next available slot
-        var targetSlot = 1;
-        for (var i = 0; i < MaxStacks; i++)
-        {
-            if (!anchoredNodes.ContainsKey(i))
-            {
-                targetSlot = i;
-                break;
-            }
-        }
+        var targetSlot = getNextAvailableSlot();
         
         if (targetSlot == -1)
         {
@@ -55,6 +55,32 @@ public partial class Ring : Node2D
         {
             this.AddChild(node);
         }
+    }
+
+    public void AddTextureNode(string iconPath, Vector2 scale)
+    {
+        var node = (globalAbilitySpawner ??= this.GetTree().Root
+            .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner")).SpawnSprite(new SpriteStats()
+        {
+            Parent = this, Scale = scale, TexturePath = iconPath
+        });
+        
+        AddNode(node);
+    }
+
+    private int getNextAvailableSlot()
+    {
+        var targetSlot = -1;
+        for (var i = 0; i < MaxStacks; i++)
+        {
+            if (!anchoredNodes.ContainsKey(i))
+            {
+                targetSlot = i;
+                break;
+            }
+        }
+
+        return targetSlot;
     }
 
     public void RemoveNode(Node2D node, bool freeObject = true)
@@ -85,7 +111,14 @@ public partial class Ring : Node2D
         {
             var node = anchoredNodes[slotIndex];
             anchoredNodes.Remove(slotIndex);
-            node.QueueFree();
+            if (node is RingTextureNode ringNode)
+            {
+                ringNode.QueueFree();
+            }
+            else
+            {
+                node.QueueFree();
+            }
         }
     }
 

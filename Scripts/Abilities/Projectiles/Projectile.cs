@@ -181,8 +181,7 @@ public partial class Projectile : Area2D, ICustomSpawnObject
                         var dcDict = new Godot.Collections.Dictionary<string, Variant>
                         {
                             ["global_position"] = to,
-                            ["direction"] = stats.Direction,
-                            ["speed"] = stats.Speed
+                            ["global_rotation"] = this.GlobalRotation,
                         };
                         Rpc(MethodName.clientSyncPosition, dcDict);
                         break;
@@ -212,6 +211,7 @@ public partial class Projectile : Area2D, ICustomSpawnObject
                 var syncDict = new Godot.Collections.Dictionary<string, Variant>
                 {
                     ["global_position"] = GlobalPosition,
+                    ["global_rotation"] = this.GlobalRotation,
                 };
                 Rpc(MethodName.clientSyncPosition, syncDict);
             }
@@ -266,9 +266,9 @@ public partial class Projectile : Area2D, ICustomSpawnObject
     private void clientSyncPosition(Variant data)
     {
         var dict = data.AsGodotDictionary<string, Variant>();
-        var globalPosition = (Vector2)dict["global_position"];
         
-        this.GlobalPosition = globalPosition;
+        this.GlobalPosition = (Vector2)dict["global_position"];
+        this.GlobalRotation = (float)dict["global_rotation"];
     }
 }
 

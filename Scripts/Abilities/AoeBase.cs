@@ -4,6 +4,7 @@ using System.Linq;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
+using Godot.NativeInterop;
 using Array = Godot.Collections.Array;
 
 namespace CardBase.Scripts.Abilities;
@@ -99,6 +100,8 @@ public partial class AoeBase : Node2D
     private int blinkCount;
     
     private HashSet<PlayerCharacter> playersInArea = new();
+    private List<Vector2> oldPolygons = new();
+    private int forceUpdateCounter = 5;
     
     public void Initialize(AoeBaseStats aoeStats)
     {
@@ -185,7 +188,7 @@ public partial class AoeBase : Node2D
     
     private bool ShouldAffectPlayer(PlayerCharacter player)
     {
-        return true;
+        return player != stats.Owner;
     }
     
     private void OnActivation()
@@ -196,7 +199,7 @@ public partial class AoeBase : Node2D
         
         stats.OnActivation?.Invoke(affectedPlayers, this);
 
-        if (stats.Duration > 0)
+        if (stats.Duration != 0)
         {
             internalState = InternalState.TICK;   
         }
@@ -328,7 +331,53 @@ public partial class AoeBase : Node2D
                     shapeUpdateTimeCount = 0f;
                     CalculateCollisionArea();
                     UpdateDisplayPolygon();
-                    Rpc(MethodName.updateClients, new Array<Vector2>(this.polygon.Polygon), new Array<Vector2>(this.polygon.UV));
+
+                    if (this.forceUpdateCounter == 5)
+                    {
+                        this.forceUpdateCounter = 0;
+                        this.oldPolygons.Clear();
+                    }
+                    this.forceUpdateCounter++;
+                    
+                    if (!areEqualApprox(this.polygon.Polygon.ToList(), this.oldPolygons))
+                    {
+                        var pointDict = new Godot.Collections.Dictionary<int, Vector2>();
+                        var uvDict = new Godot.Collections.Dictionary<int, Vector2>();
+                        
+                        if (this.oldPolygons.Count != this.polygon.Polygon.Length)
+                        {
+                            var index = 0;
+                            foreach (var vector2 in this.polygon.Polygon)
+                            {
+                                pointDict.Add(index,  vector2);
+                                index++;
+                            }
+
+                            index = 0;
+                            foreach (var vector2 in this.polygon.UV)
+                            {
+                                uvDict.Add(index,  vector2);
+                                index++;
+                            }
+                        }
+                        else
+                        {
+                            for (var i = 0; i < this.polygon.Polygon.Length; i++)
+                            {
+                                if (this.polygon.Polygon[i] != this.oldPolygons[i])
+                                {
+                                    pointDict.Add(i, this.polygon.Polygon[i]);
+                                    uvDict.Add(i, this.polygon.UV[i]);
+                                } 
+                            }
+                        }
+
+                        this.oldPolygons.Clear();
+                        this.oldPolygons = this.polygon.Polygon.ToList();
+                        
+                        Rpc(MethodName.updateClients, pointDict, uvDict);
+                    }
+
                     QueueRedraw();
                 }
             }
@@ -336,12 +385,34 @@ public partial class AoeBase : Node2D
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
-    private void updateClients(Array<Vector2> points, Array<Vector2> uvPoints)
+    private void updateClients(Godot.Collections.Dictionary<int,Vector2> points, Godot.Collections.Dictionary<int, Vector2> uvPoints)
     {
-        polygon.Polygon = points.ToArray();
-        polygon.UV = uvPoints.ToArray();
+        if (points.Count <= 0)
+        {
+            return;
+        }
+        
+        var tmpPoints = polygon.Polygon.ToList();
+        var tmpUVs = polygon.UV.ToList();
+        if (tmpPoints.Count == 0)
+        {
+            tmpPoints.AddRange(points.Values);
+            tmpUVs.AddRange(uvPoints.Values);
+        }
+        else
+        {
+            foreach (var kvp in points)
+            {
+                var index = kvp.Key;
+                tmpPoints[index] = kvp.Value;
+                tmpUVs[index] = uvPoints[index];
+            }
+        }
+        
+        polygon.Polygon = tmpPoints.ToArray();       
+        polygon.UV = tmpUVs.ToArray();
     }
-    
+
     private void AnimateTick()
     {
         // Create a quick pulse effect
@@ -459,5 +530,32 @@ public partial class AoeBase : Node2D
         var x = Mathf.Cos(angle) * length;
         var y = Mathf.Sin(angle) * length;
         return new Vector2(x, y);
+    }
+
+    public void ChangeFillColor(Color color)
+    {
+        this.fillColor = color;
+        var shaderFillColor = new Vector4(fillColor.R, fillColor.G, fillColor.B, fillColor.A);
+        Rpc(MethodName.changeFillColorClient, shaderFillColor);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void changeFillColorClient(Vector4 color)
+    {
+        ((ShaderMaterial)polygon.Material).SetShaderParameter("fill_color", color);
+    }
+    
+    private bool areEqualApprox(List<Vector2> a, List<Vector2> b)
+    {
+        if (a.Count != b.Count)
+            return false;
+
+        for (var i = 0; i < a.Count; i++)
+        {
+            if (!a[i].IsEqualApprox(b[i]))
+                return false;
+        }
+
+        return true;
     }
 }

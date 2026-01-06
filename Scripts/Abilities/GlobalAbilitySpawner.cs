@@ -103,6 +103,36 @@ public partial class GlobalAbilitySpawner : Node2D
         var projectile = loadedScene.Instantiate();
         return (Projectile)projectile;
     }
+
+    public RingTextureNode SpawnSprite(SpriteStats stats)
+    {
+        var textureNode = new RingTextureNode();
+        var texture = IconLoader.Instance.LoadImage(stats.TexturePath);
+        var name =  generateName(SpawnType.RING_TEXTURE_NODE);
+        textureNode.Init(texture, stats.Scale, name);
+
+        Rpc(MethodName.spawnRingTextureClient, stats.ToDict(), name);
+        
+        return textureNode;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority,  CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void spawnRingTextureClient(Variant dict, string name)
+    {
+        var textureNode = new RingTextureNode();
+        var stats = SpriteStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
+        var texture = IconLoader.Instance.LoadImage(stats.TexturePath);
+        textureNode.Init(texture, stats.Scale, name);
+        if (stats.Parent != null)
+        {
+            stats.Parent.AddChild(textureNode);
+        }
+        else
+        {
+            this.AddChild(textureNode);
+        }
+        
+    }
     
     private string generateName(SpawnType type)
     {
@@ -117,5 +147,36 @@ public partial class GlobalAbilitySpawner : Node2D
         MELEE,
         AURA,
         PROJECTILE,
+        RING_TEXTURE_NODE,
+    }
+}
+
+public class SpriteStats
+{
+    public string TexturePath;
+    public Vector2 Scale;
+    public Node2D Parent;
+
+    public Godot.Collections.Dictionary<string, Variant> ToDict()
+    {
+        var dict = new Godot.Collections.Dictionary<string, Variant>()
+        {
+            { nameof(TexturePath), TexturePath },
+            { nameof(Scale), Scale },
+            { nameof(Parent), Parent.GetPath() },
+        };
+        return dict;
+    }
+
+    public static SpriteStats FromDict(Godot.Collections.Dictionary<string, Variant> dict, GameManager manager)
+    {
+        var parentPath = (string)dict[nameof(Parent)];
+        var stats = new SpriteStats
+        {
+            TexturePath = (string)dict[nameof(TexturePath)],
+            Scale = (Vector2)dict[nameof(Scale)],
+            Parent = string.IsNullOrEmpty(parentPath) ? null : manager.GetNode(parentPath) as Node2D
+        };
+        return stats;
     }
 }
