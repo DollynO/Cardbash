@@ -11,10 +11,13 @@ public class ResetCooldownHitModifier : IHitModifier
 
     public void ApplyAfter(HitContext ctx)
     {
-        var ability = ctx.Source.AbilityController.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid);
-        if (ability != null)
+        if (ctx.Target.TryGetComponent<AbilityComponent>(out var abilityComponent))
         {
-            ability.CurrentCooldown = 0.1f;
+            var ability = abilityComponent.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid);
+            if (ability != null)
+            {
+                ability.CurrentCooldown = 0.1f;
+            }
         }
     }
 }

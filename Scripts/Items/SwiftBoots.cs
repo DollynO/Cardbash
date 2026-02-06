@@ -13,8 +13,12 @@ public partial class SwiftBoots : Item
         this.IconPath = "res://Sprites/Items/SwiftBoots.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.StatBlock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.MovementSpeed, StatOp.PercentAdd, StatIncrease / 100f));
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.MovementSpeed,
+                StatOp.PercentAdd, StatIncrease / 100f));
+        }
     } 
 }

@@ -23,7 +23,7 @@ public partial class GrapplingHook : Projectile
         if (_currentUpdateTime >= _updateTime)
         {
             _currentUpdateTime = 0;
-            var startLocal = ToLocal(this.stats.StartPosition);
+            var startLocal = ToLocal(this.Stats.StartPosition);
             var endLocal = Vector2.Zero; // projectile's own position
 
             _line.Points = new Vector2[] { startLocal, endLocal };
@@ -31,12 +31,12 @@ public partial class GrapplingHook : Projectile
 
     }
 
-    protected override void HitableObjectCollided(IHitableObject hitObject)
+    protected override void HitableObjectCollided(IEntityComponent hitObject)
     {
         base.HitableObjectCollided(hitObject);
-        if (hitObject is PlayerCharacter player)
+        if (hitObject.TryGetComponent(out MoveComponent moveComponent))
         {
-            player.MoveController.RequestReposition(this.stats.Caller.GetCharacterCenterPosition(), 1.0f);
+            moveComponent.RequestReposition(this.Stats.Caller.GetCharacterCenterPosition(), 1.0f);
         }
     }
 }

@@ -10,7 +10,7 @@ public partial class Item : BaseCardableObject
     {
     }
     
-    public virtual void ApplyItem(PlayerCharacter player)
+    public virtual void ApplyItem(IEntityComponent targetEntity)
     {
         
     }

@@ -6,7 +6,8 @@ public class PoisonDebuff : Buff
 {
     private Damage poisonDamage;
     private float baseDamage = 10;
-    public PoisonDebuff(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    private DamageAbleComponent dac;
+    public PoisonDebuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Inflicts the target with poison stack";
         this.DisplayName = "Poison";
@@ -25,10 +26,16 @@ public class PoisonDebuff : Buff
 
     protected override void InternalOnActivate()
     {
+        Target.TryGetComponent(out dac);
     }
 
     protected override void InternalOnTick(float delta)
     {
+        if (dac == null)
+        {
+            return;
+        }
+        
         poisonDamage.DamageNumber = baseDamage * this.StackCount * delta;
         var ctx = new HitContext
         {
@@ -40,7 +47,7 @@ public class PoisonDebuff : Buff
             }
         };
         var hit = new Hit(null, ctx);
-        Target.ReceiveHit(hit);
+        dac.ReceiveHit(hit);
     }
 
     protected override void InternalOnDeactivate()

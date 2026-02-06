@@ -13,13 +13,16 @@ public partial class CritDagger : Item
         this.IconPath = "res://Sprites/Items/CritDagger.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.StatBlock.AddModifiers(
-            new StatModifier(
-                Guid.NewGuid().ToString("N"),
-                StatType.CritChance,
-                StatOp.FlatAdd,
-                StatIncrease));
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.AddModifiers(
+                new StatModifier(
+                    Guid.NewGuid().ToString("N"),
+                    StatType.CritChance,
+                    StatOp.FlatAdd,
+                    StatIncrease));
+        }
     } 
 }

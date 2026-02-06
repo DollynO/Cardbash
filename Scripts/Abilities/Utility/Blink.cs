@@ -17,8 +17,11 @@ public class Blink : Ability
 
     public override void InternalUse()
     {
-        var mousePosition = this.Caller.GetGlobalMousePosition();
-        this.Caller.MoveController.RequestReposition(mousePosition, 0);
+        var mousePosition = ((Node2D)Caller).GetGlobalMousePosition();
+        if (Caller.TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.RequestReposition(mousePosition, 0);
+        }
     }
 
     protected override void InternalUpdate()

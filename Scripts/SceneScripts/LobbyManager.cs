@@ -62,7 +62,7 @@ public partial class LobbyManager : ColorRect
 		{
 			_deckSelect.AddItem(deck.DisplayName);
 		}
-		_deckSelect.Selected = -1;
+		_deckSelect.Selected = _deckSelect.ItemCount > 0 ? 0 : -1;
 		
 		
 		ReadyButton.Visible = false;

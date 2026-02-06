@@ -7,11 +7,14 @@ public class FrostShatterHitModifier : IHitModifier
 {
     public void ApplyBefore(HitContext ctx)
     {
-        var consumed = ctx.Target.BuffManagerComponent.ConsumeBuff(typeof(Frost));
-        if (consumed <= 0) return;
-        if (ctx.Damages.TryGetValue(DamageType.Ice, out var damage))
+        if (ctx.Target.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent))
         {
-            damage.DamageNumber *=  (1 + consumed * 0.1f);
+            var consumed = buffManagerComponent.ConsumeBuff(typeof(Frost));
+            if (consumed <= 0) return;
+            if (ctx.Damages.TryGetValue(DamageType.Ice, out var damage))
+            {
+                damage.DamageNumber *= (1 + consumed * 0.1f);
+            }
         }
     }
 

@@ -55,7 +55,14 @@ public class OrbitingIceShard : Ability
         };
 
         projectile_stats.OnHit = OnHit;
-        projectile_stats.StartPosition = Caller.GetProjectileStartPosition();
+        if (Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            projectile_stats.StartPosition = aimComponent.GetProjectileStartPosition();
+        }
+        else
+        {
+            projectile_stats.StartPosition = ((Node2D)Caller).GetGlobalPosition();
+        }
         projectile_stats.Caller = Caller;
         var projectile = globalAbilitySpawner.SpawnProjectile(projectile_stats);
         
@@ -63,31 +70,37 @@ public class OrbitingIceShard : Ability
         ring.AddNode(projectile, true);
     }
 
-    private void OnHit(IHitableObject hitObject, Projectile source)
+    private void OnHit(IEntityComponent hitObject, Projectile source)
     {
-        var ctx = new HitContext();
-        var target = (PlayerCharacter)hitObject;
+        if (hitObject.TryGetComponent(out DamageAbleComponent dac))
+        {
+            var ctx = new HitContext();
+            ctx.Target = hitObject;
+            ctx.Source = Caller;
+            ctx.AbilityGuid = GUID;
+            var damage = new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChance = BaseAilmentChance };
+            var damageDict = new Dictionary<DamageType, Damage>()
+            {
+                { damage.Type, damage }
+            };
+            ctx.Damages = damageDict;
+            var hit = new Hit(source, ctx);
+            if (!dac.ReceiveHit(hit))
+            {
+                return;
+            }
 
-        ctx.Target = target;
-        ctx.Source = Caller;
-        ctx.AbilityGuid = GUID;
-        var damage = new Damage { DamageNumber = (float)BaseDamage, Type = BaseType, AilmentChance = BaseAilmentChance };
-        var damageDict = new Dictionary<DamageType, Damage>()
-        {
-            { damage.Type, damage }
-        };
-        ctx.Damages = damageDict;
-
-        var hit = new Hit(source, ctx);
-        if (!target.ReceiveHit(hit))
-        {
-            return;
-        }
-        
-        if (ctx.Target.BuffManagerComponent.CountBuff(typeof(Frost)) > 5)
-        {
-            ctx.Target.BuffManagerComponent.ConsumeBuff(typeof(Frost));
-            ctx.Target.MoveController.ApplyStun(baseStunDuration);
+            if (hitObject.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent))
+            {
+                if (buffManagerComponent.CountBuff(typeof(Frost)) > 5)
+                {
+                    buffManagerComponent.ConsumeBuff(typeof(Frost));
+                    if (hitObject.TryGetComponent<MoveComponent>(out var moveComponent))
+                    {
+                        moveComponent.ApplyStun(baseStunDuration);
+                    }
+                }
+            }
         }
     }
 

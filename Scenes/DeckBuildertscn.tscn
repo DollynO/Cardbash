@@ -16,8 +16,8 @@ color = Color(0.356863, 0.360784, 0.341176, 1)
 script = ExtResource("1_2r23t")
 _saveButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SaveDeck")
 _deleteButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/DeleteDeck")
-_abilityCardContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/ScrollContainer/AbilityCardContainer")
-_itemCardContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/ScrollContainer2/ItemCardContainer")
+_abilityCardContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Abilities/AbilityCardContainer")
+_itemCardContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Items/ItemCardContainer")
 _deckList = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/DeckList")
 _selectedDeckPanel = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer")
 _selectedDeckCardsContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/ScrollContainer/SelectedDeckCardsContainer")
@@ -156,11 +156,16 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer"]
+[node name="TabContainer" type="TabContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer"]
+layout_mode = 2
+current_tab = 0
+
+[node name="Abilities" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+metadata/_tab_index = 0
 
-[node name="AbilityCardContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/ScrollContainer"]
+[node name="AbilityCardContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Abilities"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -168,11 +173,13 @@ theme_override_constants/h_separation = 25
 theme_override_constants/v_separation = 25
 columns = 5
 
-[node name="ScrollContainer2" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer"]
+[node name="Items" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer"]
+visible = false
 layout_mode = 2
 size_flags_vertical = 3
+metadata/_tab_index = 1
 
-[node name="ItemCardContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/ScrollContainer2"]
+[node name="ItemCardContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Items"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

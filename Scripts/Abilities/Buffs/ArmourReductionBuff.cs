@@ -12,7 +12,10 @@ public class ArmourReductionBuff : Buff
 
     protected override void InternalOnActivate()
     {
-        this.Target.StatBlock.AddModifiers(mod);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.AddModifiers(mod);
+        }
     }
 
     protected override void InternalOnTick(float delta)
@@ -21,6 +24,9 @@ public class ArmourReductionBuff : Buff
 
     protected override void InternalOnDeactivate()
     {
-        this.Target.StatBlock.RemoveModifierSource(mod.SourceId);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.RemoveModifierSource(mod.SourceId);
+        }
     }
 }

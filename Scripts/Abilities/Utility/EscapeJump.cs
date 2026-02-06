@@ -17,10 +17,13 @@ public class EscapeJump : Ability
 
     public override void InternalUse()
     {
-        this.Caller.MoveController.RequestKnockback(
-            Caller.GetProjectileStartPosition(), 
-            1000f, 
-            1.0f);
+        if (Caller.TryGetComponent(out MoveComponent moveComponent) && Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            moveComponent.Knockback(
+                aimComponent.GetProjectileStartPosition(), 
+                1000f, 
+                1.0f);
+        }
     }
 
     protected override void InternalUpdate()

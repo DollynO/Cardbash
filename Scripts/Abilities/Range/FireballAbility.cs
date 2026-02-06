@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;

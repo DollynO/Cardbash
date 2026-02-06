@@ -14,14 +14,17 @@ public class FireOrb : Item
         this.IconPath = "res://Sprites/Items/fire_orb.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.RequestAddDamageModifier(new DamageModifier()
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            TargetDamageType = DamageType.Fire,
-            OutputDamageType = DamageType.Fire,
-            Type = DamageModifierType.Modifier,
-            Value = StatIncrease
-        });
+            statblock.DamageModifier.Add(new DamageModifier()
+            {
+                TargetDamageType = DamageType.Fire,
+                OutputDamageType = DamageType.Fire,
+                Type = DamageModifierType.Modifier,
+                Value = StatIncrease
+            });
+        }
     }
 }

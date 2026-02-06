@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Xml;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.TriggerStrategy;
 using CardBase.Scripts.PlayerScripts;
@@ -41,59 +42,63 @@ public class ChargingBeam : Ability
         _ray = globalAbilitySpawner.SpawnRay(rayStats);
     }
 
-    private void onHit(IHitableObject obj, float delta)
+    private void onHit(IEntityComponent entityComponent, float delta)
     {
-        this.deltaSum += delta;
-        if (deltaSum >= 0.5f)
+        if (entityComponent.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent) && entityComponent.TryGetComponent(out DamageAbleComponent dac))
         {
-            var target = (PlayerCharacter)obj;
-            var shockBuffCount = Mathf.Max(target.BuffManagerComponent.CountBuff(typeof(ShockDebuff)), 1);
-            var dmg = new Damage() { AilmentChance = this.BaseAilmentChance, DamageNumber = (float)this.BaseDamage * shockBuffCount * deltaSum, Type = this.BaseType };
-            deltaSum = 0;
-            
-            var dict = new Dictionary<DamageType, Damage>
+            this.deltaSum += delta;
+            if (deltaSum >= 0.5f)
             {
-                [dmg.Type] = dmg
-            };
-            
-            var ctx = new HitContext()
-            {
-                AbilityGuid = GUID,
-                Damages = dict,
-                Source = Caller,
-                Target = (PlayerCharacter)obj,
-            };
-            var hit = new Hit(_ray, ctx);
-            
-            obj.ReceiveHit(hit);
-            shockDebuff = new ShockDebuff(ctx.Source, ctx.Target);
-            ctx.Target.BuffManagerComponent.ApplyBuff(shockDebuff);
-
-            if (shockBuffCount % 5 == 0)
-            {
-                if (false)
+                var shockBuffCount = Mathf.Max(buffManagerComponent.CountBuff(typeof(ShockDebuff)), 1);
+                var dmg = new Damage() { AilmentChance = this.BaseAilmentChance, DamageNumber = (float)this.BaseDamage * shockBuffCount * deltaSum, Type = this.BaseType };
+                deltaSum = 0;
+                
+                var dict = new Dictionary<DamageType, Damage>
                 {
-                    var consumed = target.BuffManagerComponent.ConsumeBuff(typeof(ShockDebuff));
-                }
-
-                var aoeStats = new AoeBaseStats
-                {
-                    Radius = 100,
-                    ActivationTime = 0.5f,
-                    Duration = 0,
-                    IsStationary = true,
-                    StationaryPosition = ctx.Target.GlobalPosition,
-                    OnActivation = onAoeActivation,
-                    OnDeactivation = null,
-                    OnTick = null,
-                    Owner = Caller,
+                    [dmg.Type] = dmg
                 };
-                globalAbilitySpawner.SpawnAoe(aoeStats);
+                
+                var ctx = new HitContext()
+                {
+                    AbilityGuid = GUID,
+                    Damages = dict,
+                    Source = Caller,
+                    Target = entityComponent,
+                };
+                var hit = new Hit(_ray, ctx);
+                
+                
+                dac.ReceiveHit(hit);
+                shockDebuff = new ShockDebuff(ctx.Source, ctx.Target);
+                buffManagerComponent.ApplyBuff(shockDebuff);
+
+                if (shockBuffCount % 5 == 0)
+                {
+                    if (false)
+                    {
+                        var consumed = buffManagerComponent.ConsumeBuff(typeof(ShockDebuff));
+                    }
+
+                    var aoeStats = new AoeBaseStats
+                    {
+                        Radius = 100,
+                        ActivationTime = 0.5f,
+                        Duration = 0,
+                        IsStationary = true,
+                        StationaryPosition = ((Node2D)ctx.Target).GlobalPosition,
+                        OnActivation = onAoeActivation,
+                        OnDeactivation = null,
+                        OnTick = null,
+                        Owner = Caller,
+                    };
+                    globalAbilitySpawner.SpawnAoe(aoeStats);
+                }
             }
+        
         }
     }
 
-    private void onAoeActivation(List<PlayerCharacter> obj, AoeBase aoeBase)
+    private void onAoeActivation(List<IEntityComponent> obj, AoeBase aoeBase)
     {
         var dict = new Dictionary<DamageType, Damage>();
         var damage = new Damage()
@@ -106,6 +111,7 @@ public class ChargingBeam : Ability
         
         foreach (var playerCharacter in obj)
         {
+            
             if (playerCharacter.TeamId != Caller.TeamId)
             {
                 var hitContext = new HitContext
@@ -116,7 +122,10 @@ public class ChargingBeam : Ability
                     Damages = dict
                 };
                 var hit = new Hit(aoeBase,  hitContext);
-                playerCharacter.ReceiveHit(hit);
+                if (playerCharacter.TryGetComponent(out DamageAbleComponent dac))
+                {
+                    dac.ReceiveHit(hit);
+                }
             }
         }
     }

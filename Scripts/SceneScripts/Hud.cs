@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using CardBase.Scripts;
+using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.PlayerScripts;
 using Godot.Collections;
@@ -19,7 +20,7 @@ public partial class Hud : CanvasLayer
 	private PackedScene _itemCardTemplate;
 
 	[Signal]
-	public delegate void CardLockedEventHandler(int playerId, Dictionary cardDict);
+	public delegate void CardLockedEventHandler(int playerId, string cardGuid);
 	
 	private Card _selectedCard;
 	// Called when the node enters the scene tree for the first time.
@@ -61,14 +62,9 @@ public partial class Hud : CanvasLayer
 		
 		for (var i = 0; i < _abilityFrames.Count; i++)
 		{
-			if (player.AbilityController.Abilities.Count > i)
-			{
-				_abilityFrames[i].UpdateUi(player.AbilityController.GetNetAbilities()[i]);
-			}
-			else
-			{
-				_abilityFrames[i].UpdateUi(null);
-			}
+			var networkAbilities = new NetAbility[player.AbilityComponent.GetNetAbilities().Count];
+			player.AbilityComponent.GetNetAbilities().CopyTo(networkAbilities, 0);
+			_abilityFrames[i].UpdateUi(networkAbilities.Length > i ? networkAbilities[i] : null);
 		}
 		
 		((ShaderMaterial)_darknessEffect.Material).SetShaderParameter("fill_amount", Math.Clamp(player.StatBlock.GetStat(StatType.Darkness) * 0.1, 0, 1));
@@ -120,7 +116,7 @@ public partial class Hud : CanvasLayer
 
 		_cardBox.Visible = false;
 		_waitLabel.Visible = true;
-		EmitSignal(SignalName.CardLocked, Multiplayer.GetUniqueId(), _selectedCard.ToDict());
+		EmitSignal(SignalName.CardLocked, Multiplayer.GetUniqueId(), _selectedCard.EffectGUID);
 	}
 	
 	private void on_card_clicked(Card card)
@@ -133,7 +129,7 @@ public partial class Hud : CanvasLayer
 		var stats = player.StatBlock;
 		_statsText.Text = $"Movement Speed: {stats.GetStat(StatType.MovementSpeed)}\n" +
 		                  $"Armor: {stats.GetStat(StatType.Armor)}\n" +
-		                  $"Life: {player.HealthController.CurrentHealth} / {player.HealthController.MaxHealth}\n" +
+		                  $"Life: {player.HealthComponent.CurrentHealth} / {player.HealthComponent.MaxHealth}\n" +
 		                  $"Energy Shield: {stats.GetStat(StatType.EnergyShield)}\n";
 	}
 }

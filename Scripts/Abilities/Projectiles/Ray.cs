@@ -80,7 +80,11 @@ public partial class Ray : Node2D
         _shapeCast2D.TargetPosition = Vector2.Right * _rayStats.Range;
         _shapeCast2D.Rotation = Mathf.Pi / 2;
         _shapeCast2D.CollisionMask = _rayStats.CollisionMask;
-        _shapeCast2D.AddExceptionRid((_rayStats.Caster).GetRid());
+        if (_rayStats.Caster is CharacterbodyEntityComponent cec)
+        {
+            _shapeCast2D.AddExceptionRid(cec.GetRid());
+        }
+
         _shapeCast2D.MaxResults = 10;
     }
 
@@ -100,12 +104,17 @@ public partial class Ray : Node2D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (!_rayStats.Caster.TryGetComponent(out AimComponent aimComponent))
+        {
+            return;
+        }
+        
         var pierceCount = _rayStats.PierceCount + 1;
         var from = ToGlobal(_shapeCast2D.Position);
-        var direction = _rayStats.Caster.GetLookAtDirection();
+        var direction = aimComponent.GetLookAtDirection();
         var to = GlobalPosition + direction * _rayStats.Range;
 
-        var hittedObjects = new List<IHitableObject>();
+        var hittedObjects = new List<IEntityComponent>();
         var lastHitPosition = Vector2.Zero;
         
         if (_shapeCast2D.IsColliding())
@@ -120,7 +129,7 @@ public partial class Ray : Node2D
                         var hitPosition = _shapeCast2D.GetCollisionPoint(i);
                         var hitObject = _shapeCast2D.GetCollider(i);
                         
-                        if (hitObject is IHitableObject hitableObject)
+                        if (hitObject is IEntityComponent hitableObject)
                         {
                             hittedObjects.Add(hitableObject);
                             _shapeCast2D.AddExceptionRid(_shapeCast2D.GetColliderRid(i));
@@ -155,7 +164,7 @@ public partial class Ray : Node2D
             to = GlobalPosition + direction * length;
         }
         
-        var newPoints = new [] { ToLocal(GlobalPosition + _rayStats.Caster.GetLookAtDirection() * 32), ToLocal(to)};
+        var newPoints = new [] { ToLocal(GlobalPosition + aimComponent.GetLookAtDirection() * 32), ToLocal(to)};
         var dict = new Godot.Collections.Dictionary<string, Variant>
         {
             ["points"] = newPoints
@@ -163,7 +172,10 @@ public partial class Ray : Node2D
         Rpc(MethodName.syncClient, dict);
         
         _shapeCast2D.ClearExceptions();
-        _shapeCast2D.AddExceptionRid((_rayStats.Caster).GetRid());
+        if (_rayStats.Caster is CharacterbodyEntityComponent cec)
+        {
+            _shapeCast2D.AddExceptionRid(cec.GetRid());
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
@@ -188,9 +200,9 @@ public partial class Ray : Node2D
 public class RayStats
 {
     public float Range;
-    public PlayerCharacter Caster;
+    public IEntityComponent Caster;
     public uint CollisionMask = 4 + 1;
-    public Action<IHitableObject, float> CollisionTick;
+    public Action<IEntityComponent, float> CollisionTick;
 
     public string AnimationResource;
     public string CenterLoopFolder;
@@ -203,7 +215,7 @@ public class RayStats
         return new Godot.Collections.Dictionary<string, Variant>()
         {
             { nameof(Range), Range },
-            { nameof(Caster), Caster.PlayerId },
+            { nameof(Caster), ((Node2D)Caster).GetPath() },
             { nameof(AnimationResource), AnimationResource},
             { nameof(CenterLoopFolder), CenterLoopFolder},
             { nameof(CenterLoopCount), CenterLoopCount},
@@ -216,7 +228,7 @@ public class RayStats
         return new RayStats()
         {
             Range = (float)dict[nameof(Range)],
-            Caster = manager.GetPlayerCharacter((long)dict[nameof(Caster)]),
+            Caster = (IEntityComponent)manager.GetNode((string)dict[nameof(Caster)]),
             CollisionMask = 0,
             CollisionTick = null,
             AnimationResource = (string)dict[nameof(AnimationResource)],

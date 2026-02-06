@@ -14,14 +14,17 @@ public class IceOrb : Item
         this.IconPath = "res://Sprites/Items/ice_orb.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.RequestAddDamageModifier(new DamageModifier()
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            TargetDamageType = DamageType.Ice,
-            OutputDamageType = DamageType.Ice,
-            Type = DamageModifierType.Modifier,
-            Value = StatIncrease,
-        });
+            statblock.DamageModifier.Add(new DamageModifier()
+            {
+                TargetDamageType = DamageType.Ice,
+                OutputDamageType = DamageType.Ice,
+                Type = DamageModifierType.Modifier,
+                Value = StatIncrease,
+            });
+        }
     }
 }

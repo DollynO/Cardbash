@@ -6,17 +6,24 @@ public class BaseDoTBuff : Buff
 {
     protected float BaseDamage;
     protected DamageType BaseDamageType;
+    protected DamageAbleComponent dac;
     
-    public BaseDoTBuff(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public BaseDoTBuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
     }
 
     protected override void InternalOnActivate()
     {
+        Target.TryGetComponent(out dac);
     }
 
     protected override void InternalOnTick(float delta)
     {
+        if (dac == null)
+        {
+            return;
+        }
+        
         var damage = new Damage { DamageNumber = BaseDamage * StackCount * delta, AilmentChance = 0, Type = BaseDamageType };
         var ctx = new HitContext
         {
@@ -28,7 +35,7 @@ public class BaseDoTBuff : Buff
             }
         };
         var hit = new Hit(null, ctx);
-        Target.ReceiveHit(hit);
+        dac.ReceiveHit(hit);
     }
 
     protected override void InternalOnDeactivate()

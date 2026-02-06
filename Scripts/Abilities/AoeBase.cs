@@ -11,7 +11,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class AoeBaseStats
 {
-    public PlayerCharacter Owner { get; set; }
+    public IEntityComponent Owner { get; set; }
     public float Radius { get; set; }
     public float Angle { get; set; } = 360f; // Default to full circle
     public float AngleOffset { get; set; } = 0f; // Rotation offset in degrees
@@ -24,11 +24,11 @@ public class AoeBaseStats
     public float ShapeUpdateInterval { get; set; } = 0.15f; // How often to recalculate collision shape
     
     // Callbacks
-    public Action<List<PlayerCharacter>, AoeBase> OnActivation { get; set; }
-    public Action<List<PlayerCharacter>, AoeBase> OnDeactivation { get; set; }
-    public Action<PlayerCharacter, double, AoeBase> OnTick { get; set; }
-    public Action<PlayerCharacter, AoeBase> OnPlayerEnter { get; set; }
-    public Action<PlayerCharacter, AoeBase> OnPlayerExit { get; set; }
+    public Action<List<IEntityComponent>, AoeBase> OnActivation { get; set; }
+    public Action<List<IEntityComponent>, AoeBase> OnDeactivation { get; set; }
+    public Action<IEntityComponent, double, AoeBase> OnTick { get; set; }
+    public Action<IEntityComponent, AoeBase> OnEntityEnter { get; set; }
+    public Action<IEntityComponent, AoeBase> OnEntityExit { get; set; }
     
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -41,7 +41,7 @@ public class AoeBaseStats
             ["Duration"] = Duration,
             ["IsStationary"] = IsStationary,
             ["StationaryPosition"] = StationaryPosition,
-            ["OwnerId"] = Owner?.PlayerId ?? 0,
+            ["OwnerId"] = ((Node2D)Owner).GetPath(),
             ["AbilityGUID"] = AbilityGUID,
             ["TickInterval"] = TickInterval,
         };
@@ -62,7 +62,7 @@ public class AoeBaseStats
             StationaryPosition = (Vector2)dict["StationaryPosition"],
             AbilityGUID = (string)dict["AbilityGUID"],
             TickInterval = (float)dict["TickInterval"],
-            Owner = gameManager.GetPlayerCharacter((long)dict["OwnerId"])
+            Owner = (IEntityComponent)gameManager.GetNode((string)dict["OwnerId"]),
         };
         
         return stats;
@@ -99,7 +99,7 @@ public partial class AoeBase : Node2D
     private Timer deactivationBlinkTimer;
     private int blinkCount;
     
-    private HashSet<PlayerCharacter> playersInArea = new();
+    private HashSet<IEntityComponent> playersInArea = new();
     private List<Vector2> oldPolygons = new();
     private int forceUpdateCounter = 5;
     
@@ -155,7 +155,7 @@ public partial class AoeBase : Node2D
         else if (stats.Owner != null)
         {
             // Will follow owner in _PhysicsProcess
-            GlobalPosition = stats.Owner.GlobalPosition;
+            GlobalPosition = ((Node2D)stats.Owner).GlobalPosition;
         }
         
         CalculateCollisionArea();
@@ -172,7 +172,7 @@ public partial class AoeBase : Node2D
             if (ShouldAffectPlayer(player))
             {
                 playersInArea.Add(player);
-                stats.OnPlayerEnter?.Invoke(player, this);
+                stats.OnEntityEnter?.Invoke(player, this);
             }
         }
     }
@@ -182,13 +182,18 @@ public partial class AoeBase : Node2D
         if (body is PlayerCharacter player && playersInArea.Contains(player))
         {
             playersInArea.Remove(player);
-            stats.OnPlayerExit?.Invoke(player, this);
+            stats.OnEntityExit?.Invoke(player, this);
         }
     }
     
-    private bool ShouldAffectPlayer(PlayerCharacter player)
+    private bool ShouldAffectPlayer(IEntityComponent entity)
     {
-        return player != stats.Owner;
+        if (entity is PlayerCharacter player)
+        {
+            return player != stats.Owner;
+        }
+
+        return true;
     }
     
     private void OnActivation()
@@ -209,14 +214,14 @@ public partial class AoeBase : Node2D
         }
     }
     
-    private List<PlayerCharacter> GetAffectedPlayers()
+    private List<IEntityComponent> GetAffectedPlayers()
     {
         var bodies = detectArea.GetOverlappingBodies();
-        var players = new List<PlayerCharacter>();
+        var players = new List<IEntityComponent>();
         
         foreach (var body in bodies)
         {
-            if (body is PlayerCharacter player && ShouldAffectPlayer(player))
+            if (body is IEntityComponent player && ShouldAffectPlayer(player))
             {
                 players.Add(player);
             }
@@ -270,8 +275,16 @@ public partial class AoeBase : Node2D
         // Follow owner if not stationary
         if (!stats.IsStationary && stats.Owner != null)
         {
-            GlobalPosition = stats.Owner.GetCharacterCenterPosition();
-            GlobalRotation = stats.Owner.GetCharacterCenterPoint().GlobalRotation;
+            if (stats.Owner.TryGetComponent(out AimComponent aimComponent))
+            {
+                GlobalPosition = aimComponent.GetCharacterCenterPosition();
+                GlobalRotation = aimComponent.GetCharacterCenterPoint().GlobalRotation;
+            }
+            else
+            {
+                GlobalPosition = ((Node2D)stats.Owner).GlobalPosition;
+                GlobalRotation = ((Node2D)stats.Owner).GlobalRotation;
+            }
         }
         
         if (internalState == InternalState.ACTIVATION)
@@ -494,7 +507,6 @@ public partial class AoeBase : Node2D
             From = GlobalPosition,
             To = destination,
             CollisionMask = 1 + 2,
-            Exclude = stats.Owner != null ? new Array<Rid> { stats.Owner.GetRid() } : new Array<Rid>()
         };
         
         var collision = spaceState.IntersectRay(query);

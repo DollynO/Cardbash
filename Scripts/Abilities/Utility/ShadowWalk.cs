@@ -8,6 +8,7 @@ public class ShadowWalk : Ability
 {
     private Stealth stealth;
     private FastMovement fastMovement;
+    private HealthComponent healthComponent;
     
     public ShadowWalk(PlayerCharacter creator) : base(AbilityIds.ShadowWalkGuid, creator)
     {
@@ -19,7 +20,11 @@ public class ShadowWalk : Ability
 
         if (creator != null)
         {
-            creator.DamageTaken += CreatorOnDamageTaken;
+            if (creator.TryGetComponent(out healthComponent))
+            {
+                healthComponent.DamageTaken += CreatorOnDamageTaken;
+            }
+
             creator.AbilityCasted += CreatorOnAbilityCasted;
         }
 
@@ -47,10 +52,13 @@ public class ShadowWalk : Ability
 
     public override void InternalUse()
     {
-        this.Caller.BuffManagerComponent.ApplyBuff(stealth);
-        if (UpdateCounter >= 1)
+        if (Caller.TryGetComponent(out BuffManagerComponent bmc))
         {
-            this.Caller.BuffManagerComponent.ApplyBuff(fastMovement);
+            bmc.ApplyBuff(stealth);
+            if (UpdateCounter >= 1)
+            {
+                bmc.ApplyBuff(fastMovement);
+            }
         }
     }
 
@@ -61,7 +69,11 @@ public class ShadowWalk : Ability
             case 1:
                 break;
             case 2:
-                this.Caller.DamageTaken -= CreatorOnDamageTaken;
+                if (healthComponent != null)
+                {
+                    healthComponent.DamageTaken -= CreatorOnDamageTaken;
+                }
+
                 break;
         }
     }

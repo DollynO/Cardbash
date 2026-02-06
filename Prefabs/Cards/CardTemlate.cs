@@ -9,7 +9,10 @@ public partial class CardTemlate : TextureRect
     [Export] Label NameLabel;
     [Export] TextureRect Image;
     [Export] private TextureRect HoverFrame;
-
+    [Export] private Panel DetailDescriptionPanel;
+    [Export] private Label DetailDescriptionLabel;
+    
+    
     [Signal]
     public delegate void CardClickedEventHandler(Card card);
     
@@ -22,6 +25,7 @@ public partial class CardTemlate : TextureRect
             card = value;
             NameLabel.Text = card.DisplayName;
             DescriptionLabel.Text = card.Description;
+            DetailDescriptionLabel.Text = card.Description;
 
             if (card.IconPath != null)
             {
@@ -30,14 +34,21 @@ public partial class CardTemlate : TextureRect
         }
     }
 
+    public override void _Ready()
+    {
+        
+    }
+
     private void _on_mouse_entered()
     {
         HoverFrame.Visible = true;
+        DetailDescriptionPanel.Visible = true;
     }
 
     private void _on_mouse_exited()
     {
         HoverFrame.Visible = false;
+        DetailDescriptionPanel.Visible = false;
     }
 
     public override void _GuiInput(InputEvent @event)

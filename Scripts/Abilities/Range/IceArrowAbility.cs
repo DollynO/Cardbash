@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
@@ -19,10 +20,15 @@ public class IceArrowAbility : ProjectileAbility
 
     protected override ProjectileStats GetProjectileStats()
     {
+        var direction = Vector2.Zero;
+        if (Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            direction = aimComponent.GetLookAtDirection();
+        }
         return new ProjectileStats
         {
             Caller = Caller,
-            Direction = Caller.GetLookAtDirection(),
+            Direction = direction,
             Speed = 500,
             TimeToBeALive = 4,
             AnimationResourcePath = "res://AnimationRes/Projectile/Ice/I_LargeBlue.tres",
@@ -32,7 +38,7 @@ public class IceArrowAbility : ProjectileAbility
         };
     }
 
-    private void OnHit(IHitableObject arg1, Projectile arg2)
+    private void OnHit(IEntityComponent arg1, Projectile arg2)
     {
         
     }

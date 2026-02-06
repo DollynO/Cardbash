@@ -6,7 +6,7 @@ namespace CardBase.Scripts.Abilities.Buffs;
 
 public class BurnDebuff : BaseDoTBuff
 {
-    public BurnDebuff(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public BurnDebuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = "Burns the target";
         this.DisplayName = "Burn";

@@ -39,10 +39,13 @@ public class ConsumeBuffHitModifier : IHitModifier
 
     private void consume(HitContext ctx)
     {
-        var consumed_buff_count = ctx.Target.BuffManagerComponent.ConsumeBuff(consumeType);
-        if (consumed_buff_count > 0)
+        if (ctx.Target.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent))
         {
-            onBuffConsume(consumed_buff_count, ctx);
-        } 
+            var consumed_buff_count = buffManagerComponent.ConsumeBuff(consumeType);
+            if (consumed_buff_count > 0)
+            {
+                onBuffConsume(consumed_buff_count, ctx);
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ public class Frost : Buff
     private float base_reduction = 0.20f;
     private float stack_increase = 0.04f;
     
-    public Frost(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public Frost(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Reduces the movement speed of the target by {base_reduction}";
         this.DisplayName = "Frost";
@@ -23,10 +23,13 @@ public class Frost : Buff
 
     protected override void InternalOnActivate()
     {
-        
-        Target.StatBlock.RemoveModifierSource(slow_modifier.SourceId);
-        slow_modifier.Value = -(base_reduction + StackCount * stack_increase);
-        Target.StatBlock.AddModifiers(slow_modifier);
+
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.RemoveModifierSource(slow_modifier.SourceId);
+            slow_modifier.Value = -(base_reduction + StackCount * stack_increase);
+            statBlock.AddModifiers(slow_modifier);
+        }
     }
 
     protected override void InternalOnTick(float delta)
@@ -35,6 +38,9 @@ public class Frost : Buff
 
     protected override void InternalOnDeactivate()
     {
-        Target.StatBlock.RemoveModifierSource(slow_modifier.SourceId);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.RemoveModifierSource(slow_modifier.SourceId);
+        }
     }
 }

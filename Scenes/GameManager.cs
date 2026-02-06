@@ -19,16 +19,16 @@ public partial class GameManager : Node2D
 	private NetworkManager _network;
 	[Export] private PackedScene _playerCharScene;
 	[Export] private MultiplayerSpawner _spawner;
-	[Export] private Hud _hud;
+	[Export] public Hud _hud;
 	[Export] private TileMapLayer _tileMapLayer;
 	[Export] private Node2D _spawnPoint;
+	private GameFlowController _flowController;
 	
-	private Godot.Collections.Dictionary<long, PlayerCharacter> _currentCharacters = new();
+	private System.Collections.Generic.Dictionary<long, PlayerCharacter> _currentCharacters = new();
 	private PlayerCharacter _currentPlayer;
-	public GameSettings GameSettings;
 	
 	[Signal]
-	public delegate void OnPlayerKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
+	public delegate void OnPlayerKilledEventHandler(long victimId, long killerId);
 
 	public override void _EnterTree()
 	{
@@ -39,36 +39,25 @@ public partial class GameManager : Node2D
 	public override void _Ready()
 	{
 		_network = GetNode<NetworkManager>(NetworkManager.GetNetworkManagerPath());
-		_hud.CardLocked += onCardLocked;
+
+		var ts = new TeamSystem(this, _currentCharacters);
+		var cs = new CardSystem();
+		var ctx = new GameContext(this, _currentCharacters, ts, cs);
+		var settings = new GameModeSettings();
+		settings.CardsDrawnAtRoundBegin = 1;
+		settings.RoundPointLimit = 2;
+		settings.RoundsPerGame = 3;
+		settings.RoundTimeLimitSeconds = float.PositiveInfinity;
+		
+		_flowController = new GameFlowController(ctx, settings);
+		this.AddChild(_flowController);
 		
 		Rpc(MethodName.im_in_game, Multiplayer.GetUniqueId());
-		GameSettings = new GameSettings()
-		{
-			GameMode = new TeamDeathMatch()
-		};
-		
-		if (Multiplayer.IsServer() && GameSettings is not null)
-		{
-			GameSettings.GameMode.OnGameOver += onGameOver;
-			GameSettings.GameMode.OnRoundOver += onRoundOver;
-			GameSettings.GameMode.AssignGameHooks(this);
-		}
 	}
 
-	private void onRoundOver(int winnerId)
+	public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter  killer)
 	{
-		GameSettings.GameMode.CheckGameWinCondition(GetWorldContext());
-		Rpc(MethodName.StartDrawPhase);
-	}
-
-	private void onGameOver(int winnerId)
-	{
-		showWinnerScreen();
-	}
-
-	private void showWinnerScreen()
-	{
-		
+		EmitSignal(SignalName.OnPlayerKilled, victim.PlayerId, killer.PlayerId);
 	}
 
 	public WorldContext GetWorldContext()
@@ -76,7 +65,6 @@ public partial class GameManager : Node2D
 		return new WorldContext()
 		{
 			players = _currentCharacters.Values.ToList(),
-			settings = GameSettings.WorldSettings,
 		};
 	}
 
@@ -118,8 +106,9 @@ public partial class GameManager : Node2D
 		{
 			_spawn_player_character(player);
 		}
+
 		
-		Rpc(MethodName.StartDrawPhase);
+		_flowController.Start();
 	}
 
 	private void _spawn_player_character(Player player)
@@ -151,14 +140,9 @@ public partial class GameManager : Node2D
 		node.PlayerName = playerName;
 		node.TeamId = teamId;
 		node.PlayerId = long.Parse(playerId);
-		var random = new Random();
-		var offset = 600;
-		var angle = random.NextDouble() * Math.Tau;
-		var randomSpawn = new Vector2(
-			(float)Math.Cos(angle) * offset,
-			(float)Math.Sin(angle) * offset);
 		
-		node.GlobalPosition = _spawnPoint.GlobalPosition + randomSpawn;
+		
+		node.GlobalPosition = GetNextFreeSpawnPoint();
 		foreach (var cardCounter in deck.Cards)
 		{
 			for (var i = 0; i < cardCounter.Value.Count; i++)
@@ -166,96 +150,26 @@ public partial class GameManager : Node2D
 				node.Cards.Add(cardCounter.Key);
 			}
 		}
-		if (Multiplayer.IsServer())
-		{
-			node.OnKilled += onKillReported;
-			_currentCharacters.Add(node.PlayerId, node);
-		}
+
+		_currentCharacters.Add(node.PlayerId, node);
 		return node;
 	}
 
-	private void onKillReported(PlayerCharacter victim, PlayerCharacter killer)
+	public Vector2 GetNextFreeSpawnPoint()
 	{
-		EmitSignal(SignalName.OnPlayerKilled, victim, killer);	
-	}
+		var random = new Random();
+		var offset = 600;
+		var angle = random.NextDouble() * Math.Tau;
+		var randomSpawn = new Vector2(
+			(float)Math.Cos(angle) * offset,
+			(float)Math.Sin(angle) * offset);
 
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void StartDrawPhase()
-	{		
-		var player = GetPlayerCharacter(Multiplayer.GetUniqueId());
-		if (player == null)
-		{
-			throw new Exception();
-		}
-		
-		var cards = new List<Card>();
-		if (player.Cards.Count <= 5)
-		{
-			cards.AddRange(player.Cards);
-		}
-		else
-		{
-			var rng = new Random();
-			while (cards.Count < 5)
-			{
-				var card = player.Cards[rng.Next(0, player.Cards.Count)];
-				if (!cards.Contains(card))
-				{
-					cards.Add(card);
-				}
-			}
-		}
-
-		_hud.ShowDrawUi(true, cards);
-	}
-
-	private void onCardLocked(int id, Dictionary cardDict)
-	{
-		Rpc(MethodName.SyncLockCard, id, cardDict);
+		return _spawnPoint.GlobalPosition + randomSpawn;
 	}
 	
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	private void SyncLockCard(long id, Dictionary cardDict)
+	private void onKillReported(long victimId, long killerId)
 	{
-		if (Multiplayer.IsServer())
-		{
-			var card = Card.FromDict(cardDict);
-			switch (card.CardType)
-			{
-				case CardType.Ability:
-					Rpc(MethodName.SyncAbility, id, cardDict);
-					break;
-				case CardType.Item:
-					var playerContext = new PlayerContext()
-					{
-						player = _currentCharacters[id],
-					};
-					card.ApplyEffect(playerContext);
-					break;
-				default:
-					break;
-			}
-			var currentPlayer = _currentCharacters[id];
-			currentPlayer.Cards.Remove(currentPlayer.Cards.FirstOrDefault(c => c.EffectGUID == card.EffectGUID));
-			
-			_playersReady++;
-			if (_playersReady == _network.CurrentPlayers.Count)
-			{
-				_playersReady = 0;
-				Rpc(MethodName.StartGamePhase);
-			}
-		}
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void SyncAbility(long id, Dictionary cardDict)
-	{
-		var card = Card.FromDict(cardDict);
-		var playerContext = new PlayerContext()
-		{
-			player = GetPlayerCharacter(id),
-		};
-		card.ApplyEffect(playerContext);
+		EmitSignal(SignalName.OnPlayerKilled, victimId, killerId);	
 	}
 
 	[Rpc]
@@ -263,18 +177,6 @@ public partial class GameManager : Node2D
 	{
 		var player = GetPlayerCharacter(id);
 		player.PlayerName = name;
-	}
-
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void StartGamePhase()
-	{
-		foreach (var entry in _currentCharacters)
-		{
-			var character = entry.Value;
-			character.RoundReset();
-		}
-		_hud.ShowDrawUi(false, null);
-		
 	}
 
 	public PlayerCharacter GetPlayerCharacter(long id)

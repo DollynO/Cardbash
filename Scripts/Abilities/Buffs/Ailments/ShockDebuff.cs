@@ -7,7 +7,7 @@ public class ShockDebuff : Buff
     private StatModifier stat_modifier;
     private float base_reduction = 5;
     
-    public ShockDebuff(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public ShockDebuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Reduces the energy shield of the target by {base_reduction}";
         this.DisplayName = "Shock";
@@ -22,7 +22,10 @@ public class ShockDebuff : Buff
 
 
     protected override void InternalOnActivate() {
-        Target.StatBlock.AddModifiers(stat_modifier);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        { 
+            statBlock.AddModifiers(stat_modifier);
+        }
     }
 
     protected override void InternalOnTick(float delta)
@@ -31,6 +34,9 @@ public class ShockDebuff : Buff
 
     protected override void InternalOnDeactivate()
     {
-        Target.StatBlock.RemoveModifierSource(stat_modifier.SourceId);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.RemoveModifierSource(stat_modifier.SourceId);
+        }
     }
 }

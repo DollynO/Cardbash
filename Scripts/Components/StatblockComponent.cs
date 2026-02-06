@@ -1,20 +1,30 @@
 using System.Collections.Generic;
+using CardBase.Scripts.Abilities;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
 
-namespace CardBase.Scripts.PlayerScripts;
+namespace CardBase.Scripts;
 
-[GlobalClass]
-public partial class StatBlockComponent : Node
+public partial class StatblockComponent : Node2D, IComponent
 {
+    public IEntityComponent Parent { get; private set; }
+    public void SetParent(IEntityComponent component)
+    {
+        this.Parent = component;
+    }
     [Export] private MultiplayerSynchronizer sync;
 
     [Export]
     public Dictionary ReplicatedCurrent = new();
 
     private readonly StatBlock _stats = new();
-    public override void _EnterTree()
+    
+    
+    public readonly List<DamageModifier> DamageModifier = new();
+    public void AddDamageModifier(DamageModifier  modifier)
     {
+        DamageModifier.Add(modifier);
     }
 
     public override void _Ready()
@@ -68,5 +78,5 @@ public partial class StatBlockComponent : Node
             ReplicatedCurrent.Add((int)stat.Key, stat.Value);
         }
     }
-    
+
 }

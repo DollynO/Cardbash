@@ -57,7 +57,7 @@ public abstract class Ability : BaseCardableObject
     /**
      * @brief The caller of the ability.
      */
-    protected PlayerCharacter Caller;
+    protected IEntityComponent Caller;
     
     /**
      * @brief  The on hit modifier assigned to the ability.
@@ -82,7 +82,7 @@ public abstract class Ability : BaseCardableObject
     
     protected GlobalAbilitySpawner globalAbilitySpawner;
     
-    protected Ability(string guid, PlayerCharacter creator) : base(guid)
+    protected Ability(string guid, IEntityComponent creator) : base(guid)
     {
         TriggerStrategy = new SimpleTriggerStrategy();
         MaxStack = 1;
@@ -118,7 +118,14 @@ public abstract class Ability : BaseCardableObject
                     CurrentStack++;
                     Activate();
                     Use();
-                    CurrentCooldown = BaseCooldown * Caller.StatBlock.GetStat(StatType.CooldownReduction);
+                    if (Caller.TryGetComponent(out StatblockComponent statblock))
+                    {
+                        CurrentCooldown = BaseCooldown * statblock.GetStat(StatType.CooldownReduction);
+                    }
+                    else
+                    {
+                        CurrentCooldown = BaseCooldown;
+                    }
                 }
             }
         }
@@ -135,7 +142,14 @@ public abstract class Ability : BaseCardableObject
                 CurrentStack++;
                 if (CurrentStack >= MaxStack)
                 {
-                    CurrentCooldown = BaseCooldown * Caller.StatBlock.GetStat(StatType.CooldownReduction);
+                    if (Caller.TryGetComponent(out StatblockComponent statblock))
+                    {
+                        CurrentCooldown = BaseCooldown * statblock.GetStat(StatType.CooldownReduction);
+                    }
+                    else
+                    {
+                        CurrentCooldown = BaseCooldown;
+                    }
                 }
             }
         }
@@ -148,7 +162,7 @@ public abstract class Ability : BaseCardableObject
     
     public virtual bool Activate()
     {
-        globalAbilitySpawner ??= this.Caller.GetTree().Root
+        globalAbilitySpawner ??= ((Node2D)Caller).GetTree().Root
             .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
             
         if (CurrentStack == 0)
@@ -183,7 +197,10 @@ public abstract class Ability : BaseCardableObject
         {
             InternalUse();
             this.activated = false;
-            this.Caller.NotifyAbilityCasted(this);
+            if (Caller.TryGetComponent(out AbilityComponent ac))
+            {
+                ac.NotifyAbilityCasted(this);
+            }
         }
     }
     

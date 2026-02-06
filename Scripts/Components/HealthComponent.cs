@@ -1,0 +1,126 @@
+using System;
+using System.Collections.Generic;
+using CardBase.Scripts.Abilities;
+using CardBase.Scripts.PlayerScripts;
+using Godot;
+
+namespace CardBase.Scripts;
+
+public partial class HealthComponent : Node, IComponent
+{
+    public IEntityComponent Parent { get; private set; }
+    public void SetParent(IEntityComponent component)
+    {
+        this.Parent = component;
+    }
+    
+    public float MaxHealth { get; private set; }
+    public float CurrentHealth { get; private set; }
+    public bool IsDead => CurrentHealth <= 0;
+    
+    public event EventHandler<DamageEventArgs>? DamageTaken;
+    
+    private Godot.Collections.Dictionary<string, float> maxHealthChanges = new();
+    private GameManager gameManager;
+    
+
+    public override void _Ready()
+    {
+        gameManager = GetNode<GameManager>("/root/GameManager");
+    }
+
+    public void Reset(float newMaxHealth)
+    {
+        MaxHealth = newMaxHealth;
+        CurrentHealth = MaxHealth;
+        maxHealthChanges.Clear();
+    }
+
+    public void ApplyDamage(Damage damage, IEntityComponent component)
+    {
+        var damageValue = damage.DamageNumber;
+        damageValue = Mathf.Abs(damageValue);
+        CurrentHealth -= damageValue;
+        Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+        if (CurrentHealth == 0)
+        {
+            if (Parent is PlayerCharacter victimPlayer && component is PlayerCharacter killerPlayer)
+            {
+                gameManager?.NotifyPlayerDeath(victimPlayer, killerPlayer);
+            }
+        }
+        else
+        {
+            
+            this.DamageTaken?.Invoke(this, new DamageEventArgs(damage));
+        }
+    }
+
+    public void ApplyHeal(float heal)
+    {
+        heal = Mathf.Abs(heal);
+        CurrentHealth += heal;
+        Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+    }
+
+    public void ApplyMod(StatModifier mod)
+    {
+        var id = mod.Id;
+        var value = 0f;
+        switch (mod.Op)
+        {
+            case StatOp.FlatAdd:
+                value = mod.Value;
+                break;
+            case StatOp.PercentAdd:
+                value = mod.Value - mod.Value * (1 + mod.Value);
+                if (mod.Value < 1)
+                {
+                    value = -value;
+                }
+                break;
+            case StatOp.PercentMult:
+                value = 0;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        maxHealthChanges.Add(id, value);
+        MaxHealth += value;
+        Mathf.Clamp(MaxHealth, 1, MaxHealth);
+        if (value < 0 && Mathf.Abs(value) > CurrentHealth)
+        {
+            CurrentHealth = 1;
+        }
+        else
+        {
+            CurrentHealth += value;
+            Mathf.Clamp(CurrentHealth, 1, MaxHealth);
+        }
+    }
+
+    public void RemoveMod(string id)
+    {
+        var value = maxHealthChanges[id];
+        maxHealthChanges.Remove(id);
+        if (value > 0 && Mathf.Abs(value) > CurrentHealth)
+        {
+            CurrentHealth = 1;
+        }
+        else
+        {
+            CurrentHealth -= value;
+            Mathf.Clamp(CurrentHealth, 1, MaxHealth);
+        }
+    }
+}
+
+public class DamageEventArgs : EventArgs
+{
+    public Damage Damage { get; init; }
+    public DamageEventArgs(Damage damage)
+    {
+        Damage = damage;
+    }
+    
+}

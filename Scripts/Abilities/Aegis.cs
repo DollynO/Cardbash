@@ -21,7 +21,7 @@ public class Aegis : Ability, IHitInterceptor
 
     private AegisDamageIncreaseBuff buff;
     
-    public Aegis(PlayerCharacter creator) : base(AbilityIds.AegisGuid, creator)
+    public Aegis(IEntityComponent creator) : base(AbilityIds.AegisGuid, creator)
     {
         DisplayName = "Aegis";
         Description = "AAAEEEGIIIS";
@@ -51,8 +51,8 @@ public class Aegis : Ability, IHitInterceptor
                 ActivationTime = 0.1f,
                 OnActivation = OnActivation,
                 Duration = -1,
-                OnPlayerEnter = OnPlayerEnter,
-                OnPlayerExit = OnPlayerExit,
+                OnEntityEnter = OnPlayerEnter,
+                OnEntityExit = OnPlayerExit,
                 AbilityGUID = GUID,
                 IsStationary = false,
                 Owner = Caller,

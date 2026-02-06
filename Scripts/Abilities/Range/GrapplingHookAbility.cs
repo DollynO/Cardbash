@@ -1,3 +1,4 @@
+using System;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -23,12 +24,18 @@ public class GrapplingHookAbility : ProjectileAbility
     public override void InternalUse()
     {
         base.InternalUse();
-        this.Caller.MoveController.ApplyRoot();
+        if (Caller.TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.ApplyRoot();
+        }
     }
 
     protected override void _onProjectileDestroyed(Vector2 position, Projectile projectile)
     {
-        this.Caller.MoveController.RemoveRoot();
+        if (Caller.TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.RemoveRoot();
+        }
     }
     
     

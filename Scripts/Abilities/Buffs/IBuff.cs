@@ -8,8 +8,8 @@ public interface IBuff : IBaseProperty
 {
     public float Duration { get; }
     public float RemainingDuration { get; }
-    public PlayerCharacter Caller { get; }
-    public PlayerCharacter Target { get; }
+    public IEntityComponent Caller { get; }
+    public IEntityComponent Target { get; }
     public DamageType BuffType { get; }
 
     public void OnActivate();

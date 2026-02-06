@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -16,13 +17,15 @@ public partial class OverheadDisplayComponent : Node2D
     private float refreshTimeMax = 1f/60f;
     private float refreshTime = 0;
 
-    private MoveController moveController;
-    private HealthController healtController;
+    private MoveComponent moveController;
+    private HealthComponent healtController;
     public override void _Ready()
     {
         SetMultiplayerAuthority(1);
-        moveController = _player.MoveController;
-        healtController = _player.HealthController;
+        if (_player.TryGetComponent(out moveController) || _player.TryGetComponent(out healtController))
+        {
+            throw new NullReferenceException();
+        }
     }
 
     public override void _Process(double delta)

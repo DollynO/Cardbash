@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Abilities.Buffs;
 public class AegisDamageIncreaseBuff : Buff
 {
     private StatModifier mod;
-    public AegisDamageIncreaseBuff(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public AegisDamageIncreaseBuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Guid = System.Guid.NewGuid().ToString("N");
         mod = new StatModifier(this.Guid, StatType.DmgBonus, StatOp.PercentAdd, 0.10f);
@@ -19,7 +19,10 @@ public class AegisDamageIncreaseBuff : Buff
 
     protected override void InternalOnActivate()
     {
-        Target.StatBlock.AddModifiers(mod);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.AddModifiers(mod);
+        }
     }
 
     protected override void InternalOnTick(float delta)
@@ -28,6 +31,9 @@ public class AegisDamageIncreaseBuff : Buff
 
     protected override void InternalOnDeactivate()
     {
-        Target.StatBlock.RemoveModifierSource(mod.SourceId);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.RemoveModifierSource(mod.SourceId);
+        }
     }
 }

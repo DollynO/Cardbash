@@ -6,7 +6,7 @@ namespace CardBase.Scripts.Abilities.Buffs;
 public class Darkness : Buff
 {
     private StatModifier modifer;
-    public Darkness(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public Darkness(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Reduces the vision range of the target.";
         this.DisplayName = "Darkness";
@@ -21,7 +21,10 @@ public class Darkness : Buff
 
     protected override void InternalOnActivate()
     {
-        Target.StatBlock.AddModifiers(modifer);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.AddModifiers(modifer);
+        }
     }
 
     protected override void InternalOnTick(float delta)
@@ -30,6 +33,9 @@ public class Darkness : Buff
 
     protected override void InternalOnDeactivate()
     {
-        Target.StatBlock.RemoveModifierSource(modifer.SourceId);
+        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
+        {
+            statBlock.RemoveModifierSource(modifer.SourceId);
+        }
     }
 }

@@ -18,6 +18,9 @@ public partial class AbilityCard : Card
             return;
         }
 
-        playerContext.player?.AbilityController.AddUpdateAbility(EffectGUID);
+        if (playerContext.player != null && playerContext.player.TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.AddUpdateAbility(EffectGUID);
+        }
     }
 }

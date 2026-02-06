@@ -17,6 +17,9 @@ public class ApplyBuffOnHitModifier : IHitModifier
 
     public void ApplyAfter(HitContext ctx)
     {
-        ctx.Target.BuffManagerComponent.ApplyBuff(_buff);
+        if (ctx.Target.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent))
+        {
+            buffManagerComponent.ApplyBuff(_buff);
+        }
     }
 }

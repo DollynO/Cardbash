@@ -39,14 +39,12 @@ public class Plagueburst : Ability
         });
     }
 
-    private void OnActivation(List<PlayerCharacter> playersHit, AoeBase source)
+    private void OnActivation(List<IEntityComponent> playersHit, AoeBase source)
     {
         if (playersHit.Count > 0)
         {
             foreach (var player in playersHit)
             {
-                if (player.TeamId != Caller.TeamId)
-                {
                     var damage = new Damage
                     {
                         DamageNumber = (float)BaseDamage,
@@ -62,8 +60,10 @@ public class Plagueburst : Ability
                         Damages = damageDict
                     };
                     var hit = new Hit(source, ctx);
-                    player.ReceiveHit(hit);
-                }
+                    if (player.TryGetComponent(out DamageAbleComponent dac))
+                    {
+                        dac.ReceiveHit(hit);
+                    }
             }
         }
     }

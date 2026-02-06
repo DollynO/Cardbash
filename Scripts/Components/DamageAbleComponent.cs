@@ -1,0 +1,23 @@
+using System.Collections.Generic;
+using CardBase.Scripts.Abilities;
+
+namespace CardBase.Scripts;
+
+public partial class DamageAbleComponent : Component
+{
+    private HealthComponent _health;
+    public List<IHitInterceptor> _HitInterceptors = new();
+
+    public bool ReceiveHit(in Hit hit)
+    {
+        foreach (var interceptor in _HitInterceptors)
+        {
+            if (interceptor.TryBlock(hit))
+            {
+                return false;
+            }
+        }
+        HitResolver.ApplyDamage(hit.Context);
+        return true;
+    }
+}

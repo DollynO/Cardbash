@@ -16,28 +16,42 @@ public abstract class ProjectileAbility : Ability
     {
     }
 
-    protected virtual void PostSpawnProjectile()
+    protected virtual void PostSpawnProjectile(Projectile projectile)
+    {
+        
+    }
+
+    protected virtual void PreSpawnProjectile()
     {
         
     }
     
     public override void InternalUse()
     {
-        SpawnProjectile();
-        PostSpawnProjectile();
+        PreSpawnProjectile();
+        PostSpawnProjectile(SpawnProjectile());
     }
 
-    private void SpawnProjectile()
+    protected Projectile SpawnProjectile()
     {
         var projectile_stats = GetProjectileStats();
 
-        projectile_stats.StartPosition = Caller.GetProjectileStartPosition();
+        if (Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            projectile_stats.StartPosition = aimComponent.GetProjectileStartPosition();
+        }
+        else
+        {
+            projectile_stats.StartPosition = ((Node2D)Caller).GlobalPosition;
+        }
+
         projectile_stats.Caller = Caller;
         var projectile = globalAbilitySpawner.SpawnProjectile(projectile_stats);
         
         projectile.OnCollision += _onProjectileCollided;
         projectile.OnPiercing += _onProjectilePierced;
         projectile.OnDestroyed += _onProjectileDestroyed;
+        return projectile;
     }
 
     protected virtual void _onProjectileDestroyed(Vector2 position, Projectile projectile)

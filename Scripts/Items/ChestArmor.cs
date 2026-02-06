@@ -13,8 +13,11 @@ public partial class ChestArmor : Item
         this.IconPath = "res://Sprites/Items/ArmorItem.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.StatBlock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.Armor, StatOp.FlatAdd, StatIncrease));
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.Armor, StatOp.FlatAdd, StatIncrease));
+        }
     }
 }

@@ -34,7 +34,7 @@ public class ConsecratedSlash : Ability
             globalAbilitySpawner.SpawnAoe(stats);
         }
     }
-    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
     {
         
         foreach (var playerCharacter in arg1)
@@ -57,7 +57,10 @@ public class ConsecratedSlash : Ability
                 Source = Caller,
             };
             var hit = new Hit(arg2, ctx);
-            playerCharacter.ReceiveHit(hit);
+            if (playerCharacter.TryGetComponent(out DamageAbleComponent dac))
+            {
+                dac.ReceiveHit(hit);
+            }
         }
     }
 

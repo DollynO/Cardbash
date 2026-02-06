@@ -15,8 +15,8 @@ public abstract class Buff : IBuff
     public string IconPath { get; protected set; }
     public float Duration { get; set; }
     public float RemainingDuration { get; set; }
-    public PlayerCharacter Caller { get; protected set; }
-    public PlayerCharacter Target { get; set; }
+    public IEntityComponent Caller { get; protected set; }
+    public IEntityComponent Target { get; set; }
     
     public DamageType BuffType { get; protected set; }
 
@@ -27,7 +27,7 @@ public abstract class Buff : IBuff
     
     protected bool IsRefreshable { get; set; }
 
-    public Buff(PlayerCharacter caller, PlayerCharacter target)
+    public Buff(IEntityComponent caller, IEntityComponent target)
     {
         Caller = caller;
         Target = target;

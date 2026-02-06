@@ -1,34 +1,51 @@
-[gd_scene load_steps=5 format=3 uid="uid://cyhc4x42utdgo"]
+[gd_scene load_steps=7 format=3 uid="uid://cyhc4x42utdgo"]
 
 [ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/Projectile.cs" id="1_7wxbw"]
 [ext_resource type="SpriteFrames" uid="uid://bwv0qdein7c2d" path="res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres" id="2_ib2se"]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_qxcdi"]
+radius = 11.0
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]
-radius = 110.0
+radius = 11.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_07f7a"]
 radius = 0.01
 
-[node name="Node2D" type="Area2D" node_paths=PackedStringArray("timer", "sprite", "collisionShape", "pullArea", "pullAreaShape")]
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_sgkts"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+
+[node name="Node2D" type="CharacterBody2D" node_paths=PackedStringArray("timer", "sprite", "collisionShape", "pullArea", "detectArea", "pullAreaShape")]
 collision_layer = 8
-collision_mask = 5
 script = ExtResource("1_7wxbw")
 timer = NodePath("LiveTimeTimer")
-sprite = NodePath("CollisionShape/Sprite2D")
-collisionShape = NodePath("CollisionShape")
+sprite = NodePath("MovementShape/Sprite2D")
+collisionShape = NodePath("DetectArea/EffectShape")
 pullArea = NodePath("PullArea")
+detectArea = NodePath("DetectArea")
 pullAreaShape = NodePath("PullArea/PullAreaShape")
 
-[node name="LiveTimeTimer" type="Timer" parent="."]
+[node name="MovementShape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_qxcdi")
 
-[node name="CollisionShape" type="CollisionShape2D" parent="."]
-scale = Vector2(0.1, 0.1)
-shape = SubResource("CircleShape2D_e0kvs")
-
-[node name="Sprite2D" type="AnimatedSprite2D" parent="CollisionShape"]
-scale = Vector2(6, 6)
+[node name="Sprite2D" type="AnimatedSprite2D" parent="MovementShape"]
+scale = Vector2(0.6, 0.6)
 sprite_frames = ExtResource("2_ib2se")
 frame_progress = 0.751687
+
+[node name="DetectArea" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+
+[node name="EffectShape" type="CollisionShape2D" parent="DetectArea"]
+shape = SubResource("CircleShape2D_e0kvs")
+
+[node name="LiveTimeTimer" type="Timer" parent="."]
 
 [node name="PullArea" type="Area2D" parent="."]
 collision_layer = 0
@@ -38,5 +55,8 @@ collision_mask = 4
 modulate = Color(0.588977, 0.130064, 0.489551, 1)
 shape = SubResource("CircleShape2D_07f7a")
 one_way_collision_margin = 0.0
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_sgkts")
 
 [connection signal="timeout" from="LiveTimeTimer" to="." method="_on_timer_timeout"]

@@ -1,3 +1,4 @@
+using System;
 using CardBase.Scripts.Abilities.Buffs.DoTs;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
@@ -25,22 +26,25 @@ public class CorruptedBolt : ProjectileAbility
     {
     }
 
-    private void applyCorruption(IHitableObject hitableObject, Projectile source)
+    private void applyCorruption(IEntityComponent ec, Projectile source)
     {
-        if (hitableObject is not PlayerCharacter character)
+        if (ec.TryGetComponent<BuffManagerComponent>(out var buffManager))
         {
-            return;
+            buffManager.ApplyBuff(corruption);
         }
-        
-        character.BuffManagerComponent.ApplyBuff(corruption);
-}
+    }
     
     protected override ProjectileStats GetProjectileStats()
     {
+        var direction = Vector2.Zero;
+        if (Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            direction = aimComponent.GetLookAtDirection();
+        }
         return new ProjectileStats
         {
             Caller = Caller,
-            Direction = Vector2.Zero,
+            Direction = direction,
             Speed = 300,
             TimeToBeALive = 4,
             AnimationResourcePath = "res://Sprites/Projectiles/fireBallProjectile.png",

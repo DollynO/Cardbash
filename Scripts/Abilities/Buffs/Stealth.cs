@@ -15,7 +15,7 @@ public class Stealth : Buff
 
     protected override void InternalOnActivate()
     {
-        Target.EnterStealth();
+        ((PlayerCharacter)Target).EnterStealth();
     }
 
     protected override void InternalOnTick(float delta)
@@ -25,6 +25,6 @@ public class Stealth : Buff
 
     protected override void InternalOnDeactivate()
     {
-        Target.ExitStealth();
+        ((PlayerCharacter)Target).ExitStealth();
     }
 }

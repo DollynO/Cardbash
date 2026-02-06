@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
-namespace CardBase.Scripts.Abilities;
+namespace CardBase.Scripts;
 
 public class NetAbility
 {
@@ -25,16 +26,23 @@ public class NetAbility
     public string GUID { get; set; }
 }
 
-public partial class AbilityController : Node
+public partial class AbilityComponent : Node, IComponent
 {
+    public IEntityComponent Parent { get; private set;  }
+    public void SetParent(IEntityComponent component)
+    {
+        Parent = component;
+    }
+    
     public Dictionary<string, NetAbility> networkAbilities = new();
     public List<Ability> Abilities = new();
     private Ability? activeAbility;
-    private PlayerCharacter _character;
+    
+    public event EventHandler<AbilityEventArgs>? AbilityCasted;
 
-    public AbilityController(PlayerCharacter character)
+    public void NotifyAbilityCasted(Ability ability)
     {
-        _character = character;
+        AbilityCasted?.Invoke(this, new AbilityEventArgs(ability));
     }
 
     public void ProcessAbilities(double delta, AbilityKeyState[] keyStates)
@@ -83,17 +91,23 @@ public partial class AbilityController : Node
             return false;
         }
         
-        var newAbility = (Ability)AbilityManager.Create(abilityGuid, _character);
+        var newAbility = (Ability)AbilityManager.Create(abilityGuid, (PlayerCharacter)Parent);
         Abilities.Add(newAbility);
-        var newNetAbility = new NetAbility()
-        {
-            GUID = newAbility.GUID,
-            IconPath = newAbility.IconPath,
-        };
-        networkAbilities.Add(newAbility.GUID, newNetAbility);
+        Rpc(MethodName.addNetworkAbility, newAbility.GUID, newAbility.IconPath);
         return true;
     }
 
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void addNetworkAbility(string guid, string iconPath)
+    {
+        var newNetAbility = new NetAbility()
+        {
+            GUID = guid,
+            IconPath = iconPath,
+        };
+        networkAbilities.Add(guid, newNetAbility);
+    }
+    
     public Ability? GetActiveAbility()
     {
         return activeAbility;
@@ -107,7 +121,8 @@ public partial class AbilityController : Node
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
     private void updateAbilities(Variant data)
     {
-        if (Multiplayer.GetUniqueId() != long.Parse(this._character.Name))
+        var id = ((Node)this.Parent).Name;
+        if (Multiplayer.GetUniqueId() != long.Parse(id))
         {
             return;
         }

@@ -15,6 +15,7 @@ public static class AbilityManager
         { AbilityIds.GrapplingHookGuid, creator => new GrapplingHookAbility(creator) },
         { AbilityIds.CorruptedBoltGuid, creator => new CorruptedBolt(creator) },
         { AbilityIds.OrbitingIceShard, creator => new OrbitingIceShard(creator) },
+        { AbilityIds.RicOSpamGuid, creator => new RicOSpam(creator) },
 
         // melee
         { AbilityIds.FireSlashGuid, creator => new FireSlash(creator) },
@@ -60,4 +61,6 @@ public static class AbilityIds
     public static string OrbitingIceShard = "10633462-9097-41ED-9331-6454F0AEAF93";
     public static string ChargingBeamGuid = "F760C46C-28B3-4F34-929B-7F140EB9C683";
     public static string AegisGuid = "C19D6DD4-E8D5-488B-A89C-58A20211BA26";
+    public static string RicOSpamGuid = "F42A4786-A727-48B1-8CE7-9F26A222ED55";
+    public static string SnowballGuid = "A40C5A0A-79D9-4B56-9897-87E61D23B902";
 }

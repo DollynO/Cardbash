@@ -20,7 +20,14 @@ public partial class GlobalAbilitySpawner : Node2D
         var ray = new Ray(props);
         var name = generateName(SpawnType.RAY);
         ray.Name = name;
-        props.Caster.GetCharacterCenterPoint().AddChild(ray);
+        if (props.Caster.TryGetComponent(out AimComponent aimComponent))
+        {
+            aimComponent.GetCharacterCenterPoint().AddChild(ray);
+        }
+        else
+        {
+            ((Node2D)props.Caster).AddChild(ray);
+        }
         Rpc(MethodName.spawnRayOnClient, props.ToDict(), name);
         return ray;
     }
@@ -31,7 +38,14 @@ public partial class GlobalAbilitySpawner : Node2D
         var props = RayStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
         var ray = new Ray(props);
         ray.Name = name;
-        props.Caster.GetCharacterCenterPoint().AddChild(ray);
+        if (props.Caster.TryGetComponent(out AimComponent aimComponent))
+        {
+            aimComponent.GetCharacterCenterPoint().AddChild(ray);
+        }
+        else
+        {
+            ((Node2D)props.Caster).AddChild(ray);
+        }
     }
 
     public AoeBase SpawnAoe(AoeBaseStats aoeStats)

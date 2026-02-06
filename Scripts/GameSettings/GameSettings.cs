@@ -1,9 +1,10 @@
 ﻿using Godot;
 
-namespace CardBase.Scripts.GameSettings;
-
-public partial class GameSettings : Resource
+[GlobalClass]
+public partial class GameModeSettings : Resource
 {
-    public GameMode GameMode;
-    public WorldSettings WorldSettings;
+    [Export] public int RoundsPerGame { get; set; } = 5;
+    [Export] public int CardsDrawnAtRoundBegin { get; set; } = 2;
+    [Export] public float RoundTimeLimitSeconds { get; set; } = 180f;
+    [Export] public int RoundPointLimit { get; set; } = 10;
 }
