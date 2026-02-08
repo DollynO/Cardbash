@@ -10,7 +10,7 @@ public class ShadowWalk : Ability
     private FastMovement fastMovement;
     private HealthComponent healthComponent;
     
-    public ShadowWalk(PlayerCharacter creator) : base(AbilityIds.ShadowWalkGuid, creator)
+    public ShadowWalk(IEntityComponent creator) : base(AbilityIds.ShadowWalkGuid, creator)
     {
         this.Description = "Get invisible, get revealed if damage taken. Upgrade 1: increase movement speed. Upgrade 2: not revealed on damage taken";
         this.DisplayName = "Stealth walk";
@@ -25,7 +25,10 @@ public class ShadowWalk : Ability
                 healthComponent.DamageTaken += CreatorOnDamageTaken;
             }
 
-            creator.AbilityCasted += CreatorOnAbilityCasted;
+            if (creator.TryGetComponent(out AbilityComponent ac))
+            {
+                ac.AbilityCasted += CreatorOnAbilityCasted;
+            }
         }
 
         stealth = new Stealth(creator, creator)

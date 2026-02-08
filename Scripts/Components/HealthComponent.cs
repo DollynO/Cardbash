@@ -26,7 +26,8 @@ public partial class HealthComponent : Node, IComponent
 
     public override void _Ready()
     {
-        gameManager = GetNode<GameManager>("/root/GameManager");
+        Name = "HealthComponent";
+        gameManager = GetNode<GameManager>("/root/Main/Game");
     }
 
     public void Reset(float newMaxHealth)

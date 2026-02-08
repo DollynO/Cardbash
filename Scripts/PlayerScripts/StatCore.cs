@@ -73,7 +73,7 @@ public sealed class StatBlock
     public float Get(StatType stat) => _current.GetValueOrDefault(stat, 0f);
     public IReadOnlyDictionary<StatType, float> Current => _current;
 
-    public void AddSourceMods(string sourceId, StatType stat, IEnumerable<(StatOp op, float val)> mods)
+    public IEnumerable<KeyValuePair<StatType, float>> AddSourceMods(string sourceId, StatType stat, IEnumerable<(StatOp op, float val)> mods)
     {
         if (!_modsPerSourcePerStat.TryGetValue(sourceId, out var byStat))
         {
@@ -87,6 +87,7 @@ public sealed class StatBlock
         var valueTuples = mods.ToList();
         list.AddRange(valueTuples);
         Recompute(stat);
+        return _current.Where(kvp => kvp.Key == stat);
         if (_linkedStats.TryGetValue(stat, out var linkedStatList))
         {
             foreach (var linkedStat in linkedStatList)
@@ -96,20 +97,22 @@ public sealed class StatBlock
         }
     }
 
-    public void RemoveSource(string sourceId)
+    public IEnumerable<KeyValuePair<StatType, float>> RemoveSource(string sourceId)
     {
         if (!_modsPerSourcePerStat.ContainsKey(sourceId))
         {
-            return;
+            return Enumerable.Empty<KeyValuePair<StatType, float>>();
         }
         
         if (!_modsPerSourcePerStat.Remove(sourceId, out var byStat))
-            return;
+            return Enumerable.Empty<KeyValuePair<StatType, float>>();
 
         foreach (var stat in byStat.Keys)
         {
             Recompute(stat);
         }
+        
+        return _current.Where(kvp => byStat.Keys.Contains(kvp.Key));
     }
 
     private void Recompute(StatType stat)

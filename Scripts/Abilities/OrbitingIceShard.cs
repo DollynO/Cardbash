@@ -25,10 +25,10 @@ public class OrbitingIceShard : Ability
         this.BaseAilmentChance = 1f;
         this.AutoCast = true;
         
-        if (creator != null)
+        if (creator != null && creator.TryGetComponent(out AbilityComponent abilityComponent))
         {
             creator.NewRoundStarted += CreatorOnNewRoundStarted;
-            ring = creator.RingContainer.AddRing(100, 1);
+            ring = abilityComponent.RingContainer.AddRing(100, 1);
         }
     }
 

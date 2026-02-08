@@ -44,6 +44,11 @@ public partial class MoveComponent : Node2D, IComponent
 
     private bool repositionBlock;
 
+    public MoveComponent()
+    {
+        Name = "MoveComponent";
+    }
+    
     public void ProcessMovement(double delta, Vector2 direction)
     {
         if (!Multiplayer.IsServer())

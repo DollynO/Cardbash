@@ -10,7 +10,7 @@ using Array = Godot.Collections.Array;
 
 namespace CardBase.Scripts.PlayerScripts;
 
-public partial class PlayerCharacter : CharacterbodyEntityComponent
+public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffiliation
 {
     [Export] private MultiplayerSynchronizer _inputSync;
     [Export] private AnimatedSprite2D _playerAnimation;
@@ -30,8 +30,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent
 
     private Rect2 _mapBounds;
 
-    [Export] public BuffManagerComponent BuffManagerComponent;
-    [Export] public RingContainer RingContainer;
+    public BuffManagerComponent BuffManagerComponent;
 
     [Signal]
     public delegate void OnKilledEventHandler(long victimId, long killerId);
@@ -55,12 +54,6 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent
     public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
-
-    public event EventHandler<AbilityEventArgs>? AbilityCasted;
-    public void NotifyAbilityCasted(Ability ability)
-    {
-        this.AbilityCasted?.Invoke(this, new AbilityEventArgs(ability));
-    }
     
     public event EventHandler<PlayerEventArgs>? KilledPlayer;
     public void NotifyPlayerKilled(PlayerCharacter victim)
@@ -98,7 +91,6 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent
     {
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
-        defineCharacterStats();
         
         _gameManager = (GameManager)GetNode("/root/Main/Game");
         _playerAnimation.Material = _playerAnimation.Material.Duplicate() as ShaderMaterial;
@@ -123,17 +115,37 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent
             _camera.LimitBottom = (int)_mapBounds.Position.Y + (int)_mapBounds.Size.Y;
         }
 
-        AbilityComponent = new AbilityComponent();
+        BuffManagerComponent = new BuffManagerComponent();
+        AddComponent(BuffManagerComponent);
+        AbilityComponent = new AbilityComponent
+        {
+            Position = _characterCenterPoint.Position
+        };
         AddComponent(AbilityComponent);
-        AddComponent(new MoveComponent());
+        
         HealthComponent = new HealthComponent();
         AddComponent(HealthComponent);
+        
+        var dac = new DamageAbleComponent();
+        AddComponent(dac);
+        
         StatBlock = new StatblockComponent();
         AddComponent(StatBlock);
+        
+        AddComponent(new MoveComponent());
+        
         var aimComponent = new AimComponent(_characterCenterPoint, _lookAtDirectionPoint, _lookAtDirectionCorrection);
         AddComponent(aimComponent);
+       
+        var overhead = new OverHeadUiComponent();
+        AddComponent(overhead);
     }
 
+    public override void _Ready()
+    {
+        defineCharacterStats();
+    }
+    
     private void defineCharacterStats()
     {
         StatBlock.Define(StatType.MovementSpeed, 300, 0, float.PositiveInfinity);

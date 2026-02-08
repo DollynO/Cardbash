@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
@@ -13,9 +14,7 @@ public partial class StatblockComponent : Node2D, IComponent
     {
         this.Parent = component;
     }
-    [Export] private MultiplayerSynchronizer sync;
-
-    [Export]
+    
     public Dictionary ReplicatedCurrent = new();
 
     private readonly StatBlock _stats = new();
@@ -29,53 +28,62 @@ public partial class StatblockComponent : Node2D, IComponent
 
     public override void _Ready()
     {
-        sync.SetMultiplayerAuthority(1);   
+        Name = "StatblockComponent";
     }
 
     public void Define(StatType stat, float baseValue, float? minValue = null, float? maxValue = null)
     {
+        if (!Multiplayer.IsServer()) return;
+        
         _stats.Define(stat, baseValue, minValue, maxValue);
-        pushCurrent();
+        var dict = new Godot.Collections.Dictionary<int, float>()
+        {
+            {(int)stat, baseValue}
+        };
+        Rpc(MethodName.updateStat, dict);
     }
 
     public float GetStat(StatType stat)
     {
+        if (!ReplicatedCurrent.ContainsKey((int)stat)) return 0;
+        
         return (float)ReplicatedCurrent[(int)stat];
     }
     
     public void AddModifiers(StatModifier modifier)
     {
-        RpcId(1, MethodName.addModifierServer, new Dictionary()
-        {
-            {"sourceId", modifier.SourceId},
-            {"stat", (int)modifier.Stat},
-            {"op", (int)modifier.Op},
-            {"value", modifier.Value},
-        });
-    }
+        if (!Multiplayer.IsServer()) return;
 
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void addModifierServer(Dictionary dict)
-    {
-        _stats.AddSourceMods(
-            (string)dict["sourceId"],
-            (StatType)(int)dict["stat"], 
-            new []{((StatOp)(int)dict["op"], (float)dict["value"])});
-        pushCurrent();
+        var affectedKeys = _stats.AddSourceMods(
+            modifier.SourceId,
+            modifier.Stat, 
+            new []{(modifier.Op, modifier.Value)});
+        var dict = new Godot.Collections.Dictionary<int, float>(affectedKeys.ToDictionary(kvp => (int)kvp.Key, kvp => kvp.Value));
+        Rpc(MethodName.updateStat, dict);
     }
     
     public void RemoveModifierSource(string sourceId)
     {
-        _stats.RemoveSource(sourceId);
-        pushCurrent();
+        if (!Multiplayer.IsServer()) return;
+
+        var affectedKeys = _stats.RemoveSource(sourceId);
+        var dict = new Godot.Collections.Dictionary<int, float>(affectedKeys.ToDictionary(kvp => (int)kvp.Key, kvp => kvp.Value));
+        Rpc(MethodName.updateStat, dict);
     }
 
-    private void pushCurrent()
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void updateStat(Godot.Collections.Dictionary<int, float> stats)
     {
-        ReplicatedCurrent.Clear();
-        foreach (var stat in _stats.Current)
+        foreach (var (key, value) in stats)
         {
-            ReplicatedCurrent.Add((int)stat.Key, stat.Value);
+            if (ReplicatedCurrent.ContainsKey(key))
+            {
+                ReplicatedCurrent[key] = value;
+            }
+            else
+            {
+                ReplicatedCurrent.Add(key, value);
+            }
         }
     }
 

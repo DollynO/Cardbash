@@ -36,7 +36,12 @@ public partial class GrapplingHook : Projectile
         base.HitableObjectCollided(hitObject);
         if (hitObject.TryGetComponent(out MoveComponent moveComponent))
         {
-            moveComponent.RequestReposition(this.Stats.Caller.GetCharacterCenterPosition(), 1.0f);
+            var position = ((Node2D)Stats.Caller).GetGlobalPosition();
+            if (Stats.Caller.TryGetComponent(out AimComponent aimComponent))
+            {
+                position = aimComponent.GetCharacterCenterPosition();
+            }
+            moveComponent.RequestReposition(position, 1.0f);
         }
     }
 }

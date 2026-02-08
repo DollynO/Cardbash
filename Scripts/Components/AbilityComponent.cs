@@ -26,19 +26,32 @@ public class NetAbility
     public string GUID { get; set; }
 }
 
-public partial class AbilityComponent : Node, IComponent
+public partial class AbilityComponent : Node2D, IComponent
 {
     public IEntityComponent Parent { get; private set;  }
     public void SetParent(IEntityComponent component)
     {
         Parent = component;
     }
+
+    public RingContainer RingContainer { get; private set; }
     
     public Dictionary<string, NetAbility> networkAbilities = new();
     public List<Ability> Abilities = new();
     private Ability? activeAbility;
     
     public event EventHandler<AbilityEventArgs>? AbilityCasted;
+
+    public override void _EnterTree()
+    {
+        Name = "AbilityComponent";
+        base._EnterTree();
+        RingContainer = new RingContainer
+        {
+            Name = "RingContainer"
+        };
+        AddChild(RingContainer);
+    }
 
     public void NotifyAbilityCasted(Ability ability)
     {

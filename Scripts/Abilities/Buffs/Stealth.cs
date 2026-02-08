@@ -4,7 +4,7 @@ namespace CardBase.Scripts.Abilities.Buffs;
 
 public class Stealth : Buff
 {
-    public Stealth(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public Stealth(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = "Get invisible. Upgrade 1: increase movement speed. Upgrade 2:";
         this.DisplayName = "Stealth";

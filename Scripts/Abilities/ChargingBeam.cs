@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Xml;
+using CardBase.Scripts;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.TriggerStrategy;
-using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
@@ -15,7 +15,7 @@ public class ChargingBeam : Ability
     private ShockDebuff shockDebuff;
     private float aoeBaseDamage = 20;
     
-    public ChargingBeam(PlayerCharacter creator) : base(AbilityIds.ChargingBeamGuid, creator)
+    public ChargingBeam(IEntityComponent creator) : base(AbilityIds.ChargingBeamGuid, creator)
     {
         TriggerStrategy = new PressAndReleaseStrategy();
         this.DisplayName = "Charging Beam";
@@ -109,20 +109,24 @@ public class ChargingBeam : Ability
         };
         dict.Add(BaseType, damage);
         
-        foreach (var playerCharacter in obj)
+        foreach (var entity in obj)
         {
-            
-            if (playerCharacter.TeamId != Caller.TeamId)
+            if (Caller is not ITeamAffiliation callerTeam || entity is not ITeamAffiliation targetTeam)
+            {
+                continue;
+            }
+
+            if (targetTeam.TeamId != callerTeam.TeamId)
             {
                 var hitContext = new HitContext
                 {
                     Source = Caller,
-                    Target = playerCharacter,
+                    Target = entity,
                     AbilityGuid = GUID,
                     Damages = dict
                 };
-                var hit = new Hit(aoeBase,  hitContext);
-                if (playerCharacter.TryGetComponent(out DamageAbleComponent dac))
+                var hit = new Hit(aoeBase, hitContext);
+                if (entity.TryGetComponent(out DamageAbleComponent dac))
                 {
                     dac.ReceiveHit(hit);
                 }

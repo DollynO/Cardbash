@@ -18,7 +18,7 @@ public class FastMovement : Buff
     }
     private float _movementIncrease;
     private StatModifier mod;
-    public FastMovement(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public FastMovement(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         mod = new StatModifier(System.Guid.NewGuid().ToString("N"), StatType.MovementSpeed, StatOp.PercentAdd,
             MovementIncrease);

@@ -35,6 +35,7 @@ public sealed class RoundResult
     public RoundResult()
     {
         winnerTeams = new List<Team>();
+        WinningTeams = winnerTeams;
     }
     
     public static RoundResult TeamWin(Team winnerTeam)

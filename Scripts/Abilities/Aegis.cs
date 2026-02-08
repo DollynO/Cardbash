@@ -10,7 +10,7 @@ public class Aegis : Ability, IHitInterceptor
     private Ring ring;
     private AoeBase detectRing;
     private float ringRadius = 50;
-    private List<PlayerCharacter> charactersInRange =  new ();
+    private List<IEntityComponent> charactersInRange =  new ();
     private bool isCharInRange => charactersInRange.Count > 0;
 
     private Color emptyColor = new (0f, 1f, 0f);
@@ -33,10 +33,12 @@ public class Aegis : Ability, IHitInterceptor
         BaseAilmentChance = 0;
         AutoCast =  true;
         
-        if (creator != null)
+        if (creator != null 
+            && creator.TryGetComponent(out AbilityComponent abilityComponent)
+            && creator.TryGetComponent(out DamageAbleComponent dac))
         {
-            ring = creator.RingContainer.AddRing(ringRadius, 0.5f, 3);
-            creator._HitInterceptors.Add(this);
+            ring = abilityComponent.RingContainer.AddRing(ringRadius, 0.5f, 3);
+            dac._HitInterceptors.Add(this);
             buff = new AegisDamageIncreaseBuff(creator, creator);
         }
     }
@@ -63,7 +65,7 @@ public class Aegis : Ability, IHitInterceptor
         ring.AddTextureNode(shieldPath, spriteScale );
     }
 
-    private void OnPlayerExit(PlayerCharacter arg1, AoeBase arg2)
+    private void OnPlayerExit(IEntityComponent arg1, AoeBase arg2)
     {
         if (charactersInRange.Contains(arg1))
         {
@@ -76,7 +78,7 @@ public class Aegis : Ability, IHitInterceptor
         }
     }
 
-    private void OnPlayerEnter(PlayerCharacter arg1, AoeBase arg2)
+    private void OnPlayerEnter(IEntityComponent arg1, AoeBase arg2)
     {
         if (!charactersInRange.Contains(arg1))
         {
@@ -89,7 +91,7 @@ public class Aegis : Ability, IHitInterceptor
         }
     }
 
-    private void OnActivation(List<PlayerCharacter> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
     {
         charactersInRange = arg1;
         
@@ -115,7 +117,11 @@ public class Aegis : Ability, IHitInterceptor
         if (hit.Source is Projectile projectile && stackCount > 0)
         {
             ring.RemoveNodeAtSlot(stackCount - 1);
-            Caller.BuffManagerComponent.ApplyBuff(buff);
+            if (buff != null && Caller.TryGetComponent(out BuffManagerComponent buffManagerComponent))
+            {
+                buffManagerComponent.ApplyBuff(buff);
+            }
+
             return true;
         }
 

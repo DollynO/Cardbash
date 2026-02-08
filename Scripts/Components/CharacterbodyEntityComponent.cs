@@ -20,6 +20,7 @@ public partial class CharacterbodyEntityComponent : CharacterBody2D, IEntityComp
 
     public void AddComponent(IComponent component)
     {
+        component.SetParent(this);
         components.Add(component.GetType(), component);
         if (component is Node node)
         {

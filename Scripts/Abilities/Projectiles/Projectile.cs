@@ -1,18 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using CardBase.Scripts;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
-public partial class Projectile : CharacterbodyEntityComponent
+public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 {
     public const float MAX_SPEED = 1000;
     public long CreatorId { get; set; }
     public string AbilityGuid { get; set; }
 
     public ProjectileStats Stats;
+    public int TeamId => Stats?.Caller is ITeamAffiliation team ? team.TeamId : -1;
 
     [Export] private Timer timer;
     [Export] private AnimatedSprite2D sprite;
@@ -126,17 +128,12 @@ public partial class Projectile : CharacterbodyEntityComponent
     {
         if (body is IEntityComponent ec)
         {
-            IEntityComponent obj = null;
-            var teamId = Stats.Caller.TeamId;
-            switch (ec)
+            if (Stats.Caller is not ITeamAffiliation callerTeam || ec is not ITeamAffiliation targetTeam)
             {
-                case PlayerCharacter player when player.TeamId == teamId:
-                case Projectile projectile when projectile.Stats.Caller.TeamId == teamId:
-                    obj = ec;
-                    break;
+                return;
             }
-            
-            if (obj != null && !entityInPullArea.Contains(ec))
+
+            if (targetTeam.TeamId == callerTeam.TeamId && !entityInPullArea.Contains(ec))
             {
                 entityInPullArea.Add(ec);
             }

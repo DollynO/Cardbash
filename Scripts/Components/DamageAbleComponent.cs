@@ -8,6 +8,11 @@ public partial class DamageAbleComponent : Component
     private HealthComponent _health;
     public List<IHitInterceptor> _HitInterceptors = new();
 
+    public DamageAbleComponent()
+    {
+        Name = "DamageAbleComponent";
+    }
+    
     public bool ReceiveHit(in Hit hit)
     {
         foreach (var interceptor in _HitInterceptors)

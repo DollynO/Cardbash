@@ -5,12 +5,17 @@ using Godot;
 namespace CardBase.Scripts.PlayerScripts;
 
 [GlobalClass]
-public partial class OverheadDisplayComponent : Node2D
+public partial class OverheadDisplayComponent : Node2D, IComponent
 {
+    public IEntityComponent Parent { get; private set; }
+    public void SetParent(IEntityComponent component)
+    {
+        Parent = component;
+    }
+    
     //[Export] private HBoxContainer _barContainer;
-    [Export] private ProgressBar _lifeBar;
-    [Export] private ProgressBar _stunBar;
-    [Export] private PlayerCharacter  _player;
+    private OverheadUiBar _lifeBar;
+    private OverheadUiBar _stunBar;
 
     private IReadOnlyList<Node> _customContianer;
 
@@ -22,10 +27,20 @@ public partial class OverheadDisplayComponent : Node2D
     public override void _Ready()
     {
         SetMultiplayerAuthority(1);
-        if (_player.TryGetComponent(out moveController) || _player.TryGetComponent(out healtController))
+        if (!Parent.TryGetComponent(out moveController) || !Parent.TryGetComponent(out healtController))
         {
             throw new NullReferenceException();
         }
+
+        
+        SetPosition( new Vector2(-18, -63));
+        _lifeBar = new OverheadUiBar(Color.FromHtml("dc5845"), Color.FromHtml("99e299"));
+        AddChild(_lifeBar);
+        _lifeBar.Position = new Vector2(0, 0);
+        _stunBar = new OverheadUiBar(Color.FromHtml("7c7c7c"), Color.FromHtml("c1c1c1"));
+        AddChild(_stunBar);
+        _stunBar.Position = new  Vector2(0, 20);
+
     }
 
     public override void _Process(double delta)

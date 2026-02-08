@@ -10,7 +10,7 @@ public partial class RingContainer : Node2D
 
     public override void _Ready()
     {
-        
+        Name = "RingContainer";
     }
 
     public Ring AddRing(float radius, float speed, int stackCount = 3)

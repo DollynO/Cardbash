@@ -16,7 +16,10 @@ public partial class AimComponent : Node2D, IComponent
     
     public AimComponent(Node2D centerPoint, Node2D lookAtDirection, Vector2 lookAtCorrection)
     {
-        
+        _characterCenterPoint = centerPoint;
+        _lookAtDirectionPoint = lookAtDirection;
+        _lookAtDirectionCorrection = lookAtCorrection;
+        Name = "AimComponent";
     }
     
     public Vector2 GetLookAtDirection()

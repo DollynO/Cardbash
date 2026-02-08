@@ -16,16 +16,15 @@ public partial class BuffManagerComponent : Node, IComponent
         this.Parent = component;
     }
     private List<Buff> activeBuffs = new();
-    private System.Collections.Generic.Dictionary<Buff, BuffIconTemplate> buffIcons = new();
+    private Dictionary<Buff, BuffIconTemplate> buffIcons = new();
     private BuffRow2D buffRow;
     private MultiplayerSpawner spawner;
     private bool processRunning;
-    public PlayerCharacter Owner;
 
     public override void _EnterTree()
     {
         base._EnterTree();
-        Owner = this.GetParent<PlayerCharacter>();
+        Name = "BuffManagerComponent";
     }
 
     public override void _Ready()
@@ -86,7 +85,7 @@ public partial class BuffManagerComponent : Node, IComponent
         
         if (existing == null)
         {
-            buff.Target ??= Owner;
+            buff.Target ??= Parent;
             activeBuffs.Add(buff);
             var dict = new Godot.Collections.Dictionary<string, Variant>
             {
