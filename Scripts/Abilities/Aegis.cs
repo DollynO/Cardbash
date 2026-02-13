@@ -59,7 +59,7 @@ public class Aegis : Ability, IHitInterceptor
                 IsStationary = false,
                 Owner = Caller,
             };
-            detectRing = globalAbilitySpawner.SpawnAoe(stats);
+            detectRing = GlobalAbilitySpawner.SpawnAoe(stats);
         }
         
         ring.AddTextureNode(shieldPath, spriteScale );

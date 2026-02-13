@@ -31,7 +31,7 @@ public class ConsecratedSlash : Ability
         for (var i = 0; i < 4; i++)
         {
             stats.AngleOffset = 0 + i * 90;
-            globalAbilitySpawner.SpawnAoe(stats);
+            GlobalAbilitySpawner.SpawnAoe(stats);
         }
     }
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)

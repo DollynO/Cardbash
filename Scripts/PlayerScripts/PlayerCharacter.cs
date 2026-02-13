@@ -86,6 +86,8 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     }
 
     public event EventHandler? NewRoundStarted;
+
+    private bool _statsInitialized;
     
     public override void _EnterTree()
     {
@@ -141,8 +143,28 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         AddComponent(overhead);
     }
 
-    public override void _Ready()
+    public override async void _Ready()
     {
+        if (!Multiplayer.IsServer() && PlayerId == Multiplayer.GetUniqueId())
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            _gameManager.RpcId(1, GameManager.MethodName.ClientReady, Multiplayer.GetUniqueId());
+        }
+        else
+        {
+            _gameManager.RpcId(1, GameManager.MethodName.ClientReady, Multiplayer.GetUniqueId());
+        }
+    }
+
+    public void InitializeServerStats()
+    {
+        if (!Multiplayer.IsServer() || _statsInitialized)
+        {
+            return;
+        }
+
+        _statsInitialized = true;
         defineCharacterStats();
     }
     

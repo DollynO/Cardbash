@@ -10,7 +10,6 @@ namespace CardBase.Scripts.Abilities;
 public class ChargingBeam : Ability
 {
     private Ray _ray;
-    private GlobalAbilitySpawner globalAbilitySpawner;
     private float deltaSum = 0;
     private ShockDebuff shockDebuff;
     private float aoeBaseDamage = 20;
@@ -39,7 +38,7 @@ public class ChargingBeam : Ability
             PierceCount = 1,
         };
         
-        _ray = globalAbilitySpawner.SpawnRay(rayStats);
+        _ray = GlobalAbilitySpawner.SpawnRay(rayStats);
     }
 
     private void onHit(IEntityComponent entityComponent, float delta)
@@ -91,7 +90,7 @@ public class ChargingBeam : Ability
                         OnTick = null,
                         Owner = Caller,
                     };
-                    globalAbilitySpawner.SpawnAoe(aoeStats);
+                    GlobalAbilitySpawner.SpawnAoe(aoeStats);
                 }
             }
         

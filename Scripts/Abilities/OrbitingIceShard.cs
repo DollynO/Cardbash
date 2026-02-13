@@ -64,7 +64,7 @@ public class OrbitingIceShard : Ability
             projectile_stats.StartPosition = ((Node2D)Caller).GetGlobalPosition();
         }
         projectile_stats.Caller = Caller;
-        var projectile = globalAbilitySpawner.SpawnProjectile(projectile_stats);
+        var projectile = GlobalAbilitySpawner.SpawnProjectile(projectile_stats);
         
         projectile.OnDestroyed += ProjectileOnOnDestroyed;
         ring.AddNode(projectile, true);

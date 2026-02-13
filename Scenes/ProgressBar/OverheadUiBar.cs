@@ -1,29 +1,32 @@
 using Godot;
 using System;
+using System.Drawing;
+using Color = Godot.Color;
 
 public partial class OverheadUiBar : Node2D
 {
-	[Export] private ProgressBar bar = new ();
+	private ProgressBar Bar;
 
 	public float MaxValue
 	{
-		get => (float)bar.MaxValue;
-		set => bar.MaxValue = value;
+		get => (float)Bar.MaxValue;
+		set => Bar.MaxValue = value;
 	}
 
 	public float Value
 	{
-		get => (float)bar.Value;
-		set =>  bar.Value = value;
+		get => (float)Bar.Value;
+		set =>  Bar.Value = value;
 	}
-	
-	private Color backgroundColor;
-	private Color foregroundColor;
 
 	public OverheadUiBar(Color backgroundColor, Color foregroundColor)
 	{
-		this.backgroundColor = backgroundColor;
-		this.foregroundColor = foregroundColor;
+		Bar = new ProgressBar();
+		Bar.SetAnchorsPreset(Control.LayoutPreset.Center);
+		Bar.Size = new Vector2(64, 4);
+		Bar.Position = new Vector2(-32, -2);
+		Bar.ShowPercentage = false;
+		SetFillColor(backgroundColor, foregroundColor);
 	}
 	
 	public OverheadUiBar() {}
@@ -31,7 +34,7 @@ public partial class OverheadUiBar : Node2D
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		SetFillColor(backgroundColor, foregroundColor);
+		AddChild(Bar);
 		Value = 0;
 		MaxValue = 100;
 	}
@@ -45,11 +48,11 @@ public partial class OverheadUiBar : Node2D
 	{
 		var bg = new StyleBoxFlat();
 		bg.BgColor = outerColor;
-		bar.AddThemeStyleboxOverride("background", bg);
+		Bar.AddThemeStyleboxOverride("background", bg);
 
 		// Fill
 		var fill = new StyleBoxFlat();
 		fill.BgColor = innerColor;
-		bar.AddThemeStyleboxOverride("fill", fill);
+		Bar.AddThemeStyleboxOverride("fill", fill);
 	}
 }

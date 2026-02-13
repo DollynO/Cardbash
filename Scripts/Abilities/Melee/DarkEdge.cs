@@ -35,7 +35,7 @@ public class DarkEdge : Ability
             Owner = Caller,
             OnActivation = OnActivation,
         };
-        globalAbilitySpawner.SpawnAoe(stats);
+        GlobalAbilitySpawner.SpawnAoe(stats);
 
     }
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)

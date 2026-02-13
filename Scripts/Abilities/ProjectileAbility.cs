@@ -46,7 +46,7 @@ public abstract class ProjectileAbility : Ability
         }
 
         projectile_stats.Caller = Caller;
-        var projectile = globalAbilitySpawner.SpawnProjectile(projectile_stats);
+        var projectile = GlobalAbilitySpawner.SpawnProjectile(projectile_stats);
         
         projectile.OnCollision += _onProjectileCollided;
         projectile.OnPiercing += _onProjectilePierced;

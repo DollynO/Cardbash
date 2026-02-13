@@ -32,7 +32,7 @@ public class ShatterStrike : Ability
             AbilityGUID = GUID,
             Owner = Caller
         };
-        globalAbilitySpawner.SpawnAoe(aoeStats);
+        GlobalAbilitySpawner.SpawnAoe(aoeStats);
     }
 
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)

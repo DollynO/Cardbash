@@ -80,7 +80,10 @@ public abstract class Ability : BaseCardableObject
 
     protected bool AutoCast = false;
     
-    protected GlobalAbilitySpawner globalAbilitySpawner;
+    protected GlobalAbilitySpawner GlobalAbilitySpawner => globalAbilitySpawner ??= ((Node2D)Caller).GetTree().Root
+        .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
+    
+    private GlobalAbilitySpawner globalAbilitySpawner;
     
     protected Ability(string guid, IEntityComponent creator) : base(guid)
     {
@@ -162,9 +165,6 @@ public abstract class Ability : BaseCardableObject
     
     public virtual bool Activate()
     {
-        globalAbilitySpawner ??= ((Node2D)Caller).GetTree().Root
-            .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
-            
         if (CurrentStack == 0)
         {
             return false;

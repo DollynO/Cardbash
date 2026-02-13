@@ -11,7 +11,7 @@ public partial class GameFlowController : Node
     private IGameMode _mode;
     private GameContext _ctx;
 
-    private MatchPhase _phase;
+    private MatchPhase _phase = MatchPhase.None;
     private int _roundIndex;
     private double _phaseTime;
 

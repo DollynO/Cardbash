@@ -27,7 +27,7 @@ public class Plagueburst : Ability
 
     public override void InternalUse()
     {
-        globalAbilitySpawner.SpawnAoe(new AoeBaseStats()
+        GlobalAbilitySpawner.SpawnAoe(new AoeBaseStats()
         {
             ActivationTime = 3f,
             Radius = 100,

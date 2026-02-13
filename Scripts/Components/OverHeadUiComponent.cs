@@ -4,6 +4,7 @@ using Godot;
 
 namespace CardBase.Scripts;
 
+[GlobalClass]
 public partial class OverHeadUiComponent : Node2D, IComponent
 {
     public IEntityComponent Parent { get; private set; }
@@ -37,12 +38,16 @@ public partial class OverHeadUiComponent : Node2D, IComponent
         }
 
         
-        SetPosition( new Vector2(-18, -63));
+        SetPosition( new Vector2(0, -63));
+        
         _lifeBar = new OverheadUiBar(Color.FromHtml("dc5845"), Color.FromHtml("99e299"));
         AddChild(_lifeBar);
+        _lifeBar.Name = "LifeBar";
         _lifeBar.Position = new Vector2(0, 0);
+        
         _stunBar = new OverheadUiBar(Color.FromHtml("7c7c7c"), Color.FromHtml("c1c1c1"));
         AddChild(_stunBar);
+        _stunBar.Name = "StunBar";
         _stunBar.Position = new  Vector2(0, 20);
 
     }

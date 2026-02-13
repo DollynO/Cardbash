@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 
 public enum ModeId { LastTeamStanding, CaptureTheFlag, Herrschaft }
-public enum MatchPhase { RoundSetup, CardDraw, CardApply, Combat, RoundEnd, GameEnd }
+public enum MatchPhase { None, RoundSetup, CardDraw, CardApply, Combat, RoundEnd, GameEnd }
 
 public interface IGameMode
 {

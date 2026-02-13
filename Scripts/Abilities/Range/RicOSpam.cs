@@ -88,7 +88,7 @@ public class RicOSpam: ProjectileAbility
                 var offset = rnd.NextInt64(-15, 15);
                 stats.Direction = projectile.Stats.Direction.Rotated(Mathf.DegToRad(offset));
                 stats.Caller = Caller;
-                var add_proj = globalAbilitySpawner.SpawnProjectile(stats);
+                var add_proj = GlobalAbilitySpawner.SpawnProjectile(stats);
                 add_proj.OnCollision += _onProjectileCollided;
                 add_proj.OnPiercing += _onProjectilePierced;
                 add_proj.OnDestroyed += _onProjectileDestroyed;

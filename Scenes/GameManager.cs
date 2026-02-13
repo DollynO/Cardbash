@@ -15,6 +15,8 @@ public partial class GameManager : Node2D
 {
 	private int _playersInGame = 0;
 	private int _playersReady = 0;
+	private readonly HashSet<long> _readyPeers = new();
+	private bool _playersInitialized;
 
 	private NetworkManager _network;
 	[Export] private PackedScene _playerCharScene;
@@ -100,6 +102,18 @@ public partial class GameManager : Node2D
 		}
 	}
 
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	private void ClientReady(long peerId)
+	{
+		if (!Multiplayer.IsServer())
+		{
+			return;
+		}
+
+		_readyPeers.Add(peerId);
+		TryInitializePlayers();
+	}
+
 	private void _spawn_players()
 	{
 		foreach (var player in _network.CurrentPlayers)
@@ -107,7 +121,28 @@ public partial class GameManager : Node2D
 			_spawn_player_character(player);
 		}
 
-		
+		//_readyPeers.Add(Multiplayer.GetUniqueId());
+		//TryInitializePlayers();
+	}
+
+	private void TryInitializePlayers()
+	{
+		if (_playersInitialized)
+		{
+			return;
+		}
+
+		var expected = Multiplayer.GetPeers().Length + 1;
+		if (_readyPeers.Count < expected)
+		{
+			return;
+		}
+
+		_playersInitialized = true;
+		foreach (var player in _currentCharacters.Values)
+		{
+			player.InitializeServerStats();
+		}
 		_flowController.Start();
 	}
 

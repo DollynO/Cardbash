@@ -7,6 +7,8 @@ public partial class Ring : Node2D
 {
     public float Radius { get; set; } = 50.0f;
     public float RotationSpeed { get; set; } = 1.0f;
+    
+    public int Index { get; set; } = 0;
 
     public int MaxStacks
     {
@@ -59,7 +61,7 @@ public partial class Ring : Node2D
 
     public void AddTextureNode(string iconPath, Vector2 scale)
     {
-        var node = (globalAbilitySpawner ??= this.GetTree().Root
+        var node = (globalAbilitySpawner ??= GetTree().Root
             .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner")).SpawnSprite(new SpriteStats()
         {
             Parent = this, Scale = scale, TexturePath = iconPath
