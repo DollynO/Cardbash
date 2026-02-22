@@ -9,11 +9,19 @@ public class SnowballSlow : Buff
     private StatModifier modifier;
     public SnowballSlow(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
+        this.Description = "SnowballSlow";
+        this.DisplayName = $"Slows based on snowball size. {slow}";
+        this.IconPath = "res://Sprites/SkillIcons/Snow/2_Frost_Waves.png";
+        this.Duration = 10;
+        this.Guid = "7191365D-FB73-49A3-99F4-17493430DDB4";
     }
 
     public void SetSnowballScale(Vector2 scale)
     {
-        slow = 0.8f * (scale.Length() / (scale.Length() + 1));
+        slow = 0.7f / (0.9f+Mathf.Pow((float)Mathf.E,-0.5f*(scale.X-6)));
+        return;
+        var length = scale.X / 2;
+        slow = 0.8f * (length / (length + 2));
     }
 
     protected override void InternalOnActivate()
@@ -22,7 +30,7 @@ public class SnowballSlow : Buff
         if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
         {
             modifier = new StatModifier(System.Guid.NewGuid().ToString(), StatType.MovementSpeed, StatOp.PercentMult,
-                1 - slow);
+                - slow);
             statBlock.AddModifiers(modifier);
         }
     }

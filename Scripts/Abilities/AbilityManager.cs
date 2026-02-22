@@ -16,6 +16,7 @@ public static class AbilityManager
         { AbilityIds.CorruptedBoltGuid, creator => new CorruptedBolt(creator) },
         { AbilityIds.OrbitingIceShard, creator => new OrbitingIceShard(creator) },
         { AbilityIds.RicOSpamGuid, creator => new RicOSpam(creator) },
+        { AbilityIds.SnowballGuid, creator => new Snowball(creator) },
 
         // melee
         { AbilityIds.FireSlashGuid, creator => new FireSlash(creator) },

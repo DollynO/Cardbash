@@ -8,7 +8,7 @@ using Godot;
 
 namespace CardBase.Scripts;
 
-public partial class BuffManagerComponent : Node, IComponent
+public partial class BuffManagerComponent : Node2D, IComponent
 {
     public IEntityComponent Parent { get; private set; }
     public void SetParent(IEntityComponent component)
@@ -29,6 +29,7 @@ public partial class BuffManagerComponent : Node, IComponent
 
     public override void _Ready()
     {
+        Position = new Vector2(0, 0);
         if (!Multiplayer.IsServer())
         {
             SetProcess(false);

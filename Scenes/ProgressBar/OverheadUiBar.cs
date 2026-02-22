@@ -23,9 +23,10 @@ public partial class OverheadUiBar : Node2D
 	{
 		Bar = new ProgressBar();
 		Bar.SetAnchorsPreset(Control.LayoutPreset.Center);
-		Bar.Size = new Vector2(64, 4);
-		Bar.Position = new Vector2(-32, -2);
 		Bar.ShowPercentage = false;
+		Bar.Size = new Vector2(64, 4);
+		Bar.CustomMinimumSize = Bar.Size;
+		Bar.Position = new Vector2(-32, -2);
 		SetFillColor(backgroundColor, foregroundColor);
 	}
 	

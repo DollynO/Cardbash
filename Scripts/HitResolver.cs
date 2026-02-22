@@ -17,61 +17,61 @@ public class HitResolver
             return;
         }
             
-            var hitMods = new List<IHitModifier>();
-            if (ctx.Source.TryGetComponent<AbilityComponent>(out var component))
+        var hitMods = new List<IHitModifier>();
+        if (ctx.Source.TryGetComponent<AbilityComponent>(out var component))
+        {
+            var abilityHitMods = component.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid)?.GetHitModifiers();
+            if (abilityHitMods != null)
             {
-                var abilityHitMods = component.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid)?.GetHitModifiers();
-                if (abilityHitMods != null)
-                {
-                    hitMods.AddRange(abilityHitMods);
-                }
+                hitMods.AddRange(abilityHitMods);
             }
+        }
 
+        foreach (var mod in hitMods)
+        {
+            mod.ApplyBefore(ctx);
+        }
+            
+        var damageMods = new List<DamageModifier>();
+        if (ctx.Source.TryGetComponent<StatblockComponent>(out var srcStatblock))
+        {
+            damageMods.AddRange(srcStatblock.DamageModifier);
+        }
+        DamageCalculator.CalculateTotalDamage(ctx.Damages, damageMods);
+
+        ctx.Target.TryGetComponent<StatblockComponent>(out var targetStatblock);
+        // apply mitigation
+        foreach (var dmg in ctx.Damages)
+        {
+            var dr = 0f;
+                
+            if (targetStatblock != null)
+            {
+                var defenseStat = dmg.Key switch
+                {
+                    DamageType.Physical or DamageType.Poison => targetStatblock.GetStat(StatType.Armor),
+                    DamageType.Darkness => 0,
+                    DamageType.Holy => 0,
+                    DamageType.Fire => targetStatblock.GetStat(StatType.EnergyShield),
+                    DamageType.Ice => targetStatblock.GetStat(StatType.EnergyShield),
+                    DamageType.Lightning => targetStatblock.GetStat(StatType.EnergyShield),
+                    _ => 0,
+                };
+                dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
+            } 
+
+            ctx.Damages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
+            targetHealthComponent.ApplyDamage(ctx.Damages[dmg.Key], ctx.Source);
+            ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChance, ctx.Source, ctx.Target);
+        }
+            
+        if (!targetHealthComponent.IsDead)
+        {
             foreach (var mod in hitMods)
             {
-                mod.ApplyBefore(ctx);
-            }
-            
-            var damageMods = new List<DamageModifier>();
-            if (ctx.Source.TryGetComponent<StatblockComponent>(out var srcStatblock))
-            {
-                damageMods.AddRange(srcStatblock.DamageModifier);
-            }
-            DamageCalculator.CalculateTotalDamage(ctx.Damages, damageMods);
-
-            ctx.Target.TryGetComponent<StatblockComponent>(out var targetStatblock);
-            // apply mitigation
-            foreach (var dmg in ctx.Damages)
-            {
-                var dr = 0f;
-                
-                if (targetStatblock != null)
-                {
-                    var defenseStat = dmg.Key switch
-                    {
-                        DamageType.Physical or DamageType.Poison => targetStatblock.GetStat(StatType.Armor),
-                        DamageType.Darkness => 0,
-                        DamageType.Holy => 0,
-                        DamageType.Fire => targetStatblock.GetStat(StatType.EnergyShield),
-                        DamageType.Ice => targetStatblock.GetStat(StatType.EnergyShield),
-                        DamageType.Lightning => targetStatblock.GetStat(StatType.EnergyShield),
-                        _ => 0,
-                    };
-                    dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
-                } 
-
-                ctx.Damages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
-                targetHealthComponent.ApplyDamage(ctx.Damages[dmg.Key], ctx.Source);
-                ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChance, ctx.Source, ctx.Target);
-            }
-            
-            if (!targetHealthComponent.IsDead)
-            {
-                foreach (var mod in hitMods)
-                {
-                    mod.ApplyAfter(ctx);
-                }   
-            }
+                mod.ApplyAfter(ctx);
+            }   
+        }
     }
     
     private static void ApplyDamageTypeAilment(DamageType type, float ailmentChance, IEntityComponent target, IEntityComponent attacker)

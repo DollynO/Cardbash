@@ -6,7 +6,7 @@ using Godot;
 
 namespace CardBase.Scripts;
 
-public partial class HealthComponent : Node, IComponent
+public partial class HealthComponent : Node2D, IComponent
 {
     public IEntityComponent Parent { get; private set; }
     public void SetParent(IEntityComponent component)

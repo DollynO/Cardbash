@@ -47,7 +47,7 @@ public class CorruptedBolt : ProjectileAbility
             Direction = direction,
             Speed = 300,
             TimeToBeALive = 4,
-            AnimationResourcePath = "res://Sprites/Projectiles/fireBallProjectile.png",
+            AnimationResourcePath = "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
             OnHit = applyCorruption,
         };
     }

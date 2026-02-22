@@ -161,6 +161,7 @@ layout_mode = 2
 current_tab = 0
 
 [node name="Abilities" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer"]
+custom_minimum_size = Vector2(0, 800)
 layout_mode = 2
 size_flags_vertical = 3
 metadata/_tab_index = 0
@@ -175,6 +176,7 @@ columns = 5
 
 [node name="Items" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer"]
 visible = false
+custom_minimum_size = Vector2(0, 800)
 layout_mode = 2
 size_flags_vertical = 3
 metadata/_tab_index = 1

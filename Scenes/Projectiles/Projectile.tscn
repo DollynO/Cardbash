@@ -1,13 +1,13 @@
 [gd_scene load_steps=7 format=3 uid="uid://cyhc4x42utdgo"]
 
 [ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/Projectile.cs" id="1_7wxbw"]
-[ext_resource type="SpriteFrames" uid="uid://bwv0qdein7c2d" path="res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres" id="2_ib2se"]
+[ext_resource type="SpriteFrames" uid="uid://c3w6cvd7tro47" path="res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres" id="2_l0y5j"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qxcdi"]
-radius = 11.0
+radius = 16.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]
-radius = 11.0
+radius = 16.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_07f7a"]
 radius = 0.01
@@ -20,23 +20,22 @@ properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 2
 
-[node name="Node2D" type="CharacterBody2D" node_paths=PackedStringArray("timer", "sprite", "collisionShape", "pullArea", "detectArea", "pullAreaShape")]
+[node name="Node2D" type="CharacterBody2D" node_paths=PackedStringArray("timer", "collisionShape", "pullArea", "detectArea", "pullAreaShape")]
 collision_layer = 8
 script = ExtResource("1_7wxbw")
 timer = NodePath("LiveTimeTimer")
-sprite = NodePath("MovementShape/Sprite2D")
 collisionShape = NodePath("DetectArea/EffectShape")
 pullArea = NodePath("PullArea")
 detectArea = NodePath("DetectArea")
 pullAreaShape = NodePath("PullArea/PullAreaShape")
 
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+visible = false
+texture_filter = 1
+sprite_frames = ExtResource("2_l0y5j")
+
 [node name="MovementShape" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_qxcdi")
-
-[node name="Sprite2D" type="AnimatedSprite2D" parent="MovementShape"]
-scale = Vector2(0.6, 0.6)
-sprite_frames = ExtResource("2_ib2se")
-frame_progress = 0.751687
 
 [node name="DetectArea" type="Area2D" parent="."]
 collision_layer = 0

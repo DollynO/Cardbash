@@ -17,7 +17,6 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     public int TeamId => Stats?.Caller is ITeamAffiliation team ? team.TeamId : -1;
 
     [Export] private Timer timer;
-    [Export] private AnimatedSprite2D sprite;
     [Export] private CollisionShape2D collisionShape;
     [Export] private Area2D pullArea;
     [Export] private Area2D detectArea;
@@ -61,6 +60,10 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         }
 
         Scale = Stats.Scale;
+        foreach (var behavior in Stats.Behaviors)
+        {
+            AddBehavior(behavior);
+        }
     }
 
     public override void _Draw()
@@ -102,18 +105,26 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             }
         }
         
+        var vs = new VisualComponent();
         if (!string.IsNullOrEmpty(Stats.AnimationResourcePath))
         {
-            sprite.SpriteFrames = IconLoader.Instance.LoadAnimation(Stats.AnimationResourcePath);
+            vs.SetAnimation(Stats.AnimationResourcePath, Stats.AnimationOffset);
         }
+        AddComponent(vs);
 
-        sprite.Play();
         GlobalPosition = Stats.StartPosition;
         Rotation = Stats.Direction.Angle();
 
-        var hc = new HealthComponent();
-        hc.Reset(Stats.Life);
-        AddComponent(hc);
+        if (Stats.Life > 0)
+        {
+            var hc = new HealthComponent();
+            hc.Reset(Stats.Life);
+            AddComponent(hc);
+            var oui = new OverHeadUiComponent();
+            AddComponent(oui);
+            var dac = new DamageAbleComponent();
+            AddComponent(dac);
+        }
     }
 
     private void OnBodyEntered(Node2D body)
@@ -279,32 +290,6 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         this.GlobalPosition = (Vector2)dict["global_position"];
         this.GlobalRotation = (float)dict["global_rotation"];
     }
-
-    private System.Collections.Generic.Dictionary<Type, IComponent> components = new();
-    public bool TryGetComponent<T>(out T component) where T : IComponent
-    {
-        if (components.TryGetValue(typeof(T), out IComponent obj))
-        {
-            component = (T)obj;
-            return true;
-        }
-
-        component = default;
-        return false;
-    }
-
-    public void AddComponent(IComponent component)
-    {
-        components.Add(component.GetType(), component);
-    }
-
-    public void RemoveComponent(Type type)
-    {
-        if (type.IsSubclassOf(typeof(IComponent)))
-        {
-            components.Remove(type);
-        }
-    }
 }
 
 public class ProjectileStats
@@ -312,6 +297,7 @@ public class ProjectileStats
     public string CastGuid = Guid.NewGuid().ToString();
     public Node2D? Parent;
     public string AnimationResourcePath;
+    public Vector2 AnimationOffset = Vector2.Zero;
     public float Speed = 0;
     public Action<IEntityComponent, Projectile> OnHit;
     public Vector2 StartPosition = new (-10000, -10000);
@@ -329,7 +315,8 @@ public class ProjectileStats
     public float Distance = -1;
     public uint CollisionMask;
     public float AngleOffset = 0;
-    public float Life = 10;
+    public float Life = -1;
+    public List<IProjectileBehavior> Behaviors = new();
 
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -338,6 +325,7 @@ public class ProjectileStats
             { nameof(CastGuid),  this.CastGuid},
             { nameof(Parent), Parent?.GetPath() ?? string.Empty },
             { nameof(AnimationResourcePath), AnimationResourcePath},
+            {nameof(AnimationOffset), AnimationOffset},
             { nameof(Speed), Speed },
             { nameof(StartPosition), StartPosition },
             { nameof(Direction), Direction },
@@ -381,6 +369,7 @@ public class ProjectileStats
             StartPosition = (Vector2)dict[nameof(StartPosition)],
             Speed = (float)dict[nameof(Speed)],
             AnimationResourcePath = (string)dict[nameof(AnimationResourcePath)],
+            AnimationOffset =  (Vector2)dict[nameof(AnimationOffset)],
             Parent = !string.IsNullOrEmpty(parentString) ? (Node2D)manager.GetNode((string)dict[nameof(Parent)]) : null
         };
         return stats;

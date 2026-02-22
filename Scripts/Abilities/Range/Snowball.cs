@@ -1,16 +1,22 @@
 using System;
+using System.Collections.Generic;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
+using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
 public class Snowball : ProjectileAbility
 {
-    private SizeIncreaseBehavior behavior;
     public Snowball(PlayerCharacter creator) : base(AbilityIds.SnowballGuid, creator)
     {
-        behavior = new SizeIncreaseBehavior(1.0f);
+        this.DisplayName = "Snowball";
+        this.Description = "Shoots a snowball";
+        this.IconPath = "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png";
+        this.BaseCooldown = 1;
+        this.BaseDamage = 1;
+        this.BaseType = DamageType.Ice;
     }
 
     protected override void InternalUpdate()
@@ -20,11 +26,26 @@ public class Snowball : ProjectileAbility
 
     protected override ProjectileStats GetProjectileStats()
     {
+        var beList = new List<IProjectileBehavior> {  new SizeIncreaseBehavior(1f, 10.0f) };
+
+        var direction = Vector2.Zero;
+        if (Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            direction = aimComponent.GetLookAtDirection();
+        }
+        
         return new ProjectileStats()
         {
             AngleOffset = 0,
+            Direction = direction,
             AnimationResourcePath = "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
+            AnimationOffset = new Vector2(-8, 0),
             OnHit = onHit,
+            Behaviors = beList,
+            Speed = 100,
+            TimeToBeALive = -1,
+            Life = 10,
+            Scale = new Vector2(1.0f, 1.0f),
         };
     }
 

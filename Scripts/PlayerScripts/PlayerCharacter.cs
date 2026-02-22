@@ -38,6 +38,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     public HealthComponent HealthComponent { get; private set; }
     public AbilityComponent AbilityComponent { get; private set; }
     public StatblockComponent StatBlock { get; private set; }
+    private VisualComponent visualComponent;
     
     public string PlayerName
     {
@@ -95,19 +96,15 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         _playerInput = (PlayerInput)_inputSync;
         
         _gameManager = (GameManager)GetNode("/root/Main/Game");
-        _playerAnimation.Material = _playerAnimation.Material.Duplicate() as ShaderMaterial;
-        var spriteMaterial = _playerAnimation.Material as ShaderMaterial;
-        var teamColor = ColorPlate.GetColor(TeamId);
-        
-        spriteMaterial?.SetShaderParameter("team_color", teamColor);
 
         if (int.Parse(Name) == Multiplayer.GetUniqueId())
         {
             _lookAtIndicator.Visible = true;
             _lookAtIndicator.Material = _lookAtIndicator.Material.Duplicate() as ShaderMaterial;
-            spriteMaterial = _lookAtIndicator.Material as ShaderMaterial;
+            var spriteMaterial = _lookAtIndicator.Material as ShaderMaterial;
             spriteMaterial?.SetShaderParameter("mask_color", new Godot.Color(1f, 1f, 1f));
-            spriteMaterial?.SetShaderParameter("team_color", teamColor);
+            var teamColorArrow = ColorPlate.GetColor(TeamId);
+            spriteMaterial?.SetShaderParameter("team_color", teamColorArrow);
             spriteMaterial?.SetShaderParameter("tolerance", 0.4);
             _camera.Enabled = true;
             _mapBounds = _gameManager.GetMapBoundry();
@@ -138,7 +135,21 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         
         var aimComponent = new AimComponent(_characterCenterPoint, _lookAtDirectionPoint, _lookAtDirectionCorrection);
         AddComponent(aimComponent);
-       
+
+        visualComponent = new VisualComponent();
+        visualComponent.SetAnimation("res://AnimationRes/PlayerAnimation/PlayerCharacterAnimation.tres", Vector2.Zero);
+        var shader = GD.Load<Shader>("res://Shaders/PlayerCharacter_TeamColor.gdshader");
+        var shaderMaterial = new ShaderMaterial();
+        shaderMaterial.Shader = shader;
+        shaderMaterial.SetShaderParameter("mask_color", new Vector4(0.341f,0.227f,0.196f,1));
+        shaderMaterial.SetShaderParameter("mask_color_2", new Vector4(0.251f,0.153f,0.09f,1));
+        shaderMaterial.SetShaderParameter("tolerance", 0.1f);
+        var teamColor = ColorPlate.GetColor(TeamId);
+        shaderMaterial.SetShaderParameter("team_color", teamColor);
+        
+        AddComponent(visualComponent);
+        visualComponent.SetShader(shaderMaterial);
+
         var overhead = new OverHeadUiComponent();
         AddComponent(overhead);
     }
@@ -194,6 +205,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
     public override void _Process(double delta)
     {
+        visualComponent?.UpdateAnimation(_playerInput);
         ((PlayerAnimation)_playerAnimation).UpdateAnimation();
         if (Multiplayer.IsServer())
         {

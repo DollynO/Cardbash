@@ -29,6 +29,12 @@ public abstract class Buff : IBuff
 
     public Buff(IEntityComponent caller, IEntityComponent target)
     {
+        this.Description = "NONE";
+        this.DisplayName = "NONE";
+        this.IconPath = "res://Sprites/SkillIcons/Dark/16_Shadow.png";
+        this.Duration = 10;
+        this.Guid = "E3B8C9CE-5F85-4FDB-B2C4-72797A1AE359";
+        
         Caller = caller;
         Target = target;
     }
