@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="2_7rmyw"]
 [ext_resource type="PackedScene" uid="uid://gi8i5cvds6au" path="res://Scenes/PlayerSlot.tscn" id="3_p6nru"]
 
-[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("ReadyButton", "NotReadyButton", "StartButton", "_teamSelect", "_deckSelect", "_playerListContainer")]
+[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("readyButton", "notReadyButton", "startButton", "_teamSelect", "_deckSelect", "_playerListContainer")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -13,9 +13,9 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.356863, 0.360784, 0.341176, 1)
 script = ExtResource("1_iigad")
-ReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Ready")
-NotReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/NotReady")
-StartButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start")
+readyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Ready")
+notReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/NotReady")
+startButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start")
 _teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/TeamSelect")
 _deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
 _playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer")

@@ -1,9 +1,12 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public sealed class LastTeamStandingMode : IGameMode
 {
     public ModeId Id => ModeId.LastTeamStanding;
     public GameModeSettings Settings { get; }
+    public List<RoundResult> RoundResults { get; } = new ();
     private GameContext _ctx;
     
     
@@ -41,11 +44,17 @@ public sealed class LastTeamStandingMode : IGameMode
 
     public bool ServerIsGameOver(out GameResult result)
     {
-        /*if (_ctx.ScoreSystem.AnyTeamReachedGameWin(Settings.RoundsPerGame))
+        var winCounts = RoundResults
+            .SelectMany(r => r.WinningTeams)
+            .GroupBy(team => team)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var winningTeams = winCounts.Where(kvp => kvp.Value >= Settings.RoundsPerGame).Select(kvp => kvp.Key).ToList();
+        if (winningTeams.Any())
         {
-            result = _ctx.ScoreSystem.BuildGameResult();
+            result = new GameResult(winningTeams);
             return true;
-        }*/
+        }
         result = default;
         return false;
     }

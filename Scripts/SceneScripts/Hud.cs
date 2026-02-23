@@ -15,6 +15,7 @@ public partial class Hud : CanvasLayer
 	[Export] private Label _waitLabel;
 	[Export] private HBoxContainer _cardBox;
 	[Export] private ColorRect _darknessEffect;
+	[Export] private Label _roundLabel;
 	
 	private PackedScene _abilityCardTemplate;
 	private PackedScene _itemCardTemplate;
@@ -36,6 +37,11 @@ public partial class Hud : CanvasLayer
 	{
 	}
 
+	public void DisplayRoundInfo(string info)
+	{
+		_roundLabel.Text = info;
+	}
+	
 	public void ShowDrawUi(bool visible, List<Card> cards)
 	{
 		_drawUiContainer.Visible = visible;

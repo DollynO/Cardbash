@@ -1,28 +1,27 @@
 using System.Collections.Generic;
 using System.Linq;
-using CardBase.Scripts.Cards;
 using Godot;
 using Godot.Collections;
 
 [GlobalClass]
 public partial class GameFlowController : Node
 {
-    public GameModeSettings Settings;
+    private GameModeSettings settings;
     private IGameMode _mode;
-    private GameContext _ctx;
+    private readonly GameContext _ctx;
 
     private MatchPhase _phase = MatchPhase.None;
     private int _roundIndex;
     private double _phaseTime;
 
-    private List<(long id, string guid)> pickedCards =  new();
-    private int drawRoundIndex = 0;
-    private bool allCardsDrawn = false;
-
+    private readonly List<(long id, string guid)> pickedCards =  new();
+    private int drawRoundIndex;
+    private bool allCardsDrawn;
+    
     public GameFlowController(GameContext ctx, GameModeSettings settings)
     {
         _ctx = ctx;
-        Settings = settings;
+        this.settings = settings;
     }
     
     public override void _Ready()
@@ -31,12 +30,12 @@ public partial class GameFlowController : Node
         if (Multiplayer.IsServer())
         {
             
-            _mode = new LastTeamStandingMode(Settings);
+            _mode = new LastTeamStandingMode(settings);
             _mode.ServerInitialize(_ctx);
             
         }
         
-        _ctx.GameManager._hud.CardLocked += HudOnCardLocked;
+        _ctx.GameManager.Hud.CardLocked += HudOnCardLocked;
     }
 
     private void HudOnCardLocked(int playerId, string cardGuid)
@@ -53,14 +52,7 @@ public partial class GameFlowController : Node
            
            if (pickedCards.Count == drawRoundIndex * _ctx.Players.Count)
            {
-               if (drawRoundIndex == Settings.CardsDrawnAtRoundBegin)
-               {
                    ServerFinishDraw();
-               }
-               else
-               {
-                   ServerBeginCardDraw();
-               }
            }
         }
         else
@@ -83,7 +75,6 @@ public partial class GameFlowController : Node
         switch (_phase)
         {
             case MatchPhase.RoundSetup:
-                allCardsDrawn = false;
                 ServerEnterRoundSetup();
                 break;
 
@@ -94,13 +85,17 @@ public partial class GameFlowController : Node
 
             case MatchPhase.CardApply:
                 ServerApplyCards();
-                ServerAdvance(MatchPhase.Combat);
+                ServerAdvance(MatchPhase.CardDrawEnd);
+                break;
+            
+            case MatchPhase.CardDrawEnd:
+                ServerAdvance(ServerCheckDrawEnd() ? MatchPhase.Combat : MatchPhase.CardDraw);
                 break;
 
             case MatchPhase.Combat:
                 _mode.ServerTick(delta);
 
-                if (Settings.RoundTimeLimitSeconds > 0 && _phaseTime >= Settings.RoundTimeLimitSeconds)
+                if (settings.RoundTimeLimitSeconds > 0 && _phaseTime >= settings.RoundTimeLimitSeconds)
                     ServerForceRoundEnd_Time();
 
                 if (_mode.ServerIsRoundOver(out var rr))
@@ -116,6 +111,11 @@ public partial class GameFlowController : Node
         }
     }
 
+    private bool ServerCheckDrawEnd()
+    {
+        return pickedCards.Count == _roundIndex * _ctx.Players.Count * settings.CardsDrawnAtRoundBegin;
+    }
+    
     private bool ServerIsCardSelectionComplete()
     {
         return allCardsDrawn;
@@ -124,6 +124,7 @@ public partial class GameFlowController : Node
     private void ServerEnterRoundSetup()
     {
         _roundIndex++;
+        updateGameInfo();
         _ctx.TeamSystem.UpdateTeams();
         _mode.ServerStartRound(_roundIndex);
 
@@ -142,6 +143,7 @@ public partial class GameFlowController : Node
 
         if (next == MatchPhase.CardDraw)
         {
+            allCardsDrawn = false;
             ServerBeginCardDraw();
         }
     }
@@ -157,12 +159,12 @@ public partial class GameFlowController : Node
         }
     }
 
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void OpenDrawOnClient(long id, Array<string> cardArray)
     {
         var player = _ctx.Players[id];
         var cards = cardArray.Select(cardGuid => player.Cards.FirstOrDefault(c => c.EffectGUID == cardGuid)).ToList();
-        _ctx.GameManager._hud.ShowDrawUi(true, cards);
+        _ctx.GameManager.Hud.ShowDrawUi(true, cards);
     }
 
     private void ServerFinishDraw()
@@ -171,10 +173,10 @@ public partial class GameFlowController : Node
         allCardsDrawn = true;
     }
 
-    [Rpc(MultiplayerApi.RpcMode.Authority,  CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void CloseDrawOnClient()
     {
-        _ctx.GameManager._hud.ShowDrawUi(false, null);
+        _ctx.GameManager.Hud.ShowDrawUi(false, null);
     }
     
     private void ServerApplyCards()
@@ -195,7 +197,7 @@ public partial class GameFlowController : Node
 
     private void ServerEndRound(RoundResult rr)
     {
-
+        _mode.RoundResults.Add(rr);
         _phase = MatchPhase.RoundEnd;
         _phaseTime = 0;
     }
@@ -213,11 +215,10 @@ public partial class GameFlowController : Node
 
     private void ServerForceRoundEnd_Time()
     {
-        // e.g. decide by points, or “most alive”, or “flag progress”, depending on mode
-        if (_mode.ServerIsRoundOver(out var rr))
-            ServerEndRound(rr);
-        else
-            ServerEndRound(RoundResult.DrawByTimeout(_ctx.TeamSystem.GetTeamsWithAlivePlayers()));
+        // e.g., decide by points, or “most alive”, or “flag progress”, depending on mode
+        ServerEndRound(_mode.ServerIsRoundOver(out var rr)
+            ? rr
+            : RoundResult.DrawByTimeout(_ctx.TeamSystem.GetTeamsWithAlivePlayers()));
     }
 
     private void ServerEndGame(GameResult gr)
@@ -226,4 +227,9 @@ public partial class GameFlowController : Node
     }
 
     [Rpc] private void ClientGameEnded(Variant dto) { /* end screen */ }
+
+    private void updateGameInfo()
+    {
+        _ctx.GameManager.Hud.DisplayRoundInfo($"Round {_roundIndex} / {settings.RoundsPerGame}");
+    }
 }

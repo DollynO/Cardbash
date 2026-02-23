@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 
 public enum ModeId { LastTeamStanding, CaptureTheFlag, Herrschaft }
-public enum MatchPhase { None, RoundSetup, CardDraw, CardApply, Combat, RoundEnd, GameEnd }
+public enum MatchPhase { None, RoundSetup, CardDraw, CardApply, CardDrawEnd, Combat, RoundEnd, GameEnd }
 
 public interface IGameMode
 {
     ModeId Id { get; }
     GameModeSettings Settings { get; }
+    List<RoundResult> RoundResults { get; }
 
     void ServerInitialize(GameContext ctx);
     void ServerStartGame();
@@ -24,7 +25,8 @@ public interface IGameMode
 
 public sealed class GameResult
 {
-    
+    public List<Team> WinningTeams { get; }
+    public GameResult(List<Team> winningTeams) => WinningTeams = winningTeams;
 }
 
 public sealed class RoundResult

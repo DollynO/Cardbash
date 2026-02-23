@@ -22,6 +22,7 @@ properties/1/replication_mode = 2
 
 [node name="Node2D" type="CharacterBody2D" node_paths=PackedStringArray("timer", "collisionShape", "pullArea", "detectArea", "pullAreaShape")]
 collision_layer = 8
+collision_mask = 9
 script = ExtResource("1_7wxbw")
 timer = NodePath("LiveTimeTimer")
 collisionShape = NodePath("DetectArea/EffectShape")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=4 uid="uid://dshvuihnhyh7b"]
+[gd_scene load_steps=27 format=4 uid="uid://dshvuihnhyh7b"]
 
 [ext_resource type="Script" path="res://Scenes/GameManager.cs" id="1_awesl"]
 [ext_resource type="PackedScene" uid="uid://hpbx14ma8p0v" path="res://Scenes/PlayerCharacter.tscn" id="2_dr7ob"]
@@ -1597,11 +1597,14 @@ shader_parameter/noise_scale = 15.0
 shader_parameter/noise_strength = 0.517
 shader_parameter/noise_speed = 4.0
 
-[node name="Game" type="Node2D" node_paths=PackedStringArray("_spawner", "_hud", "_tileMapLayer", "_spawnPoint")]
+[sub_resource type="LabelSettings" id="LabelSettings_pcaqj"]
+font_size = 20
+
+[node name="Game" type="Node2D" node_paths=PackedStringArray("_spawner", "Hud", "_tileMapLayer", "_spawnPoint")]
 script = ExtResource("1_awesl")
 _playerCharScene = ExtResource("2_dr7ob")
 _spawner = NodePath("MultiplayerSpawner")
-_hud = NodePath("HUD")
+Hud = NodePath("HUD")
 _tileMapLayer = NodePath("GroundLayer")
 _spawnPoint = NodePath("Spawn Point")
 metadata/_edit_horizontal_guides_ = [3.0]
@@ -1619,7 +1622,7 @@ tile_set = SubResource("TileSet_b8d8o")
 _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel")]
 layer = 5
 script = ExtResource("4_e1s5y")
 _abilityFrames = [NodePath("HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/AbilityFrame4")]
@@ -1628,6 +1631,7 @@ _statsText = NodePath("StatsEdit")
 _waitLabel = NodePath("DrawUi/WaitLabel")
 _cardBox = NodePath("DrawUi/VBoxContainer/CardBox")
 _darknessEffect = NodePath("DarknessEffect")
+_roundLabel = NodePath("RoundLabel")
 
 [node name="DarknessEffect" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_cerkr")
@@ -1721,6 +1725,18 @@ Energy Shield:
 Int
 Str"
 editable = false
+
+[node name="RoundLabel" type="Label" parent="HUD"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -41.0
+offset_right = 41.0
+offset_bottom = 45.0
+grow_horizontal = 2
+size_flags_horizontal = 4
+text = "Round 1 / 0"
+label_settings = SubResource("LabelSettings_pcaqj")
 
 [node name="Spawn Point" type="Node2D" parent="."]
 position = Vector2(1000, 1000)

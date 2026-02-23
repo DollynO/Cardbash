@@ -3,25 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 using CardBase.Scripts;
-using CardBase.Scripts.Abilities;
-using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Cards;
-using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 using Godot.Collections;
-using Array = Godot.Collections.Array;
 
 public partial class GameManager : Node2D
 {
-	private int _playersInGame = 0;
-	private int _playersReady = 0;
+	private int _playersInGame;
+	private int _playersReady;
 	private readonly HashSet<long> _readyPeers = new();
 	private bool _playersInitialized;
 
 	private NetworkManager _network;
 	[Export] private PackedScene _playerCharScene;
 	[Export] private MultiplayerSpawner _spawner;
-	[Export] public Hud _hud;
+	[Export] public Hud Hud;
 	[Export] private TileMapLayer _tileMapLayer;
 	[Export] private Node2D _spawnPoint;
 	private GameFlowController _flowController;
@@ -83,7 +79,7 @@ public partial class GameManager : Node2D
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		_hud.UpdatePlayerHud(GetPlayerCharacter(Multiplayer.GetUniqueId()));
+		Hud.UpdatePlayerHud(GetPlayerCharacter(Multiplayer.GetUniqueId()));
 	}
 
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
