@@ -83,7 +83,6 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
             _state = GetWorld2D().GetDirectSpaceState();
             detectArea.BodyEntered += OnBodyEntered;
-
             if (statBlock != null)
             {
                 Stats.PullStrength += statBlock.GetStat(StatType.AddPullStrength);
@@ -120,6 +119,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             var hc = new HealthComponent();
             hc.Reset(Stats.Life);
             AddComponent(hc);
+            hc.Death += onProjectileDeath;
             var oui = new OverHeadUiComponent();
             AddComponent(oui);
             var dac = new DamageAbleComponent();
@@ -127,8 +127,18 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         }
     }
 
+    private void onProjectileDeath(object sender, EventArgs e)
+    {
+        DestroyProjectile();
+    }
+
     private void OnBodyEntered(Node2D body)
     {
+        if (body == this)
+        {
+            return;
+        }
+        
         if (body is IEntityComponent hitObject && hitObject != Stats.Caller)
         {
             HitableObjectCollided(hitObject);
@@ -137,6 +147,11 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyEntered(Node2D body)
     {
+        if (body == this)
+        {
+            return;
+        }
+        
         if (body is IEntityComponent ec)
         {
             if (Stats.Caller is not ITeamAffiliation callerTeam || ec is not ITeamAffiliation targetTeam)
@@ -153,6 +168,11 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyExit(Node2D body)
     {
+        if (body == this)
+        {
+            return;
+        }
+        
         if (body is IEntityComponent ec && entityInPullArea.Contains(ec))
         {
             entityInPullArea.Remove(ec);
@@ -283,7 +303,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
-    private void clientSyncPosition(Variant data)
+    private void clientSyncStats(Variant data)
     {
         var dict = data.AsGodotDictionary<string, Variant>();
         
@@ -314,6 +334,7 @@ public class ProjectileStats
     public MovementMode MovementMode = MovementMode.STRAIGHT;
     public float Distance = -1;
     public uint CollisionMask;
+    public uint DetectCollisionMask;
     public float AngleOffset = 0;
     public float Life = -1;
     public List<IProjectileBehavior> Behaviors = new();

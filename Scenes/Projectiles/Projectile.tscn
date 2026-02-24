@@ -19,10 +19,12 @@ properties/0/replication_mode = 2
 properties/1/path = NodePath(".:rotation")
 properties/1/spawn = true
 properties/1/replication_mode = 2
+properties/2/path = NodePath(".:scale")
+properties/2/spawn = true
+properties/2/replication_mode = 2
 
 [node name="Node2D" type="CharacterBody2D" node_paths=PackedStringArray("timer", "collisionShape", "pullArea", "detectArea", "pullAreaShape")]
 collision_layer = 8
-collision_mask = 9
 script = ExtResource("1_7wxbw")
 timer = NodePath("LiveTimeTimer")
 collisionShape = NodePath("DetectArea/EffectShape")
@@ -40,7 +42,7 @@ shape = SubResource("CircleShape2D_qxcdi")
 
 [node name="DetectArea" type="Area2D" parent="."]
 collision_layer = 0
-collision_mask = 4
+collision_mask = 12
 
 [node name="EffectShape" type="CollisionShape2D" parent="DetectArea"]
 shape = SubResource("CircleShape2D_e0kvs")
@@ -49,7 +51,7 @@ shape = SubResource("CircleShape2D_e0kvs")
 
 [node name="PullArea" type="Area2D" parent="."]
 collision_layer = 0
-collision_mask = 4
+collision_mask = 12
 
 [node name="PullAreaShape" type="CollisionShape2D" parent="PullArea"]
 modulate = Color(0.588977, 0.130064, 0.489551, 1)

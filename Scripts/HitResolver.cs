@@ -74,7 +74,7 @@ public class HitResolver
         }
     }
     
-    private static void ApplyDamageTypeAilment(DamageType type, float ailmentChance, IEntityComponent target, IEntityComponent attacker)
+    private static void ApplyDamageTypeAilment(DamageType type, float ailmentChance, IEntityComponent attacker, IEntityComponent target)
     {
         if (!target.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent))
         {

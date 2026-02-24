@@ -44,8 +44,9 @@ public class Snowball : ProjectileAbility
             Behaviors = beList,
             Speed = 100,
             TimeToBeALive = -1,
-            Life = 10,
+            Life = 100,
             Scale = new Vector2(1.0f, 1.0f),
+            CollisionMask = 1<<2,
         };
     }
 

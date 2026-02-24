@@ -19,6 +19,7 @@ public partial class HealthComponent : Node2D, IComponent
     public bool IsDead => CurrentHealth <= 0;
     
     public event EventHandler<DamageEventArgs>? DamageTaken;
+    public event EventHandler? Death;
     
     private Godot.Collections.Dictionary<string, float> maxHealthChanges = new();
     private GameManager gameManager;
@@ -49,6 +50,7 @@ public partial class HealthComponent : Node2D, IComponent
             {
                 gameManager?.NotifyPlayerDeath(victimPlayer, killerPlayer);
             }
+            this.Death?.Invoke(this, EventArgs.Empty);
         }
         else
         {
