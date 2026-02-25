@@ -39,7 +39,7 @@ shader_parameter/region_min = Vector2(0, 0)
 shader_parameter/region_max = Vector2(1, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qv0kn"]
-size = Vector2(16, 21)
+size = Vector2(11.5, 19)
 
 [sub_resource type="LabelSettings" id="LabelSettings_cbrok"]
 font_size = 9
@@ -58,6 +58,7 @@ z_index = 5
 scale = Vector2(2, 2)
 collision_layer = 4
 collision_mask = 7
+motion_mode = 1
 script = ExtResource("1_sdal5")
 _inputSync = NodePath("InputSynchronizer")
 _playerAnimation = NodePath("AnimatedSprite2D")
@@ -88,6 +89,7 @@ script = ExtResource("4_xt6qq")
 _inputSynchronizer = NodePath("../InputSynchronizer")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0.75, -1)
 shape = SubResource("RectangleShape2D_qv0kn")
 
 [node name="Label" type="Label" parent="."]

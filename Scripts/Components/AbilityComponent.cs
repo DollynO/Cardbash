@@ -39,6 +39,7 @@ public partial class AbilityComponent : Node2D, IComponent
     public Dictionary<string, NetAbility> networkAbilities = new();
     public List<Ability> Abilities = new();
     private Ability? activeAbility;
+    private bool active = false;
     
     public event EventHandler<AbilityEventArgs>? AbilityCasted;
 
@@ -51,8 +52,19 @@ public partial class AbilityComponent : Node2D, IComponent
             Name = "RingContainer"
         };
         AddChild(RingContainer);
+        Parent.TryGetComponent(out HealthComponent hc);
+        hc.Death += OnPlayerDeath;
     }
 
+    private void OnPlayerDeath(object sender, EventArgs args)
+    {
+        active = false;
+        foreach (var ability in Abilities)
+        {
+            
+        }
+    }
+    
     public void NotifyAbilityCasted(Ability ability)
     {
         AbilityCasted?.Invoke(this, new AbilityEventArgs(ability));
@@ -60,6 +72,11 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void ProcessAbilities(double delta, AbilityKeyState[] keyStates)
     {
+        if (!active)
+        {
+            return;
+        }
+        
         if (keyStates.Length < Abilities.Count)
         {
             throw new ArgumentOutOfRangeException();

@@ -181,7 +181,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     
     private void defineCharacterStats()
     {
-        StatBlock.Define(StatType.MovementSpeed, 300, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.MovementSpeed, 150, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity);
         StatBlock.Define(StatType.Armor, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.EnergyShield, 0, float.NegativeInfinity, float.PositiveInfinity);

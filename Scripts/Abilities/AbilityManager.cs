@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CardBase.Scripts.Abilities.AOE;
 using CardBase.Scripts.Abilities.Utility;
 using CardBase.Scripts.PlayerScripts;
 
@@ -35,6 +36,9 @@ public static class AbilityManager
         
         // Ray
         { AbilityIds.ChargingBeamGuid, creator => new ChargingBeam(creator) },
+        
+        // AOE
+        { AbilityIds.MeteorGuid, creator => new Meteor(creator) },
     };
 
     public static BaseCardableObject Create(string GUID, PlayerCharacter creator)
@@ -64,4 +68,5 @@ public static class AbilityIds
     public static string AegisGuid = "C19D6DD4-E8D5-488B-A89C-58A20211BA26";
     public static string RicOSpamGuid = "F42A4786-A727-48B1-8CE7-9F26A222ED55";
     public static string SnowballGuid = "A40C5A0A-79D9-4B56-9897-87E61D23B902";
+    public static string MeteorGuid = "CAE877D4-799B-46E7-9BAA-79A7635299C9";
 }

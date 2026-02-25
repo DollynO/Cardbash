@@ -134,7 +134,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void OnBodyEntered(Node2D body)
     {
-        if (body == this)
+        if (body == this || body is Projectile proj && ((PlayerCharacter)proj.Stats.Caller).TeamId == ((PlayerCharacter)this.Stats.Caller).TeamId)
         {
             return;
         }
@@ -147,7 +147,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyEntered(Node2D body)
     {
-        if (body == this)
+        if (body == this || body is Projectile proj && ((PlayerCharacter)proj.Stats.Caller).TeamId == ((PlayerCharacter)this.Stats.Caller).TeamId)
         {
             return;
         }
@@ -168,7 +168,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyExit(Node2D body)
     {
-        if (body == this)
+        if (body == this || body is Projectile proj && ((PlayerCharacter)proj.Stats.Caller).TeamId == ((PlayerCharacter)this.Stats.Caller).TeamId)
         {
             return;
         }

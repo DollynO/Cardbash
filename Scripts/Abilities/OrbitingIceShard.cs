@@ -45,24 +45,18 @@ public class OrbitingIceShard : Ability
 
     public override void InternalUse()
     {
-        var color = ColorPlate.GetColor((int)ColorPlateName.LightBlue);
-        var projectile_stats = new ProjectileStats()
+        var projectile_stats = new ProjectileStats
         {
             Caller = Caller,
             Speed = 0,
             TimeToBeALive = -1,
-            AnimationResourcePath = "res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres"
+            AnimationResourcePath = "res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres",
+            OnHit = OnHit,
+            StartPosition = Caller.TryGetComponent(out AimComponent aimComponent) 
+                ? aimComponent.GetProjectileStartPosition() 
+                : ((Node2D)Caller).GetGlobalPosition()
         };
 
-        projectile_stats.OnHit = OnHit;
-        if (Caller.TryGetComponent(out AimComponent aimComponent))
-        {
-            projectile_stats.StartPosition = aimComponent.GetProjectileStartPosition();
-        }
-        else
-        {
-            projectile_stats.StartPosition = ((Node2D)Caller).GetGlobalPosition();
-        }
         projectile_stats.Caller = Caller;
         var projectile = GlobalAbilitySpawner.SpawnProjectile(projectile_stats);
         

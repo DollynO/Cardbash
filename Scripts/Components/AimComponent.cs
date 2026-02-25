@@ -41,4 +41,17 @@ public partial class AimComponent : Node2D, IComponent
     {
         return _characterCenterPoint;
     }
+
+    public Vector2 GetPlayerMouesPosition(float maxLength)
+    {
+        var direction = GetLookAtDirection();
+        var gmp = GetGlobalMousePosition();
+        var distance = _characterCenterPoint.GlobalPosition - gmp;
+        if (distance.Length() > maxLength)
+        {
+            return GetCharacterCenterPosition() + direction * maxLength;
+        }
+        
+        return GetGlobalMousePosition();
+    }
 }

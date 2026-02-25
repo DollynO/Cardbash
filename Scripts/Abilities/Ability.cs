@@ -102,6 +102,13 @@ public abstract class Ability : BaseCardableObject
     {
         
     }
+
+    public virtual void ClearAbility()
+    {
+        
+    }
+
+    public abstract void RoundReset();
     
     /**
      * @brief Updates the cooldown of the ability. Updates the stack count.
