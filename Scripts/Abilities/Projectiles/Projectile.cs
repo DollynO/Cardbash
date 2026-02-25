@@ -363,6 +363,7 @@ public class ProjectileStats
             { nameof(Distance), Distance },
             { nameof(CollisionMask), CollisionMask },
             { nameof(AngleOffset), AngleOffset },
+            { nameof(Life), Life},
         };
         return dict;
     }
@@ -391,7 +392,8 @@ public class ProjectileStats
             Speed = (float)dict[nameof(Speed)],
             AnimationResourcePath = (string)dict[nameof(AnimationResourcePath)],
             AnimationOffset =  (Vector2)dict[nameof(AnimationOffset)],
-            Parent = !string.IsNullOrEmpty(parentString) ? (Node2D)manager.GetNode((string)dict[nameof(Parent)]) : null
+            Parent = !string.IsNullOrEmpty(parentString) ? (Node2D)manager.GetNode((string)dict[nameof(Parent)]) : null,
+            Life = (float)dict[nameof(Life)],
         };
         return stats;
     }

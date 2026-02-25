@@ -40,6 +40,13 @@ public partial class Hud : CanvasLayer
 	public void DisplayRoundInfo(string info)
 	{
 		_roundLabel.Text = info;
+		Rpc(MethodName.displayRoundInfoclient, info);
+	}
+
+	[Rpc(CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	public void displayRoundInfoclient(string info)
+	{
+		_roundLabel.Text = info;
 	}
 	
 	public void ShowDrawUi(bool visible, List<Card> cards)

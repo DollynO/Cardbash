@@ -53,7 +53,7 @@ public partial class OverHeadUiComponent : Node2D, IComponent
         {
             _stunBar = new OverheadUiBar(Color.FromHtml("7c7c7c"), Color.FromHtml("c1c1c1"));
             _stunBar.Name = "StunBar";
-            _stunBar.Position = new  Vector2(0, 20);
+            _stunBar.Position = new  Vector2(0, -10);
             _barContainer.AddChild(_stunBar);
         }
 

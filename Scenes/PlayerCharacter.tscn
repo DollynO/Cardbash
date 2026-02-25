@@ -83,7 +83,7 @@ texture_filter = 1
 material = SubResource("ShaderMaterial_81jb4")
 sprite_frames = ExtResource("4_r6kvb")
 animation = &"move_down"
-frame_progress = 0.240571
+frame_progress = 0.239137
 script = ExtResource("4_xt6qq")
 _inputSynchronizer = NodePath("../InputSynchronizer")
 

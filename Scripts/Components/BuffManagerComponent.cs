@@ -38,7 +38,7 @@ public partial class BuffManagerComponent : Node2D, IComponent
         buffRow = new BuffRow2D();
         buffRow.Name = "buffRow";
         AddChild(buffRow);
-        buffRow.Position = new Vector2(0, -90);
+        buffRow.Position = new Vector2(0, -40);
         
         spawner = new MultiplayerSpawner();
         AddChild(spawner);

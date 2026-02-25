@@ -60,7 +60,7 @@ public partial class BuffIconTemplate : Node2D
 		initIcon();
 		Icon.Texture = texture;
 		var size = Icon.Texture.GetSize();
-		Icon.Scale = new Vector2(20 / size.X, 20 / size.Y);
+		Icon.Scale = new Vector2(15 / size.X, 15 / size.Y);
 	}
 
 	private void initIcon()
