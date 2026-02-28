@@ -25,6 +25,11 @@ public class ChargingBeam : Ability
         this.BaseType = DamageType.Lightning;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         var rayStats = new RayStats()

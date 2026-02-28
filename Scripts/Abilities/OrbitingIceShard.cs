@@ -38,6 +38,11 @@ public class OrbitingIceShard : Ability
         CurrentCooldown = BaseCooldown;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     protected override bool preventAutoCast()
     {
         return ring.GetStackCount() >= maxProjectiles;

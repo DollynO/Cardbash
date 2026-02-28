@@ -101,6 +101,11 @@ public class Aegis : Ability, IHitInterceptor
         }
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     protected override bool preventAutoCast()
     {
         return ring.GetStackCount() == ring.MaxStacks || isCharInRange;

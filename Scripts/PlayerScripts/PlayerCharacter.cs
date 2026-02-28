@@ -6,7 +6,6 @@ using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Cards;
 using Godot;
 using Godot.Collections;
-using Array = Godot.Collections.Array;
 
 namespace CardBase.Scripts.PlayerScripts;
 
@@ -14,6 +13,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 {
     [Export] private MultiplayerSynchronizer _inputSync;
     [Export] private AnimatedSprite2D _playerAnimation;
+    public PlayerInput PlayerInput => _playerInput; 
     private PlayerInput _playerInput;
     private GameManager _gameManager;
 
@@ -116,15 +116,16 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
         BuffManagerComponent = new BuffManagerComponent();
         AddComponent(BuffManagerComponent);
+
+        HealthComponent = new HealthComponent();
+        AddComponent(HealthComponent);
+        
         AbilityComponent = new AbilityComponent
         {
             Position = _characterCenterPoint.Position
         };
         AddComponent(AbilityComponent);
-        
-        HealthComponent = new HealthComponent();
-        AddComponent(HealthComponent);
-        
+
         var dac = new DamageAbleComponent();
         AddComponent(dac);
         

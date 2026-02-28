@@ -20,6 +20,11 @@ public class ShatterStrike : Ability
         this._hitModifiers.Add(new FrostShatterHitModifier());
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         var aoeStats = new AoeBaseStats()

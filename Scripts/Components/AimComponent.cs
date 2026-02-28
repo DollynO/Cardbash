@@ -1,3 +1,4 @@
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts;
@@ -44,14 +45,19 @@ public partial class AimComponent : Node2D, IComponent
 
     public Vector2 GetPlayerMouesPosition(float maxLength)
     {
-        var direction = GetLookAtDirection();
-        var gmp = GetGlobalMousePosition();
-        var distance = _characterCenterPoint.GlobalPosition - gmp;
-        if (distance.Length() > maxLength)
+        if (Parent is PlayerCharacter character)
         {
-            return GetCharacterCenterPosition() + direction * maxLength;
+            var gmp = character.PlayerInput.ClientGlobalMousePosition;
+            var direction = GetLookAtDirection();
+            var distance = _characterCenterPoint.GlobalPosition - gmp;
+            if (distance.Length() > maxLength)
+            {
+                return GetCharacterCenterPosition() + direction * maxLength;
+            }
+
+            return gmp;
         }
         
-        return GetGlobalMousePosition();
+        return new  Vector2(-10000, -10000);
     }
 }

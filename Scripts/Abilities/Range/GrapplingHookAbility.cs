@@ -21,6 +21,11 @@ public class GrapplingHookAbility : ProjectileAbility
     {
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         base.InternalUse();

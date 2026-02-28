@@ -25,6 +25,11 @@ public class Plagueburst : Ability
         context.Damages[DamageType.Darkness].DamageNumber += (float)(count * BaseDamage);
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         GlobalAbilitySpawner.SpawnAoe(new AoeBaseStats()

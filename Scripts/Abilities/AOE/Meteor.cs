@@ -36,7 +36,7 @@ public class Meteor : Ability
             OnActivation = OnActivation,
             Owner = Caller,
             AbilityGUID = GUID,
-            StationaryPosition = aimComponent.GetPlayerMouesPosition(200),
+            StationaryPosition = aimComponent.GetPlayerMouesPosition(600),
             IsStationary = true,
         });
         

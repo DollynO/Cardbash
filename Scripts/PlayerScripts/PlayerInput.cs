@@ -34,6 +34,8 @@ public partial class PlayerInput : MultiplayerSynchronizer
     public Node2D LookAtRotation;
 
     [Export] public float LookAtRotationValue;
+
+    [Export] public Vector2 ClientGlobalMousePosition;
 	
     public override void _Ready()
     {
@@ -78,8 +80,8 @@ public partial class PlayerInput : MultiplayerSynchronizer
         }
 
         KeyState = new Array<AbilityKeyState>(KeyState);
-        
-        LookAtRotation.LookAt(GetParent<PlayerCharacter>().GetGlobalMousePosition());
+        ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition(); 
+        LookAtRotation.LookAt(ClientGlobalMousePosition);
         LookAtRotation.Rotate(-Mathf.Tau / 4);
         LookAtRotationValue = LookAtRotation.Rotation;
     }

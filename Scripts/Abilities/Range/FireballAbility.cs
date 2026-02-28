@@ -19,6 +19,11 @@ public class FireballAbility : ProjectileAbility
        this.BaseType = DamageType.Fire;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     protected override void InternalUpdate()
     {
         

@@ -53,6 +53,11 @@ public class ShadowWalk : Ability
         removeBuff();
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         if (Caller.TryGetComponent(out BuffManagerComponent bmc))

@@ -16,7 +16,12 @@ public class LightningStrike : Ability
         this.BaseDamage = 20;
         this.BaseType = DamageType.Lightning;
     }
-    
+
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         var stats = new AoeBaseStats()

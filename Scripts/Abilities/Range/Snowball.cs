@@ -19,6 +19,11 @@ public class Snowball : ProjectileAbility
         this.BaseType = DamageType.Ice;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     protected override void InternalUpdate()
     {
         

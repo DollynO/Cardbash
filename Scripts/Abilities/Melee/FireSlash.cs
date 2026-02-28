@@ -17,6 +17,11 @@ public class FireSlash : Ability
         this.BaseType = DamageType.Fire;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         var stats = new AoeBaseStats()

@@ -52,8 +52,12 @@ public partial class AbilityComponent : Node2D, IComponent
             Name = "RingContainer"
         };
         AddChild(RingContainer);
-        Parent.TryGetComponent(out HealthComponent hc);
-        hc.Death += OnPlayerDeath;
+        if (Parent.TryGetComponent(out HealthComponent hc))
+        {
+            hc.Death += OnPlayerDeath;
+        }
+
+        active = true;
     }
 
     private void OnPlayerDeath(object sender, EventArgs args)

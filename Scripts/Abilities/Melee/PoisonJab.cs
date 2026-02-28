@@ -16,6 +16,11 @@ public class PoisonJab : Ability
         this.BaseType = DamageType.Poison;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         var stats = new AoeBaseStats()

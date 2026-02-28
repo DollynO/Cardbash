@@ -15,6 +15,11 @@ public class EscapeJump : Ability
         this.BaseType = DamageType.Physical;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         if (Caller.TryGetComponent(out MoveComponent moveComponent) && Caller.TryGetComponent(out AimComponent aimComponent))

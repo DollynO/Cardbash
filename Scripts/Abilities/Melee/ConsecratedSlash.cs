@@ -16,6 +16,11 @@ public class ConsecratedSlash : Ability
         this.BaseType = DamageType.Holy;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
         var stats = new AoeBaseStats()

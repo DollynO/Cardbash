@@ -44,6 +44,11 @@ public class IceArrowAbility : ProjectileAbility
     }
 
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     protected override void InternalUpdate()
     {
         

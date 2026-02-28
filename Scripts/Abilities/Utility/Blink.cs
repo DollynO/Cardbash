@@ -15,12 +15,20 @@ public class Blink : Ability
         this.BaseType = DamageType.Lightning;
     }
 
+    public override void RoundReset()
+    {
+        return;
+    }
+
     public override void InternalUse()
     {
-        var mousePosition = ((Node2D)Caller).GetGlobalMousePosition();
-        if (Caller.TryGetComponent(out MoveComponent moveComponent))
+        if (Caller.TryGetComponent(out AimComponent aimComponent))
         {
-            moveComponent.RequestReposition(mousePosition, 0);
+            var mousePosition = aimComponent.GetPlayerMouesPosition(400);
+            if (Caller.TryGetComponent(out MoveComponent moveComponent))
+            {
+                moveComponent.RequestReposition(mousePosition, 0);
+            }
         }
     }
 
