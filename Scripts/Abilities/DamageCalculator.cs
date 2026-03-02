@@ -127,27 +127,4 @@ public static class DamageCalculator
             orgDamages.Add(calculatedDamage.Key, calculatedDamage.Value);
         }
     }
-
-    public static Godot.Collections.Dictionary<DamageType, Variant> ConvertDmgDictToGodotDict(Dictionary<DamageType, Damage> dict)
-    {
-        var godotDict = new Godot.Collections.Dictionary<DamageType, Variant>();
-        foreach (var entry in dict)
-        {
-            godotDict.Add(entry.Key, entry.Value.ToDict());
-        }
-
-        return godotDict;
-    }
-
-    public static Dictionary<DamageType, Damage> ConvertGodotDmgDictToSystemDict(
-        Godot.Collections.Dictionary<DamageType, Variant> dict)
-    {
-        var systemDict = new Dictionary<DamageType, Damage>();
-        foreach (var entry in dict)
-        {
-            systemDict.Add(entry.Key, Damage.FromDict((Godot.Collections.Dictionary<string, Variant>)entry.Value));
-        }
-
-        return systemDict;
-    }
 }

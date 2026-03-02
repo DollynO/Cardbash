@@ -6445,7 +6445,7 @@ tile_set = SubResource("TileSet_b8d8o")
 _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton")]
 layer = 5
 script = ExtResource("4_e1s5y")
 _abilityFrames = [NodePath("HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/AbilityFrame4")]
@@ -6455,6 +6455,7 @@ _waitLabel = NodePath("DrawUi/WaitLabel")
 _cardBox = NodePath("DrawUi/VBoxContainer/CardBox")
 _darknessEffect = NodePath("DarknessEffect")
 _roundLabel = NodePath("RoundLabel")
+_lockButton = NodePath("DrawUi/VBoxContainer/CardLock")
 
 [node name="DarknessEffect" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_cerkr")
@@ -6548,6 +6549,7 @@ Energy Shield:
 Int
 Str"
 editable = false
+scroll_fit_content_height = true
 
 [node name="RoundLabel" type="Label" parent="HUD"]
 anchors_preset = 5

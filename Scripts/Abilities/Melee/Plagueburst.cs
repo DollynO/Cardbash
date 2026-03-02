@@ -10,14 +10,14 @@ public class Plagueburst : Ability
 {
     public Plagueburst(PlayerCharacter creator) : base(AbilityIds.PlagueburstGuid, creator)
     {
-        this.DisplayName = "Plagueburst";
-        this.Description = "Bursts all corruption and agony buffs to cause damage.";
-        this.IconPath = "res://Sprites/SkillIcons/Dark/15_Rod_of_Darkness.png";
-        this.BaseCooldown = 5;
-        this.BaseDamage = 10;
-        this.BaseType = DamageType.Darkness;
-        this._hitModifiers.Add(new ConsumeBuffHitModifier(onBuffConsumed, typeof(Corruption), true));
-        this._hitModifiers.Add(new ConsumeBuffHitModifier(onBuffConsumed, typeof(Agony), true));
+        DisplayName = "Plagueburst";
+        Description = "Bursts all corruption and agony buffs to cause damage.";
+        IconPath = "res://Sprites/SkillIcons/Dark/15_Rod_of_Darkness.png";
+        BaseCooldown = 5;
+        BaseDamage = 10;
+        BaseType = DamageType.Darkness;
+        _hitModifiers.Add(new ConsumeBuffHitModifier(onBuffConsumed, typeof(Corruption), true));
+        _hitModifiers.Add(new ConsumeBuffHitModifier(onBuffConsumed, typeof(Agony), true));
     }
 
     private void onBuffConsumed(int count, HitContext context)

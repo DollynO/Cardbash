@@ -16,6 +16,7 @@ public partial class Hud : CanvasLayer
 	[Export] private HBoxContainer _cardBox;
 	[Export] private ColorRect _darknessEffect;
 	[Export] private Label _roundLabel;
+	[Export] private ButtonPrefab _lockButton;
 	
 	private PackedScene _abilityCardTemplate;
 	private PackedScene _itemCardTemplate;
@@ -54,6 +55,7 @@ public partial class Hud : CanvasLayer
 		_drawUiContainer.Visible = visible;
 		if (visible)
 		{
+			_lockButton.Disabled = false;
 			_clear_card_box();
 			_displayDrawnCards(cards, _cardBox);
 			ShowWaitLabel(false);
@@ -129,6 +131,7 @@ public partial class Hud : CanvasLayer
 
 		_cardBox.Visible = false;
 		_waitLabel.Visible = true;
+		_lockButton.Disabled = true;
 		EmitSignal(SignalName.CardLocked, Multiplayer.GetUniqueId(), _selectedCard.EffectGUID);
 	}
 	
@@ -137,12 +140,8 @@ public partial class Hud : CanvasLayer
 		_selectedCard = card;
 	}
 	
-	public void PrintStats(PlayerCharacter player)
+	private void PrintStats(PlayerCharacter player)
 	{
-		var stats = player.StatBlock;
-		_statsText.Text = $"Movement Speed: {stats.GetStat(StatType.MovementSpeed)}\n" +
-		                  $"Armor: {stats.GetStat(StatType.Armor)}\n" +
-		                  $"Life: {player.HealthComponent.CurrentHealth} / {player.HealthComponent.MaxHealth}\n" +
-		                  $"Energy Shield: {stats.GetStat(StatType.EnergyShield)}\n";
+		_statsText.Text = player.StatBlock.GetStatDebugText();
 	}
 }

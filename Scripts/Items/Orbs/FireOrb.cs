@@ -18,7 +18,7 @@ public class FireOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.DamageModifier.Add(new DamageModifier()
+            statblock.AddDamageModifier(new DamageModifier()
             {
                 TargetDamageType = DamageType.Fire,
                 OutputDamageType = DamageType.Fire,

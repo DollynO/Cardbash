@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
@@ -16,6 +18,7 @@ public partial class StatblockComponent : Node2D, IComponent
     }
     
     public Dictionary ReplicatedCurrent = new();
+    public Dictionary DamageModsReplicated = new();
 
     private readonly StatBlock _stats = new();
     
@@ -87,4 +90,17 @@ public partial class StatblockComponent : Node2D, IComponent
         }
     }
 
+    public string GetStatDebugText()
+    {
+        var sb = new StringBuilder();
+        foreach (var value in Enum.GetValues<StatType>())
+        {
+            if (ReplicatedCurrent.ContainsKey((int)value))
+            {
+                sb.AppendLine($"{value} : {ReplicatedCurrent[(int)value]}");
+            }
+        }
+        
+        return sb.ToString();
+    }
 }

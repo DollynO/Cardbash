@@ -26,7 +26,7 @@ public partial class GameManager : Node2D
 	private PlayerCharacter _currentPlayer;
 	
 	[Signal]
-	public delegate void OnPlayerKilledEventHandler(long victimId, long killerId);
+	public delegate void OnPlayerKilledEventHandler(PlayerCharacter victimId, PlayerCharacter killerId);
 
 	public override void _EnterTree()
 	{
@@ -40,17 +40,19 @@ public partial class GameManager : Node2D
 
 		var ts = new TeamSystem(this, _currentCharacters);
 		var cs = new CardSystem();
-		var ctx = new GameContext(this, _currentCharacters, ts, cs);
-		var settings = new GameModeSettings();
-		settings.CardsDrawnAtRoundBegin = 1;
-		settings.RoundPointLimit = 2;
-		settings.RoundsPerGame = 3;
-		settings.RoundTimeLimitSeconds = float.PositiveInfinity;
+		var ss = new ScoreSystem();
+		var ctx = new GameContext(this, _currentCharacters, ts, cs, ss);
 		
 		_flowController = new GameFlowController(ctx, settings);
 		this.AddChild(_flowController);
-		
+
 		Rpc(MethodName.im_in_game, Multiplayer.GetUniqueId());
+	}
+
+	private GameModeSettings settings = new();
+	public void SetStats(GameModeSettings stats)
+	{
+		settings = stats;
 	}
 
 	public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter  killer)
@@ -71,8 +73,8 @@ public partial class GameManager : Node2D
 		var rect = _tileMapLayer.GetUsedRect();
 		var tileSize = _tileMapLayer.TileSet.TileSize;
 
-		Vector2 origion = _tileMapLayer.MapToLocal(rect.Position);
-		Vector2 size = rect.Size *  tileSize;
+		var origion = _tileMapLayer.MapToLocal(rect.Position);
+		var size = rect.Size *  tileSize;
 		return new Rect2(origion, size);
 	}
 	
@@ -152,7 +154,7 @@ public partial class GameManager : Node2D
 			{ "playerId", player.Name },
 			{ "deck", deckDict}
 		};
-		_spawner.Spawn(dict);
+		var node = _spawner.Spawn(dict);
 	}
 	
 	private Node CustomSpawner(Variant data)
@@ -171,7 +173,6 @@ public partial class GameManager : Node2D
 		node.PlayerName = playerName;
 		node.TeamId = teamId;
 		node.PlayerId = long.Parse(playerId);
-		
 		
 		node.GlobalPosition = GetNextFreeSpawnPoint();
 		foreach (var cardCounter in deck.Cards)

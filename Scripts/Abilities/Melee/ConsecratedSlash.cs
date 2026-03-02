@@ -23,6 +23,8 @@ public class ConsecratedSlash : Ability
 
     public override void InternalUse()
     {
+        Caller.TryGetComponent(out AimComponent aimComponent);
+        
         var stats = new AoeBaseStats()
         {
             Angle = 45,
@@ -33,11 +35,43 @@ public class ConsecratedSlash : Ability
             Owner = Caller,
             AbilityGUID = GUID,
         };
-        for (var i = 0; i < 4; i++)
+        GlobalAbilitySpawner.SpawnAoe(stats);
+        
+        var stats1 = new AoeBaseStats()
         {
-            stats.AngleOffset = 0 + i * 90;
-            GlobalAbilitySpawner.SpawnAoe(stats);
-        }
+            Angle = 45,
+            ActivationTime = 0.8f,
+            OnActivation = OnActivation,
+            Radius = 60,
+            AngleOffset = 90,
+            Owner = Caller,
+            AbilityGUID = GUID,
+        };
+        GlobalAbilitySpawner.SpawnAoe(stats1);
+        
+        var stats2 = new AoeBaseStats()
+        {
+            Angle = 45,
+            ActivationTime = 0.8f,
+            OnActivation = OnActivation,
+            Radius = 60,
+            AngleOffset = 180,
+            Owner = Caller,
+            AbilityGUID = GUID,
+        };
+        GlobalAbilitySpawner.SpawnAoe(stats2);
+        
+        var stats3 = new AoeBaseStats()
+        {
+            Angle = 45,
+            ActivationTime = 0.8f,
+            OnActivation = OnActivation,
+            Radius = 60,
+            AngleOffset = 270,
+            Owner = Caller,
+            AbilityGUID = GUID,
+        };
+        GlobalAbilitySpawner.SpawnAoe(stats3);
     }
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
     {

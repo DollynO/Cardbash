@@ -16,7 +16,7 @@ public class AoeBaseStats
     public float Angle { get; set; } = 360f; // Default to full circle
     public float AngleOffset { get; set; } = 0f; // Rotation offset in degrees
     public float ActivationTime { get; set; }
-    public float Duration { get; set; } = -1f; // -1 means until round end
+    public float Duration { get; set; } = 0f; // -1 means until round end
     public bool IsStationary { get; set; }
     public Vector2 StationaryPosition { get; set; }
     public string AbilityGUID { get; set; }

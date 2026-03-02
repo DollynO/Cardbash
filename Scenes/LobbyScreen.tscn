@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="2_7rmyw"]
 [ext_resource type="PackedScene" uid="uid://gi8i5cvds6au" path="res://Scenes/PlayerSlot.tscn" id="3_p6nru"]
 
-[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("readyButton", "notReadyButton", "startButton", "_teamSelect", "_deckSelect", "_playerListContainer")]
+[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("readyButton", "notReadyButton", "startButton", "_teamSelect", "_deckSelect", "_playerListContainer", "gameSettingFields")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -19,6 +19,7 @@ startButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start"
 _teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/TeamSelect")
 _deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
 _playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer")
+gameSettingFields = [NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/CardsPerRoundInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsToWinInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnRoundEndInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnKillInput")]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -144,6 +145,62 @@ allow_reselect = true
 [node name="GameSettings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 2
+
+[node name="GameRounds" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Rounds per Game"
+
+[node name="GameRoundsInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "-"
+placeholder_text = "3"
+virtual_keyboard_type = 2
+
+[node name="CardsPerRound" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Cards per round"
+
+[node name="CardsPerRoundInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "3"
+placeholder_text = "3"
+virtual_keyboard_type = 2
+
+[node name="PointsToWin" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Points to win"
+
+[node name="PointsToWinInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "100"
+virtual_keyboard_type = 2
+
+[node name="PointsOnRoundEnd" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Points on round end"
+
+[node name="PointsOnRoundEndInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "15"
+virtual_keyboard_type = 2
+
+[node name="PointsOnKill" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Points on kill"
+
+[node name="PointsOnKillInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "10"
+virtual_keyboard_type = 2
 
 [node name="Footer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2"]
 custom_minimum_size = Vector2(0, 100)

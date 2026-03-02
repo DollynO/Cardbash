@@ -14,6 +14,7 @@ public partial class LobbyManager : ColorRect
 	[Export] private OptionButton _deckSelect;
 
 	[Export] private VBoxContainer _playerListContainer;
+	[Export] private Array<LineEdit> gameSettingFields;
 	private Array<PlayerSlot> _playerSlots = new();
 
 	private SceneManager _sceneManager;
@@ -130,7 +131,13 @@ public partial class LobbyManager : ColorRect
 
 	private void _on_start_pressed()
 	{
-		_sceneManager?.Rpc(SceneManager.MethodName.LoadGameScene);
+		var settings = new GameModeSettings();
+		settings.CardsPerRound = int.TryParse(gameSettingFields[0].Text, out var value) ? value : 3;
+		settings.PointsToWin = int.TryParse(gameSettingFields[1].Text, out value) ? value : 100;
+		settings.PointsOnRoundEnd = int.TryParse(gameSettingFields[2].Text, out value) ? value : 15;
+		settings.PointsOnKill = int.TryParse(gameSettingFields[3].Text, out value) ? value : 10;
+
+		_sceneManager.LoadGameScene(settings);
 	}
 
 	private void _on_back_pressed()

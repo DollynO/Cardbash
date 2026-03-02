@@ -45,8 +45,19 @@ public partial class SceneManager : Node2D
 		AddChild(Lobby);
 	}
 
-	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-	public void LoadGameScene()
+	public void LoadGameScene(GameModeSettings gameSettings)
+	{
+		UnloadLobby();
+		if (Game is GameManager manager)
+		{
+			manager.SetStats(gameSettings);
+		}
+		AddChild(Game);
+		Rpc(MethodName.loadGameOnClient);
+	}
+
+	[Rpc(CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	private void loadGameOnClient()
 	{
 		UnloadLobby();
 		AddChild(Game);

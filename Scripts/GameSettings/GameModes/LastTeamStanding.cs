@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 public sealed class LastTeamStandingMode : IGameMode
@@ -15,7 +16,17 @@ public sealed class LastTeamStandingMode : IGameMode
     public LastTeamStandingMode(GameModeSettings settings) => Settings = settings;
 
     public void ServerInitialize(GameContext ctx) => _ctx = ctx;
-    public void ServerStartGame() { }
+
+    public void ServerStartGame()
+    {
+        _ctx.GameManager.OnPlayerKilled += onPlayerKilled;
+    }
+
+    private void onPlayerKilled(PlayerCharacter victimid, PlayerCharacter killerid)
+    {
+        _ctx.ScoreSystem.AddToPlayerScore(killerid, Settings.PointsOnKill);
+    }
+
     public void ServerStartRound(int roundIndex)
     {
         // reset alive, respawns, etc.
@@ -34,7 +45,12 @@ public sealed class LastTeamStandingMode : IGameMode
 
         if (aliveTeams.Count <= 1)
         {
+            foreach (var player in aliveTeams.SelectMany(team => team.Players))
+            {
+                _ctx.ScoreSystem.AddToPlayerScore(player, Settings.PointsOnRoundEnd);
+            }
             result = RoundResult.TeamWin(aliveTeams.Count == 1 ? aliveTeams[0] : null);
+            
             return true;
         }
 
@@ -49,7 +65,14 @@ public sealed class LastTeamStandingMode : IGameMode
             .GroupBy(team => team)
             .ToDictionary(g => g.Key, g => g.Count());
 
-        var winningTeams = winCounts.Where(kvp => kvp.Value >= Settings.RoundsPerGame).Select(kvp => kvp.Key).ToList();
+        var dict = new Dictionary<Team, int>();
+        foreach (var teams in _ctx.TeamSystem.Teams)
+        {
+            var teamScore = _ctx.ScoreSystem.PlayerScores.Where(kvp => kvp.Key.TeamId == teams.Key).Sum(kvp => kvp.Value);
+            dict.Add(teams.Value, teamScore);
+        }
+        
+        var winningTeams = dict.Where(kvp => kvp.Value >= Settings.PointsToWin).Select(kvp => kvp.Key).ToList();
         if (winningTeams.Any())
         {
             result = new GameResult(winningTeams);

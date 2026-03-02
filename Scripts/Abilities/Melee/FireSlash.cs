@@ -27,7 +27,7 @@ public class FireSlash : Ability
         var stats = new AoeBaseStats()
         {
             Angle = 120,
-            ActivationTime = 1.0f,
+            ActivationTime = 0.2f,
             Radius = 80,
             AngleOffset = 0,
             Owner = Caller,

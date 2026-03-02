@@ -41,10 +41,10 @@ public class FireballAbility : ProjectileAbility
             Caller = Caller,
             Direction = direction,
             Speed = 300,
-            TimeToBeALive = 15,
+            TimeToBeALive = 10,
             AnimationResourcePath = "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
-            BouncingCount = 3,
-            PiercingCount = 1,
+            BouncingCount = 0,
+            PiercingCount = 0,
             OnHit = OnHit,
         };
     }

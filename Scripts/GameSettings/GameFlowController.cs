@@ -50,7 +50,7 @@ public partial class GameFlowController : Node
         {
            pickedCards.Add((playerId, cardGuid));
            
-           if (pickedCards.Count == drawRoundIndex * _ctx.Players.Count)
+           if (pickedCards.Count == _ctx.Players.Count)
            {
                    ServerFinishDraw();
            }
@@ -93,10 +93,8 @@ public partial class GameFlowController : Node
                 break;
 
             case MatchPhase.Combat:
+                drawRoundIndex = 0;
                 _mode.ServerTick(delta);
-
-                if (settings.RoundTimeLimitSeconds > 0 && _phaseTime >= settings.RoundTimeLimitSeconds)
-                    ServerForceRoundEnd_Time();
 
                 if (_mode.ServerIsRoundOver(out var rr))
                     ServerEndRound(rr);
@@ -113,7 +111,7 @@ public partial class GameFlowController : Node
 
     private bool ServerCheckDrawEnd()
     {
-        return pickedCards.Count == _roundIndex * _ctx.Players.Count * settings.CardsDrawnAtRoundBegin;
+        return drawRoundIndex == settings.CardsPerRound;
     }
     
     private bool ServerIsCardSelectionComplete()
@@ -192,6 +190,8 @@ public partial class GameFlowController : Node
                 kvp.Value.Cards.Remove(card);
             }
         }
+        
+        pickedCards.Clear();
     }
     
 
@@ -230,6 +230,11 @@ public partial class GameFlowController : Node
 
     private void updateGameInfo()
     {
-        _ctx.GameManager.Hud.DisplayRoundInfo($"Round {_roundIndex} / {settings.RoundsPerGame}");
+        var info = string.Empty;
+        foreach (var kvp in _ctx.ScoreSystem.PlayerScores)
+        {
+            info += $"/n{kvp.Key.PlayerName}:{kvp.Value}";
+        }
+        _ctx.GameManager.Hud.DisplayRoundInfo(info);
     }
 }
