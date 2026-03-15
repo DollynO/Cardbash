@@ -54,7 +54,6 @@ public partial class NetworkManager : Node
 
 	public void StartClient(string ip, int port)
 	{
-		//clearMultiplayerSpawner();
 		CurrentPlayers.Clear();
 		var peer = new ENetMultiplayerPeer();
 		peer.CreateClient(ip, port);
@@ -63,6 +62,14 @@ public partial class NetworkManager : Node
 		Multiplayer.ConnectedToServer += _connected_to_server;
 		Multiplayer.ConnectionFailed += _connection_failed;
 		Multiplayer.ServerDisconnected += _server_disconnected;
+	}
+
+	public void DeleteClient()
+	{
+		Multiplayer.ConnectedToServer -= _connected_to_server;
+		Multiplayer.ConnectionFailed -= _connection_failed;
+		Multiplayer.ServerDisconnected -= _server_disconnected;
+		Multiplayer.MultiplayerPeer = null;
 	}
 
 	public void DisconnectPlayer(int playerId)
@@ -116,6 +123,7 @@ public partial class NetworkManager : Node
 
 	private void _server_disconnected()
 	{
+		DeleteClient();
 		EmitSignal(SignalName.OnServerDisconnected);
 	}
 
