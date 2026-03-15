@@ -77,6 +77,7 @@ public partial class LobbyManager : ColorRect
 	{
 		startButton.Disabled = !(Multiplayer.IsServer() && _network.CurrentPlayers.All(p =>p.IsReady));
 		var playerCount = _network.CurrentPlayers.Count;
+		
 		for (var i = 0; i < _playerSlots.Count; i++)
 		{
 			var slot = _playerSlots[i];

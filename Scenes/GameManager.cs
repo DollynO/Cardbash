@@ -44,9 +44,16 @@ public partial class GameManager : Node2D
 		var ctx = new GameContext(this, _currentCharacters, ts, cs, ss);
 		
 		_flowController = new GameFlowController(ctx, settings);
-		this.AddChild(_flowController);
+		AddChild(_flowController);
 
-		Rpc(MethodName.im_in_game, Multiplayer.GetUniqueId());
+		if (Multiplayer.IsServer())
+		{
+			im_in_game(Multiplayer.GetUniqueId());	
+		}
+		else
+		{
+			RpcId(1, MethodName.im_in_game, Multiplayer.GetUniqueId());
+		}
 	}
 
 	private GameModeSettings settings = new();

@@ -25,7 +25,7 @@ public partial class SceneManager : Node2D
 	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void LoadMenuScene()
 	{
-		RemoveChild(DeckBuilder);
+		Remove(DeckBuilder);
 		UnloadLobby();
 		AddChild(Menu);
 	}
@@ -33,14 +33,14 @@ public partial class SceneManager : Node2D
 	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void LoadDeckBuilderScene()
 	{
-		RemoveChild(Menu);
+		Remove(Menu);
 		AddChild(DeckBuilder);
 	}
 
 	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void LoadLobbyScene()
 	{
-		RemoveChild(Menu);
+		Remove(Menu);
 		Lobby ??= LobbyScene.Instantiate();
 		AddChild(Lobby);
 	}
@@ -65,8 +65,16 @@ public partial class SceneManager : Node2D
 
 	private void UnloadLobby()
 	{
-		RemoveChild(Lobby);
+		Remove(Lobby);
 		Lobby?.QueueFree();
 		Lobby = null;
+	}
+
+	private void Remove(Node node)
+	{
+		if (node?.GetParent() != null)
+		{
+			RemoveChild(node);
+		}
 	}
 }

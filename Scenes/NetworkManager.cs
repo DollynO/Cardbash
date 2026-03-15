@@ -65,9 +65,23 @@ public partial class NetworkManager : Node
 		Multiplayer.ServerDisconnected += _server_disconnected;
 	}
 
-	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void DisconnectPlayer(int playerId)
 	{
+		if (!Multiplayer.IsServer())
+		{
+			return;
+		}
+		
+		if (Multiplayer.MultiplayerPeer == null)
+		{
+			return;
+		}
+		
+		if (!Multiplayer.GetPeers().Contains(playerId))
+		{
+			return;
+		}
+		
 		Multiplayer.MultiplayerPeer.DisconnectPeer(playerId);
 	}
 

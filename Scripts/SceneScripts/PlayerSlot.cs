@@ -19,6 +19,7 @@ public partial class PlayerSlot : Panel
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -37,14 +38,14 @@ public partial class PlayerSlot : Panel
 		_teamColor.Color = ColorPlate.Colors[player.TeamNumber];
 	}
 
-	private void _on_kick_button_pressed()
-	{
-		if (!Multiplayer.IsServer())
+		private void _on_kick_button_pressed()
 		{
-			return;
+			if (!Multiplayer.IsServer())
+			{
+				return;
+			}
+			
+			GetNode<NetworkManager>("/root/Main/NetworkManager")
+				.DisconnectPlayer((int)_currentPlayer.PlayerId);
 		}
-		
-		GetNode<NetworkManager>("/root/Main/NetworkManager")
-			.Rpc(NetworkManager.MethodName.DisconnectPlayer, _currentPlayer.PlayerId);
 	}
-}
