@@ -50,8 +50,8 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         }
     }
     private string _playerName;
-    
-    public Array<Card> Cards = new Array<Card>();
+
+    public Deck Deck { get; set; }
     public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }

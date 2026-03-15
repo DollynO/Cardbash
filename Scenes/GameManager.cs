@@ -175,13 +175,7 @@ public partial class GameManager : Node2D
 		node.PlayerId = long.Parse(playerId);
 		
 		node.GlobalPosition = GetNextFreeSpawnPoint();
-		foreach (var cardCounter in deck.Cards)
-		{
-			for (var i = 0; i < cardCounter.Value.Count; i++)
-			{
-				node.Cards.Add(cardCounter.Key);
-			}
-		}
+		node.Deck = deck;
 
 		_currentCharacters.Add(node.PlayerId, node);
 		return node;

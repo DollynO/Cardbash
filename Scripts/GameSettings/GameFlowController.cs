@@ -151,7 +151,7 @@ public partial class GameFlowController : Node
         drawRoundIndex++;
         foreach (var kvp in _ctx.Players)
         {
-            var cards = _ctx.CardSystem.DrawCards(kvp.Value.Cards.ToList(), 5);
+            var cards = _ctx.CardSystem.DrawCards(kvp.Value.Deck, 5);
             var cardArray = new Array<string>(cards);
             RpcId(kvp.Key, MethodName.OpenDrawOnClient, kvp.Key, cardArray);
         }
@@ -161,7 +161,7 @@ public partial class GameFlowController : Node
     private void OpenDrawOnClient(long id, Array<string> cardArray)
     {
         var player = _ctx.Players[id];
-        var cards = cardArray.Select(cardGuid => player.Cards.FirstOrDefault(c => c.EffectGUID == cardGuid)).ToList();
+        var cards = cardArray.Select(cardGuid => player.Deck.Cards.FirstOrDefault(kvp => kvp.Key.EffectGUID == cardGuid).Key).ToList();
         _ctx.GameManager.Hud.ShowDrawUi(true, cards);
     }
 
@@ -183,12 +183,6 @@ public partial class GameFlowController : Node
         {
             var selectedCards = pickedCards.Where(p => p.id == kvp.Key).Select(p => p.guid).ToList();
             _ctx.CardSystem.ServerApplyCards(selectedCards, kvp.Value);
-            foreach (var selectedCard in selectedCards)
-            {
-                var cards = kvp.Value.Cards;
-                var card = cards.FirstOrDefault(c => c.EffectGUID == selectedCard);
-                kvp.Value.Cards.Remove(card);
-            }
         }
         
         pickedCards.Clear();

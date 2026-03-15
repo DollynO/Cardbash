@@ -94,26 +94,32 @@ public sealed class ScoreSystem
 
 public sealed class CardSystem
 {
-    public List<string> DrawCards(List<Card> deck, int amount)
+    public List<string> DrawCards(Deck deck, int amount)
     {
-        var handCards = new List<string>();
-        if (deck.Count <= amount)
+        deck.Cards.Keys.Where(c => c.ExhaustionCount > 0).ToList().ForEach(c => c.ExhaustionCount--);
+        
+        var rng = new Random();
+        var cards = new List<Card>();
+        foreach (var deckCard in deck.Cards.Where(c => c.Key.ExhaustionCount == 0))
         {
-            handCards.AddRange(deck.Select(c => c.EffectGUID));
-        }
-        else
-        {
-            var tmpDeck = new Card[deck.Count];
-            deck.CopyTo(tmpDeck);
-            var tmpList = tmpDeck.ToList();
-            var rnd = new Random();
-            while (handCards.Count < amount)
+            for (var i = 0; i < deckCard.Value.Count; i++)
             {
-
-                var index = rnd.NextInt64(0, tmpList.Count);
-                handCards.Add(tmpList[(int)index].EffectGUID);
-                tmpList.RemoveAt((int)index);
+                cards.Add(deckCard.Key);
             }
+        }
+        
+        var handCards = new List<string>();
+        for (var i = 0; i < amount; i++)
+        {
+            if (cards.Count <= 0)
+            {
+                break;
+            }
+            
+            var number = rng.NextInt64(0, cards.Count - 1);
+            var guid = cards[(int)number].EffectGUID;
+            handCards.Add(guid);
+            cards.RemoveAll(c => c.EffectGUID == guid);
         }
 
         return handCards;
@@ -123,6 +129,7 @@ public sealed class CardSystem
     {
         foreach (var cardGuid in cardGuids)
         {
+            player.Deck.Cards.FirstOrDefault(c => c.Key.EffectGUID == cardGuid).Key.ExhaustionCount = 2;
             if (GlobalCardManager.Instance.AbilityCards.ContainsKey(cardGuid))
             {
                 applyAbility(cardGuid, player);

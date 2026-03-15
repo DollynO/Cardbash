@@ -24,6 +24,7 @@ public partial class Card : Node, ICard
     public string DisplayName { get; set; }
     public string Description { get; set; }
     public string IconPath { get; set; }
+    public int ExhaustionCount { get; set; }
 
     public Card()
     {
