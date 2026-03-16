@@ -121,7 +121,7 @@ public partial class GameManager : Node2D
 
 	private void _spawn_players()
 	{
-		foreach (var player in _network.CurrentPlayers)
+		foreach (var player in _network.CurrentPlayers.Values)
 		{
 			_spawn_player_character(player);
 		}

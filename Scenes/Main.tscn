@@ -15,11 +15,6 @@ DeckBuilderScene = ExtResource("3_3b14q")
 LobbyScene = ExtResource("4_o56g4")
 GameScene = ExtResource("5_bvwy4")
 
-[node name="NetworkManager" type="Node" parent="." node_paths=PackedStringArray("multiplayer_spawner")]
+[node name="NetworkManager" type="Node" parent="."]
 script = ExtResource("5_jea26")
 player_scene = ExtResource("7_1qjbx")
-multiplayer_spawner = NodePath("MultiplayerSpawner")
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="NetworkManager"]
-_spawnable_scenes = PackedStringArray("res://Scenes/Player.tscn")
-spawn_path = NodePath(".")

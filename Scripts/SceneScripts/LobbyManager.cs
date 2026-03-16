@@ -75,8 +75,9 @@ public partial class LobbyManager : ColorRect
 
 	public void update_ui()
 	{
-		startButton.Disabled = !(Multiplayer.IsServer() && _network.CurrentPlayers.All(p =>p.IsReady));
+		startButton.Disabled = !(Multiplayer.IsServer() && _network.CurrentPlayers.Values.All(p =>p.IsReady));
 		var playerCount = _network.CurrentPlayers.Count;
+		var playerList = _network.CurrentPlayers.Values.ToList();
 		
 		for (var i = 0; i < _playerSlots.Count; i++)
 		{
@@ -84,10 +85,10 @@ public partial class LobbyManager : ColorRect
 			if (i < playerCount)
 			{
 				slot.Visible = true;
-				slot.UpdateSlotUi(_network.CurrentPlayers[i]);
-				if (_network.CurrentPlayers[i].PlayerId == Multiplayer.GetUniqueId())
+				slot.UpdateSlotUi(playerList[i]);
+				if (playerList[i].PlayerId == Multiplayer.GetUniqueId())
 				{
-					currentPlayer = _network.CurrentPlayers[i];
+					currentPlayer = playerList[i];
 				}
 			}
 			else
@@ -168,7 +169,7 @@ public partial class LobbyManager : ColorRect
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void _syncDeck(long id, Dictionary deckDict)
 	{
-		if (_network.CurrentPlayers.FirstOrDefault(p => p.PlayerId == id) is { } player)
+		if (_network.CurrentPlayers.TryGetValue(id, out var player))
 		{
 			player.SelectedDeck = Deck.FromDict(deckDict);
 		}
@@ -177,7 +178,7 @@ public partial class LobbyManager : ColorRect
 	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void _allUnready()
 	{
-		foreach (var player in _network.CurrentPlayers)
+		foreach (var player in _network.CurrentPlayers.Values)
 		{
 			player.IsReady = false;
 		}
