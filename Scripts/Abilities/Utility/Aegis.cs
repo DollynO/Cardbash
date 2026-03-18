@@ -51,10 +51,12 @@ public class Aegis : Ability, IHitInterceptor
             {
                 Radius = ringRadius,
                 ActivationTime = 0.1f,
-                OnActivation = OnActivation,
                 Duration = -1,
-                OnEntityEnter = OnPlayerEnter,
-                OnEntityExit = OnPlayerExit,
+                Callbacks = new AoeBaseCallbacks {
+                    OnActivation = OnActivation,
+                    OnEntityEnter = OnPlayerEnter,
+                    OnEntityExit = OnPlayerExit,
+                },
                 AbilityGUID = GUID,
                 IsStationary = false,
                 Owner = Caller,

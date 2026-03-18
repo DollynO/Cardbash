@@ -33,7 +33,7 @@ public class Meteor : Ability
             ActivationTime = 2f,
             Radius = 200,
             Duration = 0,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
             Owner = Caller,
             AbilityGUID = GUID,
             StationaryPosition = aimComponent.GetPlayerMouesPosition(600),

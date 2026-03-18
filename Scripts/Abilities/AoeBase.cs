@@ -9,6 +9,15 @@ using Array = Godot.Collections.Array;
 
 namespace CardBase.Scripts.Abilities;
 
+public class AoeBaseCallbacks
+{
+    public Action<List<IEntityComponent>, AoeBase> OnActivation { get; set; }
+    public Action<List<IEntityComponent>, AoeBase> OnDeactivation { get; set; }
+    public Action<IEntityComponent, double, AoeBase> OnTick { get; set; }
+    public Action<IEntityComponent, AoeBase> OnEntityEnter { get; set; }
+    public Action<IEntityComponent, AoeBase> OnEntityExit { get; set; }
+}
+
 public class AoeBaseStats
 {
     public IEntityComponent Owner { get; set; }
@@ -21,14 +30,9 @@ public class AoeBaseStats
     public Vector2 StationaryPosition { get; set; }
     public string AbilityGUID { get; set; }
     public float TickInterval { get; set; } = 1f; // How often OnTick is called
-    public float ShapeUpdateInterval { get; set; } = 0.15f; // How often to recalculate collision shape
-    
-    // Callbacks
-    public Action<List<IEntityComponent>, AoeBase> OnActivation { get; set; }
-    public Action<List<IEntityComponent>, AoeBase> OnDeactivation { get; set; }
-    public Action<IEntityComponent, double, AoeBase> OnTick { get; set; }
-    public Action<IEntityComponent, AoeBase> OnEntityEnter { get; set; }
-    public Action<IEntityComponent, AoeBase> OnEntityExit { get; set; }
+    public float ShapeUpdateInterval { get; set; } = 0.016f; // How often to recalculate collision shape
+
+    public AoeBaseCallbacks Callbacks { get; set; }
     
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -80,6 +84,7 @@ public partial class AoeBase : Node2D
     }
 
     private AoeBaseStats stats;
+    private AoeBaseCallbacks callbacks;
     private InternalState internalState;
     
     private List<Vector2> collisionPoints = new();
@@ -106,6 +111,11 @@ public partial class AoeBase : Node2D
     public void Initialize(AoeBaseStats aoeStats)
     {
         this.stats = aoeStats;
+    }
+
+    public void SetCallbacks(AoeBaseCallbacks pCallbacks)
+    {
+        this.callbacks = pCallbacks;
     }
     
     public override void _Ready()
@@ -172,7 +182,7 @@ public partial class AoeBase : Node2D
             if (ShouldAffectPlayer(player))
             {
                 playersInArea.Add(player);
-                stats.OnEntityEnter?.Invoke(player, this);
+                callbacks.OnEntityEnter?.Invoke(player, this);
             }
         }
     }
@@ -182,7 +192,7 @@ public partial class AoeBase : Node2D
         if (body is PlayerCharacter player && playersInArea.Contains(player))
         {
             playersInArea.Remove(player);
-            stats.OnEntityExit?.Invoke(player, this);
+            callbacks.OnEntityExit?.Invoke(player, this);
         }
     }
     
@@ -202,7 +212,7 @@ public partial class AoeBase : Node2D
         
         var affectedPlayers = GetAffectedPlayers();
         
-        stats.OnActivation?.Invoke(affectedPlayers, this);
+        callbacks.OnActivation?.Invoke(affectedPlayers, this);
 
         if (stats.Duration != 0)
         {
@@ -258,17 +268,12 @@ public partial class AoeBase : Node2D
         if (Multiplayer.IsServer())
         {
             var affectedPlayers = playersInArea.ToList();
-            stats.OnDeactivation?.Invoke(affectedPlayers, this);
+            callbacks.OnDeactivation?.Invoke(affectedPlayers, this);
         }
 
-        Rpc(MethodName.destroyOnClient);
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void destroyOnClient()
-    {
         QueueFree();
     }
+
     
     public override void _PhysicsProcess(double delta)
     {
@@ -316,7 +321,7 @@ public partial class AoeBase : Node2D
                 {
                     foreach (var player in playersInArea)
                     {
-                        stats.OnTick?.Invoke(player, delta, this);
+                        callbacks.OnTick?.Invoke(player, delta, this);
                     }
                 }
             }
@@ -387,7 +392,6 @@ public partial class AoeBase : Node2D
 
                         this.oldPolygons.Clear();
                         this.oldPolygons = this.polygon.Polygon.ToList();
-                        
                         Rpc(MethodName.updateClients, pointDict, uvDict);
                     }
 

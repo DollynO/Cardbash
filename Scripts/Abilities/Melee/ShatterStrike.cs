@@ -31,7 +31,9 @@ public class ShatterStrike : Ability
         {
             Angle = 45,
             ActivationTime = 0.5f,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  {
+                OnActivation = OnActivation,
+            },
             Radius = 150,
             AngleOffset = 0,
             AbilityGUID = GUID,

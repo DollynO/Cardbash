@@ -29,7 +29,7 @@ public class ConsecratedSlash : Ability
         {
             Angle = 45,
             ActivationTime = 0.8f,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
             Radius = 60,
             AngleOffset = 0,
             Owner = Caller,
@@ -41,7 +41,7 @@ public class ConsecratedSlash : Ability
         {
             Angle = 45,
             ActivationTime = 0.8f,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
             Radius = 60,
             AngleOffset = 90,
             Owner = Caller,
@@ -53,7 +53,7 @@ public class ConsecratedSlash : Ability
         {
             Angle = 45,
             ActivationTime = 0.8f,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
             Radius = 60,
             AngleOffset = 180,
             Owner = Caller,
@@ -65,7 +65,7 @@ public class ConsecratedSlash : Ability
         {
             Angle = 45,
             ActivationTime = 0.8f,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
             Radius = 60,
             AngleOffset = 270,
             Owner = Caller,

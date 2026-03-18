@@ -5,8 +5,7 @@ namespace CardBase.Scripts.Abilities;
 
 public partial class RingTextureNode : Sprite2D
 {
-    private float updateCounter = 0;
-    private const float fixUpdateInterval = 0.25f;
+    private MultiplayerSynchronizer sync;
     
     public void Init(Texture2D texture, Vector2 scale)
     {
@@ -16,38 +15,41 @@ public partial class RingTextureNode : Sprite2D
 
     public override void _Ready()
     {
+        SetMultiplayerAuthority(1);
         if (!Multiplayer.IsServer())
         {
             SetProcess(false);
         }
+
+        sync = new MultiplayerSynchronizer();
+        sync.Name = "SYNC";
+        sync.RootPath = new NodePath("..");
+
+        var config = new SceneReplicationConfig();
+        var posPath = new NodePath(":position");
+        config.AddProperty(posPath);
+        config.PropertySetReplicationMode(
+            posPath,
+            SceneReplicationConfig.ReplicationMode.Always);
+        config.PropertySetSpawn(posPath, true);
+     
+        var rotPath = new NodePath(":rotation");
+        config.AddProperty(rotPath);
+        config.PropertySetReplicationMode(
+            rotPath,
+            SceneReplicationConfig.ReplicationMode.Always);
+        config.PropertySetSpawn(rotPath, true);
+
+        sync.ReplicationConfig = config;
+        AddChild(sync);
     }
 
     public override void _Process(double delta)
     {
-        updateCounter += (float)delta;
-        if (updateCounter >= fixUpdateInterval)
-        {
-            updateCounter = 0;
-            Rpc(MethodName.updatePosition, this.GlobalPosition, this.GlobalRotation);
-        }
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
-    private void updatePosition(Vector2 position, float rotation)
-    {
-        this.GlobalPosition = position;
-        this.GlobalRotation = rotation;
     }
 
     public new void QueueFree()
     {
-        Rpc(MethodName.destroyClients);
         base.QueueFree();
-    }
-    
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void destroyClients()
-    {
-        QueueFree();
     }
 }

@@ -66,6 +66,8 @@ public partial class GlobalAbilitySpawner : Node2D
                 break;
 
             case SpawnType.AOE:
+                var aoeStats = AoeBaseStats.FromDict(spawnData, GameManager);
+                return spawnAoe(aoeStats, name);
                 break;
             case SpawnType.MELEE:
                 break;
@@ -87,7 +89,7 @@ public partial class GlobalAbilitySpawner : Node2D
     {
         if (Multiplayer.IsServer())
         {
-            abilitySpawner.Spawn(spawnData.ToDict());
+            return abilitySpawner.Spawn(spawnData.ToDict());
         }
 
         return null;
@@ -133,24 +135,30 @@ public partial class GlobalAbilitySpawner : Node2D
 
     public AoeBase SpawnAoe(AoeBaseStats aoeStats)
     {
-        var aoe = new AoeBase();
-        aoe.Initialize(aoeStats);
-        var name = GenerateSpawnName(SpawnType.AOE);
-        aoe.Name = name;
-        var dict = aoeStats.ToDict();
-        this.AddChild(aoe);
-        Rpc(MethodName.spawnAoeOnClient, dict, name);
-        return aoe;
+        if (!Multiplayer.IsServer()) return null;
+        
+        var spawnData = new SpawnData()
+        {
+            Name = GlobalAbilitySpawner.GenerateSpawnName(SpawnType.AOE),
+            SpawnType = SpawnType.AOE,
+            SpawnObjectData = aoeStats.ToDict()
+        };
+        var node = Spawn(spawnData);
+        if (node is AoeBase aoe)
+        {
+            aoe.SetCallbacks(aoeStats.Callbacks);
+            return aoe;
+        }
+
+        return null;
     }
 
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void spawnAoeOnClient(Variant dict, string name)
+    private AoeBase spawnAoe(AoeBaseStats aoeStats, string name)
     {
-        var stats = AoeBaseStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
         var aoe = new AoeBase();
-        aoe.Initialize(stats);
+        aoe.Initialize(aoeStats);
         aoe.Name = name;
-        this.AddChild(aoe);
+        return aoe;
     }
 
     public Projectile SpawnProjectile(ProjectileStats projectileStats)

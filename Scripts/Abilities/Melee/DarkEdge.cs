@@ -38,7 +38,7 @@ public class DarkEdge : Ability
             Radius = 60,
             AngleOffset = 0,
             Owner = Caller,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
         };
         GlobalAbilitySpawner.SpawnAoe(stats);
 

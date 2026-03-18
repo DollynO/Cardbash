@@ -37,7 +37,7 @@ public class Plagueburst : Ability
             ActivationTime = 3f,
             Radius = 100,
             Duration = 0,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
             Owner = Caller,
             AbilityGUID = GUID,
             Angle = 90,

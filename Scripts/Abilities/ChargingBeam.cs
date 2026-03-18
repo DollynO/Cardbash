@@ -90,9 +90,11 @@ public class ChargingBeam : Ability
                         Duration = 0,
                         IsStationary = true,
                         StationaryPosition = ((Node2D)ctx.Target).GlobalPosition,
-                        OnActivation = onAoeActivation,
-                        OnDeactivation = null,
-                        OnTick = null,
+                        Callbacks = new AoeBaseCallbacks {
+                            OnActivation = onAoeActivation,
+                            OnDeactivation = null,
+                            OnTick = null,
+                        },
                         Owner = Caller,
                     };
                     GlobalAbilitySpawner.SpawnAoe(aoeStats);

@@ -31,7 +31,7 @@ public class FireSlash : Ability
             Radius = 80,
             AngleOffset = 0,
             Owner = Caller,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
         };
         GlobalAbilitySpawner.SpawnAoe(stats);
     }

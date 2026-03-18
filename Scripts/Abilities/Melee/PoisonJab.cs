@@ -31,7 +31,7 @@ public class PoisonJab : Ability
             AngleOffset = 0,
             Owner = Caller,
             AbilityGUID = GUID,
-            OnActivation = OnActivation,
+            Callbacks = new AoeBaseCallbacks  { OnActivation = OnActivation },
         };
         GlobalAbilitySpawner.SpawnAoe(stats);
     }
