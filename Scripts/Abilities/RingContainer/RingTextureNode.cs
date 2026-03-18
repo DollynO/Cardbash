@@ -8,9 +8,8 @@ public partial class RingTextureNode : Sprite2D
     private float updateCounter = 0;
     private const float fixUpdateInterval = 0.25f;
     
-    public void Init(Texture2D texture, Vector2 scale, string name)
+    public void Init(Texture2D texture, Vector2 scale)
     {
-        this.Name = name;
         this.Texture = texture;
         this.Scale = scale;
     }

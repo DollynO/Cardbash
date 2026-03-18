@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
@@ -7,7 +9,6 @@ public partial class Ring : Node2D
 {
     public float Radius { get; set; } = 50.0f;
     public float RotationSpeed { get; set; } = 1.0f;
-    
     public int Index { get; set; } = 0;
 
     public int MaxStacks
@@ -22,7 +23,7 @@ public partial class Ring : Node2D
     
     private int maxStacks = 3;
     
-    private Dictionary<int, Node2D> anchoredNodes = new Dictionary<int, Node2D>();
+    private readonly ConcurrentDictionary<int, Node2D> anchoredNodes = new();
     private float currentRotation = 0.0f;
     private float angleStep = Mathf.Tau / 3;
     
@@ -41,7 +42,7 @@ public partial class Ring : Node2D
         updateNodePositions();
     }
 
-    public void AddNode(Node2D node, bool externalParent = false)
+    public void AddNode(Node2D node)
     {
         //find next available slot
         var targetSlot = getNextAvailableSlot();
@@ -52,22 +53,28 @@ public partial class Ring : Node2D
             return;
         }
         
-        anchoredNodes.Add(targetSlot, node);
-        if (!externalParent)
-        {
-            this.AddChild(node);
-        }
+        anchoredNodes.GetOrAdd(targetSlot, k => node);
     }
 
     public void AddTextureNode(string iconPath, Vector2 scale)
     {
-        var node = (globalAbilitySpawner ??= GetTree().Root
-            .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner")).SpawnSprite(new SpriteStats()
+        var spawnData = new SpawnData()
         {
-            Parent = this, Scale = scale, TexturePath = iconPath
-        });
+            Name = GlobalAbilitySpawner.GenerateSpawnName(SpawnType.RING_TEXTURE_NODE),
+            SpawnType = SpawnType.RING_TEXTURE_NODE,
+            SpawnObjectData = new SpriteStats()
+            {
+                Parent = this, Scale = scale, TexturePath = iconPath
+            }.ToDict()
+        };
         
-        AddNode(node);
+        var node = (globalAbilitySpawner ??= GetTree().Root
+            .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner")).Spawn(spawnData);
+
+        if (node is RingTextureNode ringTextureNode)
+        {
+            this.AddNode(ringTextureNode);
+        }
     }
 
     private int getNextAvailableSlot()
@@ -84,6 +91,7 @@ public partial class Ring : Node2D
 
         return targetSlot;
     }
+    
 
     public void RemoveNode(Node2D node, bool freeObject = true)
     {
@@ -99,7 +107,7 @@ public partial class Ring : Node2D
 
         if (slotToRemove != -1)
         {
-            anchoredNodes.Remove(slotToRemove);
+            anchoredNodes.TryRemove(new KeyValuePair<int, Node2D>(slotToRemove, anchoredNodes[slotToRemove]));
             if (freeObject)
             {
                 node.QueueFree();
@@ -112,7 +120,7 @@ public partial class Ring : Node2D
         if (anchoredNodes.ContainsKey(slotIndex))
         {
             var node = anchoredNodes[slotIndex];
-            anchoredNodes.Remove(slotIndex);
+            anchoredNodes.TryRemove(new KeyValuePair<int, Node2D>(slotIndex, node));
             if (node is RingTextureNode ringNode)
             {
                 ringNode.QueueFree();
@@ -137,12 +145,12 @@ public partial class Ring : Node2D
 
     public void ClearNodes()
     {
-        foreach (var anchoredNodesValue in anchoredNodes.Values)
+        while (!anchoredNodes.IsEmpty)
         {
-            anchoredNodesValue.QueueFree();
+            var node =  anchoredNodes.First();
+            anchoredNodes.TryRemove(node);
+            node.Value.QueueFree();
         }
-        
-        anchoredNodes.Clear();
     }
 
     /**
@@ -150,9 +158,9 @@ public partial class Ring : Node2D
      */
     private void updateNodePosition(int slotIndex)
     {
-        if (!anchoredNodes.ContainsKey(slotIndex))
+        if (!anchoredNodes.TryGetValue(slotIndex, out var anchoredNode) || !IsInstanceValid(anchoredNode))
             return;
-
+        
         var angle = slotIndex * angleStep;
         var pos = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * Radius;
         if (anchoredNodes.TryGetValue(slotIndex, out var node))

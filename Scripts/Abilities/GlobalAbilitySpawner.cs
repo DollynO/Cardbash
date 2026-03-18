@@ -1,24 +1,107 @@
 using System;
-using System.Collections.Generic;
 using CardBase.Scripts.GameSettings;
 using Godot;
+using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities;
+
+public enum SpawnType
+{
+    RAY,
+    AOE,
+    MELEE,
+    AURA,
+    PROJECTILE,
+    RING_TEXTURE_NODE,
+}
+
+public class SpawnData
+{
+    public SpawnType SpawnType;
+    public string Name;
+    public Dictionary<string, Variant> SpawnObjectData;
+
+    public Dictionary<string, Variant> ToDict()
+    {
+        return new Dictionary<string, Variant>()
+        {
+            { nameof(SpawnType), (int)SpawnType },
+            { nameof(Name), Name },
+            { nameof(SpawnObjectData), SpawnObjectData },
+        };
+    }
+}
 
 [GlobalClass]
 public partial class GlobalAbilitySpawner : Node2D
 {
-    private Dictionary<string, PackedScene> LoadedScenes = new Dictionary<string, PackedScene>();
+
+    [Export] private MultiplayerSpawner abilitySpawner;
+    [Export] private GameManager GameManager;
+    
+    private System.Collections.Generic.Dictionary<string, PackedScene> LoadedScenes = new ();
+    public override void _EnterTree()
+    {
+        abilitySpawner.SetSpawnFunction(new Callable(this, MethodName.customSpawn));
+        SetMultiplayerAuthority(1);
+    }
+
+    private Node customSpawn(Variant data)
+    {
+        var dict = data.AsGodotDictionary<string, Variant>();
+        if (!dict.TryGetValue(nameof(SpawnData.SpawnType), out var typeVariant) 
+            || !dict.TryGetValue(nameof(SpawnData.SpawnObjectData), out var spawnDataVariant)
+            || !dict.TryGetValue(nameof(SpawnData.Name), out var nameVariant))
+        {
+            return null;
+        }
+
+        var type = (SpawnType)(int)typeVariant;
+        var spawnData = spawnDataVariant.AsGodotDictionary<string, Variant>();
+        var name = (string)nameVariant;
+        
+        switch ((SpawnType)(int)type)
+        {
+            case SpawnType.RAY:
+                break;
+
+            case SpawnType.AOE:
+                break;
+            case SpawnType.MELEE:
+                break;
+            case SpawnType.AURA:
+                break;
+            case SpawnType.PROJECTILE:
+                break;
+            case SpawnType.RING_TEXTURE_NODE:
+                var spriteStats = SpriteStats.FromDict(spawnData, GameManager);
+                return SpawnRingTextureNode(spriteStats, name);
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        return null;
+    }
+
+    public Node Spawn(SpawnData spawnData)
+    {
+        if (Multiplayer.IsServer())
+        {
+            abilitySpawner.Spawn(spawnData.ToDict());
+        }
+
+        return null;
+    }
+
     public override void _Ready()
     {
         SetMultiplayerAuthority(1);
     }
 
-    [Export] private GameManager GameManager;
     public Ray SpawnRay(RayStats props)
     {
         var ray = new Ray(props);
-        var name = generateName(SpawnType.RAY);
+        var name = GenerateSpawnName(SpawnType.RAY);
         ray.Name = name;
         if (props.Caster.TryGetComponent(out AimComponent aimComponent))
         {
@@ -52,7 +135,7 @@ public partial class GlobalAbilitySpawner : Node2D
     {
         var aoe = new AoeBase();
         aoe.Initialize(aoeStats);
-        var name = generateName(SpawnType.AOE);
+        var name = GenerateSpawnName(SpawnType.AOE);
         aoe.Name = name;
         var dict = aoeStats.ToDict();
         this.AddChild(aoe);
@@ -73,7 +156,7 @@ public partial class GlobalAbilitySpawner : Node2D
     public Projectile SpawnProjectile(ProjectileStats projectileStats)
     {
         var projectile = instantiateProjectile(projectileStats.CustomProjectilePath);
-        var name = generateName(SpawnType.PROJECTILE);
+        var name = GenerateSpawnName(SpawnType.PROJECTILE);
         projectile.Name = name;
 
         projectile.SetStats(projectileStats);
@@ -118,51 +201,23 @@ public partial class GlobalAbilitySpawner : Node2D
         return (Projectile)projectile;
     }
 
-    public RingTextureNode SpawnSprite(SpriteStats stats)
+    private RingTextureNode SpawnRingTextureNode(SpriteStats stats, string name)
     {
         var textureNode = new RingTextureNode();
         var texture = IconLoader.Instance.LoadImage(stats.TexturePath);
-        var name =  generateName(SpawnType.RING_TEXTURE_NODE);
-        textureNode.Init(texture, stats.Scale, name);
-
-        Rpc(MethodName.spawnRingTextureClient, stats.ToDict(), name);
+        textureNode.Name = name;
+        textureNode.Init(texture, stats.Scale);
         
         return textureNode;
     }
-
-    [Rpc(MultiplayerApi.RpcMode.Authority,  CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void spawnRingTextureClient(Variant dict, string name)
-    {
-        var textureNode = new RingTextureNode();
-        var stats = SpriteStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
-        var texture = IconLoader.Instance.LoadImage(stats.TexturePath);
-        textureNode.Init(texture, stats.Scale, name);
-        if (stats.Parent != null)
-        {
-            stats.Parent.AddChild(textureNode);
-        }
-        else
-        {
-            this.AddChild(textureNode);
-        }
-        
-    }
     
-    private string generateName(SpawnType type)
+    public static string GenerateSpawnName(SpawnType type)
     {
         return $"{type}_{Guid.NewGuid()}";
     }
     
     
-    private enum SpawnType
-    {
-        RAY,
-        AOE,
-        MELEE,
-        AURA,
-        PROJECTILE,
-        RING_TEXTURE_NODE,
-    }
+
 }
 
 public class SpriteStats

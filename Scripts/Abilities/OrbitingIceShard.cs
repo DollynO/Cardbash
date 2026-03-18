@@ -66,7 +66,7 @@ public class OrbitingIceShard : Ability
         var projectile = GlobalAbilitySpawner.SpawnProjectile(projectile_stats);
         
         projectile.OnDestroyed += ProjectileOnOnDestroyed;
-        ring.AddNode(projectile, true);
+        ring.AddNode(projectile);
     }
 
     private void OnHit(IEntityComponent hitObject, Projectile source)
