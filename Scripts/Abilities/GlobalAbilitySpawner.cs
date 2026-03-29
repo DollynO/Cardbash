@@ -63,7 +63,8 @@ public partial class GlobalAbilitySpawner : Node2D
         switch ((SpawnType)(int)type)
         {
             case SpawnType.RAY:
-                break;
+                var rayStats = RayStats.FromDict(spawnData, GameManager);
+                return SpawnRay(rayStats, name);
 
             case SpawnType.AOE:
                 var aoeStats = AoeBaseStats.FromDict(spawnData, GameManager);
@@ -87,12 +88,14 @@ public partial class GlobalAbilitySpawner : Node2D
 
     public Node Spawn(SpawnData spawnData)
     {
-        if (Multiplayer.IsServer())
+        if (!Multiplayer.IsServer())
         {
-            return abilitySpawner.Spawn(spawnData.ToDict());
+            return null;
         }
+        
+        spawnData.Name = GenerateSpawnName(spawnData.SpawnType);
+        return abilitySpawner.Spawn(spawnData.ToDict());
 
-        return null;
     }
 
     public override void _Ready()
@@ -100,37 +103,11 @@ public partial class GlobalAbilitySpawner : Node2D
         SetMultiplayerAuthority(1);
     }
 
-    public Ray SpawnRay(RayStats props)
+    public Ray SpawnRay(RayStats props, string name)
     {
         var ray = new Ray(props);
-        var name = GenerateSpawnName(SpawnType.RAY);
         ray.Name = name;
-        if (props.Caster.TryGetComponent(out AimComponent aimComponent))
-        {
-            aimComponent.GetCharacterCenterPoint().AddChild(ray);
-        }
-        else
-        {
-            ((Node2D)props.Caster).AddChild(ray);
-        }
-        Rpc(MethodName.spawnRayOnClient, props.ToDict(), name);
         return ray;
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void spawnRayOnClient(Variant dict, string name)
-    {
-        var props = RayStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
-        var ray = new Ray(props);
-        ray.Name = name;
-        if (props.Caster.TryGetComponent(out AimComponent aimComponent))
-        {
-            aimComponent.GetCharacterCenterPoint().AddChild(ray);
-        }
-        else
-        {
-            ((Node2D)props.Caster).AddChild(ray);
-        }
     }
 
     public AoeBase SpawnAoe(AoeBaseStats aoeStats)

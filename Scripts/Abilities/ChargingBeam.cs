@@ -32,18 +32,22 @@ public class ChargingBeam : Ability
 
     public override void InternalUse()
     {
-        var rayStats = new RayStats()
+        var spawnData = new SpawnData()
         {
-            Caster = Caller,
-            Range = 400,
-            CollisionTick = onHit,
-            AnimationResource = "res://AnimationRes/OrangeBeam.tres",
-            CenterLoopCount = 8,
-            CenterLoopFolder = "res://Sprites/Projectiles/laser_beam_A_large_orange/center_loop",
-            PierceCount = 1,
+            SpawnType = SpawnType.RAY,
+            SpawnObjectData = new RayStats()
+            {
+                Caster = Caller,
+                Range = 400,
+                CollisionTick = onHit,
+                AnimationResource = "res://AnimationRes/OrangeBeam.tres",
+                CenterLoopCount = 8,
+                CenterLoopFolder = "res://Sprites/Projectiles/laser_beam_A_large_orange/center_loop",
+                PierceCount = 1,
+            }.ToDict()
         };
         
-        _ray = GlobalAbilitySpawner.SpawnRay(rayStats);
+        _ray = (Ray)GlobalAbilitySpawner.Spawn(spawnData);
     }
 
     private void onHit(IEntityComponent entityComponent, float delta)
