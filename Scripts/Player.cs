@@ -41,7 +41,7 @@ public partial class Player : Node
     public long PlayerId
     {
         get => _playerId;
-        private set
+        set
         {
             _playerId = value;
             if (IsInsideTree() && IsMultiplayerAuthority())

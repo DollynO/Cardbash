@@ -1,5 +1,4 @@
 using System;
-using CardBase.Scripts.GameSettings;
 using Godot;
 using Godot.Collections;
 
@@ -9,7 +8,6 @@ public enum SpawnType
 {
     RAY,
     AOE,
-    MELEE,
     AURA,
     PROJECTILE,
     RING_TEXTURE_NODE,
@@ -69,9 +67,6 @@ public partial class GlobalAbilitySpawner : Node2D
             case SpawnType.AOE:
                 var aoeStats = AoeBaseStats.FromDict(spawnData, GameManager);
                 return spawnAoe(aoeStats, name);
-                break;
-            case SpawnType.MELEE:
-                break;
             case SpawnType.AURA:
                 break;
             case SpawnType.PROJECTILE:
@@ -95,7 +90,6 @@ public partial class GlobalAbilitySpawner : Node2D
         
         spawnData.Name = GenerateSpawnName(spawnData.SpawnType);
         return abilitySpawner.Spawn(spawnData.ToDict());
-
     }
 
     public override void _Ready()

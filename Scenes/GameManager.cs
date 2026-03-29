@@ -44,6 +44,7 @@ public partial class GameManager : Node2D
 		var ctx = new GameContext(this, _currentCharacters, ts, cs, ss);
 		
 		_flowController = new GameFlowController(ctx, settings);
+		_flowController.Name = "flowControl";
 		AddChild(_flowController);
 
 		if (Multiplayer.IsServer())

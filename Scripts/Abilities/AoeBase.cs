@@ -122,7 +122,6 @@ public partial class AoeBase : Node2D
     {
         if (stats == null)
         {
-            GD.PrintErr("AoeBase: stats not initialized!");
             QueueFree();
             return;
         }

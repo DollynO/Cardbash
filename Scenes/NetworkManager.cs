@@ -1,10 +1,7 @@
 using Godot;
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using CardBase.Scripts;
 using Godot.Collections;
-using Array = Godot.Collections.Array;
 
 public partial class NetworkManager : Node
 {
@@ -71,6 +68,10 @@ public partial class NetworkManager : Node
 		Multiplayer.ConnectedToServer -= _connected_to_server;
 		Multiplayer.ConnectionFailed -= _connection_failed;
 		Multiplayer.ServerDisconnected -= _server_disconnected;
+		foreach (var child in this.GetChildren())
+		{
+			child.QueueFree();
+		}
 		Multiplayer.MultiplayerPeer = null;
 	}
 
