@@ -6450,7 +6450,7 @@ spawn_path = NodePath(".")
 [node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton")]
 layer = 5
 script = ExtResource("4_e1s5y")
-_abilityFrames = [NodePath("HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/AbilityFrame4")]
+_abilityFrames = [NodePath("PlayerUi/HBoxContainer/AbilityFrame"), NodePath("PlayerUi/HBoxContainer/AbilityFrame2"), NodePath("PlayerUi/HBoxContainer/AbilityFrame3"), NodePath("PlayerUi/HBoxContainer/AbilityFrame4")]
 _drawUiContainer = NodePath("DrawUi")
 _statsText = NodePath("StatsEdit")
 _waitLabel = NodePath("DrawUi/WaitLabel")
@@ -6469,28 +6469,6 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 color = Color(1, 1, 1, 0)
-
-[node name="HBoxContainer" type="HBoxContainer" parent="HUD"]
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 0
-size_flags_vertical = 8
-
-[node name="AbilityFrame" parent="HUD/HBoxContainer" instance=ExtResource("4_2154d")]
-layout_mode = 2
-
-[node name="AbilityFrame2" parent="HUD/HBoxContainer" instance=ExtResource("4_2154d")]
-layout_mode = 2
-
-[node name="AbilityFrame3" parent="HUD/HBoxContainer" instance=ExtResource("4_2154d")]
-layout_mode = 2
-
-[node name="AbilityFrame4" parent="HUD/HBoxContainer" instance=ExtResource("4_2154d")]
-layout_mode = 2
 
 [node name="DrawUi" type="CenterContainer" parent="HUD"]
 anchors_preset = 8
@@ -6564,6 +6542,39 @@ grow_horizontal = 2
 size_flags_horizontal = 4
 text = "Round 1 / 0"
 label_settings = SubResource("LabelSettings_pcaqj")
+
+[node name="PlayerUi" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HUD/PlayerUi"]
+layout_mode = 1
+offset_left = 762.0
+offset_top = 984.0
+offset_right = 1158.0
+offset_bottom = 1080.0
+size_flags_vertical = 8
+
+[node name="AbilityFrame" parent="HUD/PlayerUi/HBoxContainer" instance=ExtResource("4_2154d")]
+layout_mode = 2
+
+[node name="AbilityFrame2" parent="HUD/PlayerUi/HBoxContainer" instance=ExtResource("4_2154d")]
+layout_mode = 2
+
+[node name="AbilityFrame3" parent="HUD/PlayerUi/HBoxContainer" instance=ExtResource("4_2154d")]
+layout_mode = 2
+
+[node name="AbilityFrame4" parent="HUD/PlayerUi/HBoxContainer" instance=ExtResource("4_2154d")]
+layout_mode = 2
+
+[node name="TextureProgressBar" type="TextureProgressBar" parent="HUD/PlayerUi"]
+layout_mode = 0
+offset_left = 762.0
+offset_top = 950.0
+offset_right = 1158.0
+offset_bottom = 980.0
 
 [node name="Spawn Point" type="Node2D" parent="."]
 position = Vector2(1000, 1000)

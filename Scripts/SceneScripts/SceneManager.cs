@@ -27,7 +27,11 @@ public partial class SceneManager : Node2D
 	{
 		Remove(DeckBuilder);
 		UnloadLobby();
-		AddChild(Menu);
+
+		if (Menu.GetParent() == null)
+		{
+			AddChild(Menu);
+		}
 	}
 	
 	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]

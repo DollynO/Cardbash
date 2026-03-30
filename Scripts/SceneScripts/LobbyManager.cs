@@ -144,9 +144,8 @@ public partial class LobbyManager : ColorRect
 
 	private void _on_back_pressed()
 	{
-		_sceneManager?.LoadMenuScene();
-		
 		Multiplayer?.MultiplayerPeer.Close();
+		_sceneManager?.LoadMenuScene();
 	}
 
 	private void open_main_menu()
