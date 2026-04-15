@@ -10,7 +10,7 @@ namespace CardBase.Scripts;
 
 public partial class BuffManagerComponent : Node2D, IComponent
 {
-    public IEntityComponent Parent { get; private set; }
+    public IEntityComponent Parent { get; set; }
     public void SetParent(IEntityComponent component)
     {
         this.Parent = component;

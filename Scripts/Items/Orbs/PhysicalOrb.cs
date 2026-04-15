@@ -7,6 +7,7 @@ namespace CardBase.Scripts.Items;
 public class PhysicalOrb : Item
 {
     private float StatIncrease = 0.2f;
+    private DamageModifier _damageModifier;
     public PhysicalOrb() : base(ItemIds.PhysicalOrbGuid)
     {
         this.DisplayName = "Physical Orb";
@@ -18,13 +19,24 @@ public class PhysicalOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.DamageModifier.Add(new DamageModifier()
+            const DamageType damageType = DamageType.Physical;
+            _damageModifier ??= new DamageModifier()
             {
-                TargetDamageType = DamageType.Physical,
-                OutputDamageType = DamageType.Physical,
+                TargetDamageType = damageType,
+                OutputDamageType = damageType,
                 Type = DamageModifierType.Modifier,
                 Value = StatIncrease,
-            });
+            };
+
+            statblock.DamageModifier.Add(_damageModifier);
+        }
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.DamageModifier.Remove(_damageModifier);
         }
     }
 }

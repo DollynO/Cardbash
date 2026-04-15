@@ -8,13 +8,11 @@ namespace CardBase.Scripts;
 
 public partial class HealthComponent : Node2D, IComponent
 {
-    public IEntityComponent Parent { get; private set; }
-    public void SetParent(IEntityComponent component)
-    {
-        this.Parent = component;
-    }
-    
+    public IEntityComponent Parent { get; set; }
+    [Export]
     public float MaxHealth { get; private set; }
+    
+    [Export]
     public float CurrentHealth { get; private set; }
     public bool IsDead => CurrentHealth <= 0;
     
@@ -29,6 +27,9 @@ public partial class HealthComponent : Node2D, IComponent
     {
         Name = "HealthComponent";
         gameManager = GetNode<GameManager>("/root/Main/Game");
+        ReplicationHelper.CreateSynchronizer(this,
+            new ReplicationProperties(new NodePath($":{nameof(MaxHealth)}"), SceneReplicationConfig.ReplicationMode.OnChange),
+            new ReplicationProperties(new NodePath($":{nameof(CurrentHealth)}"), SceneReplicationConfig.ReplicationMode.OnChange));
     }
 
     public void Reset(float newMaxHealth)

@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class SceneManager : Node2D
+public partial class SceneManager : Node
 {
 	[Export] private PackedScene MenuScene;
 	[Export] private PackedScene DeckBuilderScene;
@@ -21,7 +21,17 @@ public partial class SceneManager : Node2D
 		Game = GameScene.Instantiate();
 		LoadMenuScene();
 	}
-	
+
+	public override void _Input(InputEvent @event)
+	{
+		if (@event.IsActionPressed("ToggleFullscreen"))
+		{
+			DisplayServer.WindowSetMode(DisplayServer.WindowGetMode() == DisplayServer.WindowMode.ExclusiveFullscreen
+				? DisplayServer.WindowMode.Windowed
+				: DisplayServer.WindowMode.ExclusiveFullscreen);
+		}
+	}
+
 	[Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	public void LoadMenuScene()
 	{

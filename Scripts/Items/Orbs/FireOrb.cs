@@ -7,6 +7,7 @@ namespace CardBase.Scripts.Items;
 public class FireOrb : Item
 {
     private float StatIncrease = 0.2f;
+    private DamageModifier _damageModifier;
     public FireOrb() : base(ItemIds.FireOrbGuid)
     {
         this.DisplayName = "Fire Orb";
@@ -18,13 +19,24 @@ public class FireOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.AddDamageModifier(new DamageModifier()
+            const DamageType damageType = DamageType.Fire;
+            _damageModifier ??= new DamageModifier()
             {
-                TargetDamageType = DamageType.Fire,
-                OutputDamageType = DamageType.Fire,
+                TargetDamageType = damageType,
+                OutputDamageType = damageType,
                 Type = DamageModifierType.Modifier,
-                Value = StatIncrease
-            });
+                Value = StatIncrease,
+            };
+
+            statblock.DamageModifier.Add(_damageModifier);
+        }
+    }
+    
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.DamageModifier.Remove(_damageModifier);
         }
     }
 }

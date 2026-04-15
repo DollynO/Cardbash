@@ -17,7 +17,15 @@ public partial class ChestArmor : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.Armor, StatOp.FlatAdd, StatIncrease));
+            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.Armor, StatOp.FlatAdd, StatIncrease));
+        }
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(InstanceGuid);
         }
     }
 }

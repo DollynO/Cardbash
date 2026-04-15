@@ -17,8 +17,16 @@ public partial class SwiftBoots : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.MovementSpeed,
+            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.MovementSpeed,
                 StatOp.PercentAdd, StatIncrease / 100f));
         }
-    } 
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(InstanceGuid);
+        }
+    }
 }

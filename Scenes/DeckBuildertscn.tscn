@@ -6,49 +6,57 @@
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="3_pngof"]
 [ext_resource type="Texture2D" uid="uid://rxxxh6yr3pox" path="res://Sprites/Cards/CardTypeIcon/cost-02-green.png" id="5_16i6y"]
 
-[node name="DeckBuilder" type="ColorRect" node_paths=PackedStringArray("_saveButton", "_deleteButton", "_abilityCardContainer", "_itemCardContainer", "_deckList", "_selectedDeckPanel", "_selectedDeckCardsContainer", "_selectedDeckName", "_selectedDeckIcon")]
+[node name="DeckBuilder" type="Control" node_paths=PackedStringArray("_saveButton", "_deleteButton", "_abilityCardContainer", "_itemCardContainer", "_deckList", "_selectedDeckPanel", "_selectedDeckCardsContainer", "_selectedDeckName", "_selectedDeckIcon", "CardSelectionIndicator", "_unsavedDialog")]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.356863, 0.360784, 0.341176, 1)
 script = ExtResource("1_2r23t")
-_saveButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SaveDeck")
-_deleteButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/DeleteDeck")
-_abilityCardContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Abilities/AbilityCardContainer")
-_itemCardContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Items/ItemCardContainer")
-_deckList = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/DeckList")
-_selectedDeckPanel = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer")
-_selectedDeckCardsContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/ScrollContainer/SelectedDeckCardsContainer")
-_selectedDeckName = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck/DeckName")
-_selectedDeckIcon = NodePath("CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck/DeckIcon")
+_saveButton = NodePath("MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SaveDeck")
+_deleteButton = NodePath("MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/DeleteDeck")
+_abilityCardContainer = NodePath("MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer/Abilities/AbilityCardContainer")
+_itemCardContainer = NodePath("MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer/Items/ItemCardContainer")
+_deckList = NodePath("MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/DeckList")
+_selectedDeckPanel = NodePath("MarginContainer/VBoxContainer/Main/SelectedDeckContainer")
+_selectedDeckCardsContainer = NodePath("MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/ScrollContainer/SelectedDeckCardsContainer")
+_selectedDeckName = NodePath("MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck/DeckName")
+_selectedDeckIcon = NodePath("MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck/DeckIcon")
+CardSelectionIndicator = NodePath("MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/CardSelectionIndicator")
+_unsavedDialog = NodePath("ConfirmationDialog")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+title = "Unsaved changes"
+position = Vector2i(0, 36)
+size = Vector2i(200, 132)
+ok_button_text = "Save"
+dialog_text = "You have unsaved changes. Want to save or discard them."
+dialog_autowrap = true
+cancel_button_text = "Discard"
 
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer"]
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 6.0
-offset_top = 1.0
-offset_right = 6.0
-offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+[node name="Panel" type="Panel" parent="MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="Back" parent="CanvasLayer/MarginContainer/VBoxContainer/Panel" instance=ExtResource("1_6eh03")]
+[node name="Back" parent="MarginContainer/VBoxContainer/Panel" instance=ExtResource("1_6eh03")]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
@@ -58,21 +66,20 @@ offset_bottom = 20.0
 grow_vertical = 2
 Text = "Back"
 
-[node name="Main" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+[node name="Main" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SavedDeckContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main"]
-custom_minimum_size = Vector2(200, 0)
+[node name="SavedDeckContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Main"]
 layout_mode = 2
 
-[node name="VSplitContainer" type="VSplitContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer"]
+[node name="VSplitContainer" type="VSplitContainer" parent="MarginContainer/VBoxContainer/Main/SavedDeckContainer"]
 custom_minimum_size = Vector2(300, 200)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="DeckList" type="ItemList" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer"]
+[node name="DeckList" type="ItemList" parent="MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 allow_reselect = true
@@ -80,27 +87,27 @@ item_count = 1
 icon_scale = 0.3
 fixed_icon_size = Vector2i(0, 30)
 
-[node name="VBoxContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer"]
+[node name="VBoxContainer" type="GridContainer" parent="MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer"]
 layout_mode = 2
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 15
 columns = 2
 
-[node name="NewDeck" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer" instance=ExtResource("3_8ny1i")]
+[node name="NewDeck" parent="MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer" instance=ExtResource("3_8ny1i")]
 layout_mode = 2
 Text = "New Deck"
 
-[node name="DeleteDeck" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer" instance=ExtResource("3_pngof")]
+[node name="DeleteDeck" parent="MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer" instance=ExtResource("3_pngof")]
 layout_mode = 2
 size_flags_horizontal = 4
 disabled = true
 Text = "Delete"
 
-[node name="SelectedDeckContainer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer/Main"]
+[node name="SelectedDeckContainer" type="Panel" parent="MarginContainer/VBoxContainer/Main"]
 custom_minimum_size = Vector2(500, 0)
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -109,11 +116,12 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
 
-[node name="SelectedDeck" type="HBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer"]
+[node name="SelectedDeck" type="HBoxContainer" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer"]
 custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 
-[node name="DeckName" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck"]
+[node name="DeckName" type="LineEdit" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck"]
+texture_filter = 1
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -125,48 +133,50 @@ virtual_keyboard_enabled = false
 middle_mouse_paste_enabled = false
 drag_and_drop_selection_enabled = false
 
-[node name="DeckIcon" type="TextureRect" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck"]
+[node name="DeckIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SelectedDeck"]
 layout_mode = 2
 texture = ExtResource("5_16i6y")
 expand_mode = 3
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer"]
+[node name="CardSelectionIndicator" type="HBoxContainer" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SelectedDeckCardsContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/ScrollContainer"]
+[node name="SelectedDeckCardsContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SaveDeck" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer" instance=ExtResource("1_6eh03")]
+[node name="SaveDeck" parent="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer" instance=ExtResource("1_6eh03")]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 8
 Text = "Save"
 
-[node name="AllCardContainer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer/Main"]
+[node name="AllCardContainer" type="Panel" parent="MarginContainer/VBoxContainer/Main"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer"]
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/VBoxContainer/Main/AllCardContainer"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="TabContainer" type="TabContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer"]
-layout_mode = 2
+size_flags_vertical = 3
 current_tab = 0
 
-[node name="Abilities" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer"]
+[node name="Abilities" type="ScrollContainer" parent="MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer"]
 custom_minimum_size = Vector2(0, 800)
 layout_mode = 2
 size_flags_vertical = 3
 metadata/_tab_index = 0
 
-[node name="AbilityCardContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Abilities"]
+[node name="AbilityCardContainer" type="GridContainer" parent="MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer/Abilities"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -174,14 +184,14 @@ theme_override_constants/h_separation = 25
 theme_override_constants/v_separation = 25
 columns = 5
 
-[node name="Items" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer"]
+[node name="Items" type="ScrollContainer" parent="MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer"]
 visible = false
 custom_minimum_size = Vector2(0, 800)
 layout_mode = 2
 size_flags_vertical = 3
 metadata/_tab_index = 1
 
-[node name="ItemCardContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer/Main/AllCardContainer/VBoxContainer/TabContainer/Items"]
+[node name="ItemCardContainer" type="GridContainer" parent="MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer/Items"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -189,11 +199,11 @@ theme_override_constants/h_separation = 25
 theme_override_constants/v_separation = 25
 columns = 5
 
-[node name="Footer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer"]
+[node name="Footer" type="Panel" parent="MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer/Panel/Back" to="." method="_on_back_pressed"]
-[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/NewDeck" to="." method="_on_new_deck_pressed"]
-[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/DeleteDeck" to="." method="_on_delete_deck_pressed"]
-[connection signal="pressed" from="CanvasLayer/MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SaveDeck" to="." method="_on_save_deck_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Panel/Back" to="." method="_on_back_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/NewDeck" to="." method="_on_new_deck_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Main/SavedDeckContainer/VSplitContainer/VBoxContainer/DeleteDeck" to="." method="_on_delete_deck_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/Main/SelectedDeckContainer/VBoxContainer/SaveDeck" to="." method="_on_save_deck_pressed"]

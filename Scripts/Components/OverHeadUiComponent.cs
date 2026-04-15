@@ -7,7 +7,7 @@ namespace CardBase.Scripts;
 [GlobalClass]
 public partial class OverHeadUiComponent : Node2D, IComponent
 {
-    public IEntityComponent Parent { get; private set; }
+    public IEntityComponent Parent { get; set; }
     public void SetParent(IEntityComponent component)
     {
         this.Parent = component;

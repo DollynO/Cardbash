@@ -235,4 +235,9 @@ public partial class GameManager : Node2D
 		
 		return null;
 	}
+
+	public IList<PlayerCharacter> GetPlayers()
+	{
+		return this._currentCharacters.Values.ToList();
+	}
 }

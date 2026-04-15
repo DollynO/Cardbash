@@ -28,7 +28,7 @@ public class NetAbility
 
 public partial class AbilityComponent : Node2D, IComponent
 {
-    public IEntityComponent Parent { get; private set;  }
+    public IEntityComponent Parent { get; set;  }
     public void SetParent(IEntityComponent component)
     {
         Parent = component;

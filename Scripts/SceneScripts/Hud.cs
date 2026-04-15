@@ -2,8 +2,8 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using CardBase.Scripts;
-using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.Items;
 using CardBase.Scripts.PlayerScripts;
 using Godot.Collections;
 
@@ -17,6 +17,9 @@ public partial class Hud : CanvasLayer
 	[Export] private ColorRect _darknessEffect;
 	[Export] private Label _roundLabel;
 	[Export] private ButtonPrefab _lockButton;
+	[Export] private HBoxContainer _itemContainer;
+	
+	[Export] private HealthBar _healthBar;
 	
 	private PackedScene _abilityCardTemplate;
 	private PackedScene _itemCardTemplate;
@@ -31,6 +34,7 @@ public partial class Hud : CanvasLayer
 		_clear_card_box();
 		_abilityCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/AbiltyCardTemlate.res") as PackedScene;
 		_itemCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/ItemCardTemlate.res") as PackedScene;
+		_healthBar.AllowGreater = true;
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -83,7 +87,16 @@ public partial class Hud : CanvasLayer
 		}
 		
 		((ShaderMaterial)_darknessEffect.Material).SetShaderParameter("fill_amount", Math.Clamp(player.StatBlock.GetStat(StatType.Darkness) * 0.1, 0, 1));
+		if (player.TryGetComponent(out HealthComponent healthComponent))
+		{
+			_healthBar.SetHealth(healthComponent.CurrentHealth,  healthComponent.MaxHealth);
+		}
 		PrintStats(player);
+
+		if (player.TryGetComponent(out ItemManagerComponent imc))
+		{
+			RefreshItems(imc);
+		}
 	}
 	
 	private void _clear_card_box()
@@ -143,5 +156,21 @@ public partial class Hud : CanvasLayer
 	private void PrintStats(PlayerCharacter player)
 	{
 		_statsText.Text = player.StatBlock.GetStatDebugText();
+	}
+
+	private void RefreshItems(ItemManagerComponent imc)
+	{
+		foreach (var child in _itemContainer.GetChildren())
+		{
+			child.QueueFree();
+		}
+
+		foreach (var kvp in imc.NetItems)
+		{
+			var item = new TextureRect();
+			item.Texture = kvp.Value.Icon;
+			item.ExpandMode = TextureRect.ExpandModeEnum.FitWidth;
+			_itemContainer.AddChild(item);
+		}
 	}
 }

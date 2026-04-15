@@ -2,7 +2,7 @@ using Godot;
 using System;
 using CardBase.Scripts.Cards;
 
-public partial class MainScreen : ColorRect
+public partial class MainScreen : Control
 {
 	[Export] private Panel _mpScreen;
 

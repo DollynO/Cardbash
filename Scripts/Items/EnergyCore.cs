@@ -17,8 +17,16 @@ public partial class EnergyCore : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.AddModifiers(new StatModifier(Guid.NewGuid().ToString("N"), StatType.EnergyShield, StatOp.FlatAdd,
+            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.EnergyShield, StatOp.FlatAdd,
                 StatIncrease));
+        }
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(InstanceGuid);
         }
     }
 }

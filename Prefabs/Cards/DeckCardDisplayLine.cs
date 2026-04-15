@@ -11,6 +11,8 @@ public partial class DeckCardDisplayLine : ColorRect
 	[Export] private Label _cardNameLabel;
 
 	[Export] private Label _cardCountLabel;
+	
+	[Export] private ButtonPrefab AddCardButton;
 
 	private Card _card;
 	private Counter _counter;
@@ -35,6 +37,10 @@ public partial class DeckCardDisplayLine : ColorRect
 		_cardCountLabel.Text = cnt.Count.ToString();
 		_counter = cnt;
 		_card = card;
+		if (_counter.Count >= 4)
+		{
+			AddCardButton.Disabled = true;
+		}
 	}
 
 	private void _on_card_added()
@@ -45,6 +51,10 @@ public partial class DeckCardDisplayLine : ColorRect
 		}
 		
 		_counter.Count++;
+		if (_counter.Count >= 4)
+		{
+			AddCardButton.Disabled = true;
+		}
 		_cardCountLabel.Text = _counter.Count.ToString();
 	}
 
@@ -63,6 +73,7 @@ public partial class DeckCardDisplayLine : ColorRect
 		}
 		else
 		{
+			AddCardButton.Disabled = false;
 			_cardCountLabel.Text = _counter.Count.ToString();
 		}
 	}

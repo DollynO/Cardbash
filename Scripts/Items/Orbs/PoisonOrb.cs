@@ -7,6 +7,7 @@ namespace CardBase.Scripts.Items;
 public class PoisonOrb: Item
 {
     private float StatIncrease = 0.2f;
+    private DamageModifier _damageModifier;
     public PoisonOrb() : base(ItemIds.PoisonOrbGuid)
     {
         this.DisplayName = "Poison Orb";
@@ -18,13 +19,23 @@ public class PoisonOrb: Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.DamageModifier.Add(new DamageModifier()
+            _damageModifier ??= new DamageModifier()
             {
                 TargetDamageType = DamageType.Poison,
                 OutputDamageType = DamageType.Poison,
                 Type = DamageModifierType.Modifier,
                 Value = StatIncrease,
-            });
+            };
+
+            statblock.DamageModifier.Add(_damageModifier);
+        }
+    }
+    
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.DamageModifier.Remove(_damageModifier);
         }
     }
 }

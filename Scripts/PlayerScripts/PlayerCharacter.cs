@@ -4,6 +4,7 @@ using System.Linq;
 using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.Items;
 using Godot;
 using Godot.Collections;
 
@@ -39,6 +40,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     public AbilityComponent AbilityComponent { get; private set; }
     public StatblockComponent StatBlock { get; private set; }
     private VisualComponent visualComponent;
+    public ItemManagerComponent ItemManagerComponent { get; private set; }
     
     public string PlayerName
     {
@@ -114,6 +116,10 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             _camera.LimitBottom = (int)_mapBounds.Position.Y + (int)_mapBounds.Size.Y;
         }
 
+        ItemManagerComponent = new ItemManagerComponent();
+        ItemManagerComponent.Name = nameof(ItemManagerComponent);
+        AddComponent(ItemManagerComponent);
+        
         BuffManagerComponent = new BuffManagerComponent();
         AddComponent(BuffManagerComponent);
 

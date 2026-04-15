@@ -1,13 +1,10 @@
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CardBase.Prefabs.Cards;
-using CardBase.Scripts.Abilities;
 using CardBase.Scripts.Cards;
-using CardBase.Scripts.Items;
 using Godot;
-using Godot.Collections;
-using SGeneric = System.Collections.Generic;
 
 namespace CardBase.Scripts.SceneScripts;
 
@@ -23,21 +20,29 @@ public partial class DeckBuilder : Control
 	[Export] private VBoxContainer _selectedDeckCardsContainer;
 	[Export] private LineEdit _selectedDeckName;
 	[Export] private TextureRect _selectedDeckIcon;
+	[Export] private HBoxContainer CardSelectionIndicator;
+	private List<ColorRect> cardTypeCountIndicator = new();
+	[Export] private ConfirmationDialog _unsavedDialog;
+	private bool _shouldSaveChanges = false;
+	private string _selectedDeckGuid;
+	private bool _selectedDeckHasChanges = false;
+	
 	private int _selectedDeckIconNumber = 0;
+	private Godot.Collections.Dictionary<Card, Counter> _cards = new();
 	
 	private PackedScene _abilityCardTemplate;
 	private PackedScene _itemCardTemplate;
 	private PackedScene _deckCardDisplayLineTemplate;
 	private PackedScene _mainScreen;
-	private Array<Card> _cards = new();
-	private Deck _selectedDeck;
+	
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		
 		_deleteButton.Disabled = true;
 		_mainScreen = ResourceLoader.Load("res://Scenes/MainScreen.tscn") as PackedScene;
-		_cards.Clear();
+
 		_abilityCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/AbiltyCardTemlate.res") as PackedScene;
 		_itemCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/ItemCardTemlate.res") as PackedScene;
 		_deckCardDisplayLineTemplate = ResourceLoader.Load("res://Prefabs/Cards/DeckCardDisplayLine.res") as PackedScene;
@@ -58,6 +63,15 @@ public partial class DeckBuilder : Control
 		}
 		create_cards_type(CardType.Item, _itemCardContainer);
 
+		for (var i = 0; i < 12; i++)
+		{
+			var cr = new ColorRect();
+			cr.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+			CardSelectionIndicator.AddChild(cr);
+			cardTypeCountIndicator.Add(cr);
+		}
+		
+		reset_selected_deck();
 		load_deck_list();
 	}
 
@@ -76,6 +90,8 @@ public partial class DeckBuilder : Control
 	
 	private void _on_back_pressed()
 	{
+		check_deck_changes();
+		
 		GlobalCardManager.Instance.SaveDecks();
 		var sceneManager = GetNode<SceneManager>("..");
 		sceneManager?.LoadMenuScene();
@@ -85,6 +101,7 @@ public partial class DeckBuilder : Control
 	{
 		var deck = new Deck();
 		deck.DisplayName = "New Deck";
+		deck.GUID = Guid.NewGuid().ToString();
 		deck.SetIcon((int)DeckIconNumber.Red);
 		GlobalCardManager.Instance.Decks.Add(deck);
 		add_deck_to_list(deck);
@@ -98,54 +115,130 @@ public partial class DeckBuilder : Control
 		_deckList.Select(index);
 	}
 
-	private void _on_deck_selected(Deck deck)
+	private TaskCompletionSource<bool> _tcs;
+	private Task<bool> AskDiscardChangesAsync()
 	{
-		if (deck != null)
-		{
-			_selectedDeckPanel.Visible = true;
-			_deleteButton.Disabled = false;
-			_selectedDeck = deck;
-			_selectedDeckName.Text = _selectedDeck.DisplayName;
-			_selectedDeckIcon.Texture = _selectedDeck.Icon ?? IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png");
-			
-			display_selected_deck_cards();
-			return;
-		}
-		
-		_selectedDeckPanel.Visible = false;
-		_deleteButton.Disabled = true;
-		_selectedDeck = null;
-		_selectedDeckName.Text = string.Empty;
-		_selectedDeckIcon.Texture = null;
+		 _tcs = new TaskCompletionSource<bool>();
+
+		 void OnConfirmed()
+		 {
+			 Cleanup();
+			 _tcs.TrySetResult(true);
+		 }
+
+		 void OnCanceled()
+		 {
+			 Cleanup();
+			 _tcs.TrySetResult(false);
+		 }
+
+		 void Cleanup()
+		 {
+			 _unsavedDialog.Confirmed -= OnConfirmed;
+			 _unsavedDialog.Canceled -= OnCanceled;
+		 }
+		 
+		 
+		 _unsavedDialog.Confirmed += OnConfirmed;
+		 _unsavedDialog.Canceled += OnCanceled;
+		_unsavedDialog.PopupCentered();
+
+		return _tcs.Task;
 	}
 
-	private void display_selected_deck_cards()
+	private async Task check_deck_changes()
 	{
-		if (_selectedDeck?.Cards == null)
+		if (_selectedDeckHasChanges)
 		{
-			return;
+			// show dialog
+			var shouldSave =  await AskDiscardChangesAsync();
+			if (shouldSave)
+			{
+				_on_save_deck_pressed();
+			}
+			else
+			{
+				reset_selected_deck();
+			}
 		}
+	}
+	
+	private async void _on_deck_selected(Deck deck)
+	{
+		await check_deck_changes();
+		
+		if (deck != null)
+		{
+			reset_selected_deck();
+			_deleteButton.Disabled = false;
+			_selectedDeckGuid = deck.GUID;
+			_selectedDeckName.Text = deck.DisplayName;
+			_selectedDeckIcon.Texture = deck.Icon ?? IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png");
 
+			_cards.Clear();
+			foreach (var kvp in deck.Cards)
+			{
+				_cards.Add(kvp.Key, kvp.Value);
+			}
+			
+			display_selected_deck_cards(_cards);
+
+		}
+	}
+
+	private void reset_selected_deck()
+	{
+		_selectedDeckName.Text = string.Empty;
+		_selectedDeckIcon.Texture = null;
+		_selectedDeckGuid = string.Empty;
+		
 		foreach (var child in _selectedDeckCardsContainer.GetChildren())
 		{
 			_selectedDeckCardsContainer.RemoveChild(child);	
+			child.QueueFree();
+		}
+
+		foreach (var indicator in cardTypeCountIndicator)
+		{
+			var colorRect = (ColorRect)indicator;
+			colorRect.Color = ColorPlate.GetColor((int)ColorPlateName.Red);
 		}
 		
-		foreach (var entry in _selectedDeck.Cards)
+		_selectedDeckHasChanges = false;
+	}
+
+	private void display_selected_deck_cards(Godot.Collections.Dictionary<Card, Counter> cards)
+	{
+		if (cards.Count == 0)
 		{
-			var template = _deckCardDisplayLineTemplate.Instantiate() as DeckCardDisplayLine;
-			if (template != null)
+			return;
+		}
+		
+		foreach (var child in _selectedDeckCardsContainer.GetChildren())
+		{
+			_selectedDeckCardsContainer.RemoveChild(child);	
+			child.QueueFree();
+		}
+		
+		foreach (var entry in cards)
+		{
+			if (_deckCardDisplayLineTemplate.Instantiate() is DeckCardDisplayLine template)
 			{
 				template.UpdateDisplay(entry.Key, entry.Value);
 				_selectedDeckCardsContainer.AddChild(template);
 				template.CardRemoved += on_card_removed;
 			}
 		}
+		
+		for (var i = 0; i < cardTypeCountIndicator.Count; i++)
+		{
+			cardTypeCountIndicator[i].Color = i < _cards.Count ? ColorPlate.GetColor((int)ColorPlateName.Green) : ColorPlate.GetColor((int)ColorPlateName.Red);
+		}
 	}
 	
 	private void create_cards_type(CardType type, GridContainer container)
 	{
-		Dictionary<string, Card> cards = new();
+		Godot.Collections.Dictionary<string, Card> cards = new();
 		switch(type)
 		{
 			case CardType.Ability:
@@ -166,6 +259,7 @@ public partial class DeckBuilder : Control
 			default:
 				throw new ArgumentOutOfRangeException(nameof(type), type, null);
 		}
+		
 		foreach (var card in cards.Values)
 		{
 			var cardTemplate = type switch
@@ -193,58 +287,95 @@ public partial class DeckBuilder : Control
 	// -- button clicks
 	private void on_card_clicked(Card card)
 	{
-		if (_selectedDeck == null)
+		if (string.IsNullOrEmpty(_selectedDeckGuid))
 		{
 			return;
 		}
-		
-		_selectedDeck.AddCard(card);
-		display_selected_deck_cards();
+
+		if (_cards.TryGetValue(card, out var counter))
+		{
+			if (counter.Count < 4)
+			{
+				counter.Count++;
+			}
+		}
+		else
+		{
+			_cards.Add(card, new Counter());
+		}
+
+		_selectedDeckHasChanges = true;
+
+		display_selected_deck_cards(_cards);
 	}
 
 	private void on_card_removed(Card card)
 	{
-		if (_selectedDeck == null)
+		if (string.IsNullOrEmpty(_selectedDeckGuid))
 		{
 			return;
 		}
-		
-		if (_selectedDeck.RemoveCard(card))
+
+		if (_cards.TryGetValue(card, out var counter))
 		{
-			_selectedDeckCardsContainer.RemoveChild(card);
+			counter.Count--;
+			if (counter.Count <= 0)
+			{
+				_cards.Remove(card);
+			}
 		}
+		
+		_selectedDeckHasChanges = true;
+		
+		display_selected_deck_cards(_cards);
 	}
 
 	private void _on_delete_deck_pressed()
 	{
-		var selectedDeckId = get_deck_index(_selectedDeck);
+		var selectedDeckId = get_deck_index(_selectedDeckGuid);
 		if (selectedDeckId < 0)
 		{
 			return;
 		}
 		
-		GlobalCardManager.Instance.Decks.Remove(_selectedDeck);
-		_on_deck_selected(null);
-		_deckList.RemoveItem(selectedDeckId);
+		var selectedDeck = GlobalCardManager.Instance.Decks.FirstOrDefault(d => d.GUID == _selectedDeckGuid);
+		if (selectedDeck != null)
+		{
+			GlobalCardManager.Instance.Decks.Remove(selectedDeck);
+			_on_deck_selected(null);
+			_deckList.RemoveItem(selectedDeckId);
+		}
 	}
 
 	private void _on_save_deck_pressed()
 	{
-		var selectedDeckId = get_deck_index(_selectedDeck);
+		var selectedDeckId = get_deck_index(_selectedDeckGuid);
 		if (selectedDeckId < 0)
 		{
 			return;
 		}
 		
-		_selectedDeck.DisplayName = _selectedDeckName.Text;
-		_selectedDeck.SetIcon(_selectedDeckIconNumber);
-		_deckList.SetItemText(selectedDeckId, _selectedDeck.DisplayName);
-		_deckList.SetItemIcon(selectedDeckId, _selectedDeck.Icon);
+		var selectedDeck = GlobalCardManager.Instance.Decks.FirstOrDefault(d => d.GUID == _selectedDeckGuid);
+		if (selectedDeck != null)
+		{
+			selectedDeck.DisplayName = _selectedDeckName.Text;
+			selectedDeck.SetIcon(_selectedDeckIconNumber);
+			selectedDeck.Cards.Clear();
+			foreach (var card in _cards)
+			{
+				selectedDeck.Cards.Add(card.Key, card.Value);
+			}
+			
+			_deckList.SetItemText(selectedDeckId, selectedDeck.DisplayName);
+			_deckList.SetItemIcon(selectedDeckId, selectedDeck.Icon);
+		}
+		
+		_selectedDeckHasChanges = false;
 	}
 
-	private int get_deck_index(Deck deck)
+	private int get_deck_index(string deckGuid)
 	{
-		if (deck == null)
+		if (string.IsNullOrEmpty(deckGuid))
 		{
 			return -1;
 		}
@@ -252,7 +383,7 @@ public partial class DeckBuilder : Control
 		for (var i = 0; i < _deckList.ItemCount; i++)
 		{
 			var curDeck = (Deck)_deckList.GetItemMetadata(i);
-			if (curDeck == deck)
+			if (curDeck != null && curDeck.GUID == deckGuid)
 			{
 				return i;
 			}

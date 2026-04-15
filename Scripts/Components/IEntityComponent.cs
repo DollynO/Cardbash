@@ -11,6 +11,10 @@ public interface IEntityComponent
 
 public interface IComponent
 {
-    public IEntityComponent Parent { get; }
-    public void SetParent(IEntityComponent component);
+    public IEntityComponent Parent { get; set; }
+
+    public void SetParent(IEntityComponent component)
+    {
+        Parent = component;
+    }
 }

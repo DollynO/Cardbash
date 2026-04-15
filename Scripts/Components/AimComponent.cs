@@ -5,7 +5,7 @@ namespace CardBase.Scripts;
 
 public partial class AimComponent : Node2D, IComponent
 {
-    public IEntityComponent Parent { get; private set;  }
+    public IEntityComponent Parent { get; set;  }
     public void SetParent(IEntityComponent component)
     {
         Parent = component;

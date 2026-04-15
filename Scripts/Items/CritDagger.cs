@@ -19,10 +19,18 @@ public partial class CritDagger : Item
         {
             statblock.AddModifiers(
                 new StatModifier(
-                    Guid.NewGuid().ToString("N"),
+                    InstanceGuid,
                     StatType.CritChance,
                     StatOp.FlatAdd,
                     StatIncrease));
         }
-    } 
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(InstanceGuid);
+        }
+    }
 }
