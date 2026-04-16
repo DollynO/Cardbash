@@ -4,8 +4,6 @@ using System.Linq;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
-using Godot.NativeInterop;
-using Array = Godot.Collections.Array;
 
 namespace CardBase.Scripts.Abilities;
 

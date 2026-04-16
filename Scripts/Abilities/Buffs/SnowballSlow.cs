@@ -19,9 +19,6 @@ public class SnowballSlow : Buff
     public void SetSnowballScale(Vector2 scale)
     {
         slow = 0.7f / (0.9f+Mathf.Pow((float)Mathf.E,-0.5f*(scale.X-6)));
-        return;
-        var length = scale.X / 2;
-        slow = 0.8f * (length / (length + 2));
     }
 
     protected override void InternalOnActivate()

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Xml;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.TriggerStrategy;
@@ -82,11 +81,6 @@ public class ChargingBeam : Ability
 
                 if (shockBuffCount % 5 == 0)
                 {
-                    if (false)
-                    {
-                        var consumed = buffManagerComponent.ConsumeBuff(typeof(ShockDebuff));
-                    }
-
                     var aoeStats = new AoeBaseStats
                     {
                         Radius = 100,
