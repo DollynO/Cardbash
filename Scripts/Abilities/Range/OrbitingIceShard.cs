@@ -50,20 +50,31 @@ public class OrbitingIceShard : Ability
 
     public override void InternalUse()
     {
-        var projectile_stats = new ProjectileStats
+        var spawnRequest = new ProjectileSpawnRequest
         {
             Caller = Caller,
-            Speed = 0,
-            TimeToBeALive = -1,
-            AnimationResourcePath = "res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres",
-            OnHit = OnHit,
+            Movement = new ProjectileMovementConfig
+            {
+                Speed = 0,
+            },
+            Lifetime = new ProjectileLifetimeConfig
+            {
+                Seconds = -1,
+            },
+            Visual = new ProjectileVisualConfig
+            {
+                AnimationPath = "res://AnimationRes/Projectile/Ice/I_RockLargeBlue.tres",
+            },
             StartPosition = Caller.TryGetComponent(out AimComponent aimComponent) 
                 ? aimComponent.GetProjectileStartPosition() 
                 : ((Node2D)Caller).GetGlobalPosition()
         };
 
-        projectile_stats.Caller = Caller;
-        var projectile = GlobalAbilitySpawner.SpawnProjectile(projectile_stats);
+        var runtime = new ProjectileRuntime
+        {
+            OnHit = OnHit,
+        };
+        var projectile = GlobalAbilitySpawner.SpawnProjectile(spawnRequest, runtime);
         
         projectile.OnDestroyed += ProjectileOnOnDestroyed;
         ring.AddNode(projectile);

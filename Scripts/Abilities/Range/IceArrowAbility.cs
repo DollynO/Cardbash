@@ -18,24 +18,17 @@ public class IceArrowAbility : ProjectileAbility
        this.SpawnDelay = 0.5f;
     }
 
-    protected override ProjectileStats GetProjectileStats()
+    protected override ProjectileRuntime GetProjectileRuntime()
     {
-        var direction = Vector2.Zero;
-        if (Caller.TryGetComponent(out AimComponent aimComponent))
-        {
-            direction = aimComponent.GetLookAtDirection();
-        }
-        return new ProjectileStats
-        {
-            Caller = Caller,
-            Direction = direction,
-            Speed = 500,
-            TimeToBeALive = 4,
-            AnimationResourcePath = "res://AnimationRes/Projectile/Ice/I_LargeBlue.tres",
-            BouncingCount = 3,
-            PiercingCount = 1,
-            OnHit = OnHit,
-        };
+        return CreateProjectileRuntime(OnHit);
+    }
+
+    protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
+    {
+        var request = AimedProjectile("res://AnimationRes/Projectile/Ice/I_LargeBlue.tres", 500, 4);
+        request.Movement.BounceCount = 3;
+        request.Collision.PierceCount = 1;
+        return request;
     }
 
     private void OnHit(IEntityComponent arg1, Projectile arg2)

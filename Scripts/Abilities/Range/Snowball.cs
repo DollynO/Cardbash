@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
@@ -29,30 +28,19 @@ public class Snowball : ProjectileAbility
         
     }
 
-    protected override ProjectileStats GetProjectileStats()
+    protected override ProjectileRuntime GetProjectileRuntime()
     {
-        var beList = new List<IProjectileBehavior> {  new SizeIncreaseBehavior(1f, 10.0f) };
+        return CreateProjectileRuntime(onHit, new SizeIncreaseBehavior(1f, 10.0f));
+    }
 
-        var direction = Vector2.Zero;
-        if (Caller.TryGetComponent(out AimComponent aimComponent))
-        {
-            direction = aimComponent.GetLookAtDirection();
-        }
-        
-        return new ProjectileStats()
-        {
-            AngleOffset = 0,
-            Direction = direction,
-            AnimationResourcePath = "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
-            AnimationOffset = new Vector2(-8, 0),
-            OnHit = onHit,
-            Behaviors = beList,
-            Speed = 100,
-            TimeToBeALive = -1,
-            Life = 100,
-            Scale = new Vector2(1.0f, 1.0f),
-            CollisionMask = 1<<2,
-        };
+    protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
+    {
+        var request = AimedProjectile("res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres", 100, -1);
+        request.Health.Life = 100;
+        request.Collision.CollisionMask = 1 << 2;
+        request.Visual.AnimationOffset = new Vector2(-8, 0);
+        request.Visual.Scale = new Vector2(1.0f, 1.0f);
+        return request;
     }
 
     private void onHit(IEntityComponent arg1, Projectile arg2)

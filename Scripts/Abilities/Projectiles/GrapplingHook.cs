@@ -4,10 +4,6 @@ using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
-public class GrapplingHookStats : ProjectileStats
-{
-}
-
 public partial class GrapplingHook : Projectile
 {
     [Export] private Line2D _line;
@@ -23,7 +19,7 @@ public partial class GrapplingHook : Projectile
         if (_currentUpdateTime >= _updateTime)
         {
             _currentUpdateTime = 0;
-            var startLocal = ToLocal(this.Stats.StartPosition);
+            var startLocal = ToLocal(SpawnRequest.StartPosition);
             var endLocal = Vector2.Zero; // projectile's own position
 
             _line.Points = new Vector2[] { startLocal, endLocal };
@@ -36,8 +32,8 @@ public partial class GrapplingHook : Projectile
         base.HitableObjectCollided(hitObject);
         if (hitObject.TryGetComponent(out MoveComponent moveComponent))
         {
-            var position = ((Node2D)Stats.Caller).GetGlobalPosition();
-            if (Stats.Caller.TryGetComponent(out AimComponent aimComponent))
+            var position = ((Node2D)SpawnRequest.Caller).GetGlobalPosition();
+            if (SpawnRequest.Caller.TryGetComponent(out AimComponent aimComponent))
             {
                 position = aimComponent.GetCharacterCenterPosition();
             }

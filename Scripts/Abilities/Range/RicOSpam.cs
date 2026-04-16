@@ -22,28 +22,20 @@ public class RicOSpam: ProjectileAbility
         this.SpawnDelay = 0.5f;
     }
 
-    protected override ProjectileStats GetProjectileStats()
+    protected override ProjectileRuntime GetProjectileRuntime()
+    {
+        return CreateProjectileRuntime(OnHit);
+    }
+
+    protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
         var offset = rnd.NextInt64(-15, 15);
-        var direction = Vector2.Zero;
-        if (Caller.TryGetComponent(out AimComponent aimComponent))
-        {
-            direction = aimComponent.GetLookAtDirection();
-        }
-        return new ProjectileStats
-        {
-            CastGuid = currentCcastGuid,
-            Caller = Caller,
-            Direction = direction,
-            AngleOffset = offset * Mathf.Pi / 180 ,
-            Speed = 500,
-            TimeToBeALive = 10,
-            AnimationResourcePath = "res://AnimationRes/Projectile/RicOSpam/P_RicOSpam.tres",
-            Scale = new Vector2(0.5f, 0.5f),
-            BouncingCount = 2,
-            PiercingCount = 0,
-            OnHit = OnHit,
-        };
+        var request = AimedProjectile("res://AnimationRes/Projectile/RicOSpam/P_RicOSpam.tres", 500, 10);
+        request.CastGuid = currentCcastGuid;
+        request.Movement.AngleOffset = offset * Mathf.Pi / 180;
+        request.Movement.BounceCount = 2;
+        request.Visual.Scale = new Vector2(0.5f, 0.5f);
+        return request;
     }
 
     private void OnHit(IEntityComponent arg1, Projectile arg2)
@@ -83,17 +75,18 @@ public class RicOSpam: ProjectileAbility
 
     protected override void _onProjectileCollided(Vector2 position, Projectile projectile)
     {
-        if (projectileLists.TryGetValue(projectile.Stats.CastGuid, out var _projectiles))
+        if (projectileLists.TryGetValue(projectile.SpawnRequest.CastGuid, out var _projectiles))
         {
             if (_projectiles.Count <= 10)
             {
-                var stats = GetProjectileStats();
-                stats.CastGuid = projectile.Stats.CastGuid;
-                stats.StartPosition = position;
+                var request = GetProjectileSpawnRequest();
+                request.CastGuid = projectile.SpawnRequest.CastGuid;
+                request.StartPosition = position;
                 var offset = rnd.NextInt64(-15, 15);
-                stats.Direction = projectile.Stats.Direction.Rotated(Mathf.DegToRad(offset));
-                stats.Caller = Caller;
-                var add_proj = GlobalAbilitySpawner.SpawnProjectile(stats);
+                request.Movement.Direction = projectile.SpawnRequest.Movement.Direction.Rotated(Mathf.DegToRad(offset));
+                request.Movement.AngleOffset = 0;
+                request.Caller = Caller;
+                var add_proj = GlobalAbilitySpawner.SpawnProjectile(request, GetProjectileRuntime());
                 add_proj.OnCollision += _onProjectileCollided;
                 add_proj.OnPiercing += _onProjectilePierced;
                 add_proj.OnDestroyed += _onProjectileDestroyed;
@@ -104,7 +97,7 @@ public class RicOSpam: ProjectileAbility
 
     protected override void _onProjectileDestroyed(Vector2 position, Projectile projectile)
     {
-        if (projectileLists.TryGetValue(projectile.Stats.CastGuid, out var _projectiles))
+        if (projectileLists.TryGetValue(projectile.SpawnRequest.CastGuid, out var _projectiles))
         {
             if (_projectiles.Contains(projectile))
             {
@@ -113,7 +106,7 @@ public class RicOSpam: ProjectileAbility
 
             if (_projectiles.Count == 0)
             {
-                projectileLists.Remove(projectile.Stats.CastGuid);
+                projectileLists.Remove(projectile.SpawnRequest.CastGuid);
             }
         }
     }
@@ -126,7 +119,7 @@ public class RicOSpam: ProjectileAbility
 
     protected override void PostSpawnProjectile(Projectile projectile)
     {
-        if (projectileLists.TryGetValue(projectile.Stats.CastGuid, out var _projectiles))
+        if (projectileLists.TryGetValue(projectile.SpawnRequest.CastGuid, out var _projectiles))
         {
             _projectiles.Add(projectile);
         }

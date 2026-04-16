@@ -6670,6 +6670,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="GameMenu" type="CanvasLayer" parent="." node_paths=PackedStringArray("_leaveMatch", "_settings", "_gameManager")]
+visible = false
 script = ExtResource("17_t3fuk")
 _leaveMatch = NodePath("PanelContainer/MarginContainer/VBoxContainer/LeaveMatch")
 _settings = NodePath("PanelContainer/MarginContainer/VBoxContainer/Settings")

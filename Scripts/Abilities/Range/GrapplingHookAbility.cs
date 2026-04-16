@@ -45,18 +45,11 @@ public class GrapplingHookAbility : ProjectileAbility
     
     
 
-    protected override ProjectileStats GetProjectileStats()
+    protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        return new ProjectileStats()
-        {
-            Caller = Caller,
-            Direction = Vector2.Zero,
-            Speed = 500,
-            TimeToBeALive = 4,
-            AnimationResourcePath = "res://Sprites/Projectiles/fireBallProjectile.png",
-            CustomProjectilePath = "res://Scenes/Projectiles/GrapplingProjectile.tscn",
-            BouncingCount = 0,
-            PiercingCount = 0,
-        };
+        var request = AimedProjectile("res://Sprites/Projectiles/fireBallProjectile.png", 500, 4);
+        request.Movement.Direction = Vector2.Zero;
+        request.Visual.ScenePath = "res://Scenes/Projectiles/GrapplingProjectile.tscn";
+        return request;
     }
 }

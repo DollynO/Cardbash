@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -7,7 +6,6 @@ namespace CardBase.Scripts.Abilities;
 
 public class FireballAbility : ProjectileAbility
 {
-    private float chargePower = 0;
     public FireballAbility(PlayerCharacter creator) : base(AbilityIds.FireballGuid, creator)
     {
        this.DisplayName = "Fireball";
@@ -29,24 +27,14 @@ public class FireballAbility : ProjectileAbility
         
     }
     
-    protected override ProjectileStats GetProjectileStats()
+    protected override ProjectileRuntime GetProjectileRuntime()
     {
-        var direction = Vector2.Zero;
-        if (Caller.TryGetComponent(out AimComponent aimComponent))
-        {
-            direction = aimComponent.GetLookAtDirection();
-        }
-        return new ProjectileStats
-        {
-            Caller = Caller,
-            Direction = direction,
-            Speed = 300,
-            TimeToBeALive = 10,
-            AnimationResourcePath = "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
-            BouncingCount = 0,
-            PiercingCount = 0,
-            OnHit = OnHit,
-        };
+        return CreateProjectileRuntime(OnHit);
+    }
+
+    protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
+    {
+        return AimedProjectile("res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres", 300, 10);
     }
     
     private void OnHit(IEntityComponent arg1, Projectile arg2)

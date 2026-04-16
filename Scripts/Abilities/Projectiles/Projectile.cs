@@ -13,8 +13,9 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     public long CreatorId { get; set; }
     public string AbilityGuid { get; set; }
 
-    public ProjectileStats Stats;
-    public int TeamId => Stats?.Caller is ITeamAffiliation team ? team.TeamId : -1;
+    public ProjectileSpawnRequest SpawnRequest;
+    public ProjectileRuntime Runtime;
+    public int TeamId => SpawnRequest?.Caller is ITeamAffiliation team ? team.TeamId : -1;
 
     [Export] private Timer timer;
     [Export] private CollisionShape2D collisionShape;
@@ -46,21 +47,27 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         behaviors.Add(behavior);
     }
 
-    public void SetStats(ProjectileStats pStats)
+    public void Initialize(ProjectileSpawnRequest spawnRequest, ProjectileRuntime runtime = null)
     {
-        Stats = pStats;
-        if (pStats.Caller != null && pStats.Caller.TryGetComponent(out statBlock))
+        SpawnRequest = spawnRequest;
+        Runtime = runtime ?? ProjectileRuntime.Empty();
+        if (spawnRequest.Caller != null && spawnRequest.Caller.TryGetComponent(out statBlock))
         {
-            Stats.PullRadius += statBlock.GetStat(StatType.AddPullRadius);
+            SpawnRequest.Pull.Radius += statBlock.GetStat(StatType.AddPullRadius);
         }
 
-        if (Stats.PullRadius > 0)
+        if (SpawnRequest.Pull.Radius > 0)
         {
             pullArea.Visible = true;
         }
 
-        Scale = Stats.Scale;
-        foreach (var behavior in Stats.Behaviors)
+        if (SpawnRequest.Movement.AngleOffset != 0)
+        {
+            SpawnRequest.Movement.Direction = SpawnRequest.Movement.Direction.Rotated(SpawnRequest.Movement.AngleOffset);
+        }
+
+        Scale = SpawnRequest.Visual.Scale;
+        foreach (var behavior in Runtime.Behaviors)
         {
             AddBehavior(behavior);
         }
@@ -68,7 +75,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     public override void _Draw()
     {
-        DrawCircle(Vector2.Zero, Stats.PullRadius * 35, pullAreaColor);
+        DrawCircle(Vector2.Zero, SpawnRequest.Pull.Radius * 35, pullAreaColor);
     }
 
     public override void _Ready()
@@ -76,48 +83,48 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         SetMultiplayerAuthority(1);
         if (Multiplayer.IsServer())
         {
-            if (Stats.TimeToBeALive > 0)
+            if (SpawnRequest.Lifetime.Seconds > 0)
             {
-                timer.Start(Stats.TimeToBeALive);
+                timer.Start(SpawnRequest.Lifetime.Seconds);
             }
 
             _state = GetWorld2D().GetDirectSpaceState();
             detectArea.BodyEntered += OnBodyEntered;
             if (statBlock != null)
             {
-                Stats.PullStrength += statBlock.GetStat(StatType.AddPullStrength);
+                SpawnRequest.Pull.Strength += statBlock.GetStat(StatType.AddPullStrength);
             }
 
-            if (Stats.CollisionMask > 0)
+            if (SpawnRequest.Collision.CollisionMask > 0)
             {
-                detectArea.CollisionMask = Stats.CollisionMask;
+                detectArea.CollisionMask = SpawnRequest.Collision.CollisionMask;
             }
         }
-        pullArea.Visible = Stats.PullRadius > 0;
-        if (Stats.PullRadius > 0)
+        pullArea.Visible = SpawnRequest.Pull.Radius > 0;
+        if (SpawnRequest.Pull.Radius > 0)
         {
             pullArea.BodyEntered += PullAreaOnBodyEntered;
             pullArea.BodyExited += PullAreaOnBodyExit;
             if (pullAreaShape.Shape is CircleShape2D circleShape)
             {
-                circleShape.Radius = Stats.PullRadius * 35;
+                circleShape.Radius = SpawnRequest.Pull.Radius * 35;
             }
         }
         
         var vs = new VisualComponent();
-        if (!string.IsNullOrEmpty(Stats.AnimationResourcePath))
+        if (!string.IsNullOrEmpty(SpawnRequest.Visual.AnimationPath))
         {
-            vs.SetAnimation(Stats.AnimationResourcePath, Stats.AnimationOffset);
+            vs.SetAnimation(SpawnRequest.Visual.AnimationPath, SpawnRequest.Visual.AnimationOffset);
         }
         AddComponent(vs);
 
-        GlobalPosition = Stats.StartPosition;
-        Rotation = Stats.Direction.Angle();
+        GlobalPosition = SpawnRequest.StartPosition;
+        Rotation = SpawnRequest.Movement.Direction.Angle();
 
-        if (Stats.Life > 0)
+        if (SpawnRequest.Health.Life > 0)
         {
             var hc = new HealthComponent();
-            hc.Reset(Stats.Life);
+            hc.Reset(SpawnRequest.Health.Life);
             AddComponent(hc);
             hc.Death += onProjectileDeath;
             var oui = new OverHeadUiComponent();
@@ -134,12 +141,12 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void OnBodyEntered(Node2D body)
     {
-        if (body == this || body is Projectile proj && ((PlayerCharacter)proj.Stats.Caller).TeamId == ((PlayerCharacter)this.Stats.Caller).TeamId)
+        if (body == this || body is Projectile proj && IsSameTeam(proj))
         {
             return;
         }
         
-        if (body is IEntityComponent hitObject && hitObject != Stats.Caller)
+        if (body is IEntityComponent hitObject && hitObject != SpawnRequest.Caller)
         {
             HitableObjectCollided(hitObject);
         }
@@ -147,14 +154,14 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyEntered(Node2D body)
     {
-        if (body == this || body is Projectile proj && ((PlayerCharacter)proj.Stats.Caller).TeamId == ((PlayerCharacter)this.Stats.Caller).TeamId)
+        if (body == this || body is Projectile proj && IsSameTeam(proj))
         {
             return;
         }
         
         if (body is IEntityComponent ec)
         {
-            if (Stats.Caller is not ITeamAffiliation callerTeam || ec is not ITeamAffiliation targetTeam)
+            if (SpawnRequest.Caller is not ITeamAffiliation callerTeam || ec is not ITeamAffiliation targetTeam)
             {
                 return;
             }
@@ -168,7 +175,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyExit(Node2D body)
     {
-        if (body == this || body is Projectile proj && ((PlayerCharacter)proj.Stats.Caller).TeamId == ((PlayerCharacter)this.Stats.Caller).TeamId)
+        if (body == this || body is Projectile proj && IsSameTeam(proj))
         {
             return;
         }
@@ -177,6 +184,11 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         {
             entityInPullArea.Remove(ec);
         }
+    }
+
+    private bool IsSameTeam(Projectile other)
+    {
+        return other.TeamId >= 0 && TeamId >= 0 && other.TeamId == TeamId;
     }
 
     public override void _Process(double delta)
@@ -188,19 +200,19 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             foreach (var player in entityInPullArea)
                 if (player.TryGetComponent(out MoveComponent moveComponent))
                 {
-                    moveComponent.Drag(this.GlobalPosition, Stats.PullStrength, 0.1f);
+                    moveComponent.Drag(this.GlobalPosition, SpawnRequest.Pull.Strength, 0.1f);
                 }
         }
 
         QueueRedraw();
     }
 
-    private Vector2 getNextPosition(ProjectileStats pStats, float delta)
+    private Vector2 getNextPosition(ProjectileMovementConfig movement, float delta)
     {
-        switch (Stats.MovementMode)
+        switch (movement.Mode)
         {
             case MovementMode.STRAIGHT:
-                return pStats.Direction * pStats.Speed * delta;
+                return movement.Direction * movement.Speed * delta;
             case MovementMode.CURVE:
             case MovementMode.NONE:
             default:
@@ -212,9 +224,9 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     {
         if (Multiplayer.IsServer())
         {
-            if (Stats.MovementMode != MovementMode.NONE)
+            if (SpawnRequest.Movement.Mode != MovementMode.NONE)
             {
-                var to = getNextPosition(Stats, (float)delta);
+                var to = getNextPosition(SpawnRequest.Movement, (float)delta);
                 var collider = MoveAndCollide(to);
 
                 if (collider != null)
@@ -244,11 +256,11 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     {
         if (collider.GetCollider() is TileMapLayer layer)
         {
-            if (Stats.BouncingCount > 0)
+            if (SpawnRequest.Movement.BounceCount > 0)
             {
-                Stats.BouncingCount--;
-                Stats.Direction = Stats.Direction.Bounce(collider.GetNormal());
-                Rotation = Stats.Direction.Angle();
+                SpawnRequest.Movement.BounceCount--;
+                SpawnRequest.Movement.Direction = SpawnRequest.Movement.Direction.Bounce(collider.GetNormal());
+                Rotation = SpawnRequest.Movement.Direction.Angle();
             }
             else
             {
@@ -265,9 +277,9 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
      */
     protected virtual void HitableObjectCollided(IEntityComponent hitObject)
     {
-        Stats.OnHit?.Invoke(hitObject, this);
-        Stats.PiercingCount--;
-        if (Stats.PiercingCount <= 0)
+        Runtime.OnHit?.Invoke(hitObject, this);
+        SpawnRequest.Collision.PierceCount--;
+        if (SpawnRequest.Collision.PierceCount <= 0)
         {
             EmitSignal(SignalName.OnPiercing, Position, this);
             DestroyProjectile();
@@ -310,98 +322,4 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         this.GlobalPosition = (Vector2)dict["global_position"];
         this.GlobalRotation = (float)dict["global_rotation"];
     }
-}
-
-public class ProjectileStats
-{
-    public string CastGuid = Guid.NewGuid().ToString();
-    public Node2D? Parent;
-    public string AnimationResourcePath;
-    public Vector2 AnimationOffset = Vector2.Zero;
-    public float Speed = 0;
-    public Action<IEntityComponent, Projectile> OnHit;
-    public Vector2 StartPosition = new (-10000, -10000);
-    public Vector2 Direction;
-    public float TimeToBeALive = 0;
-    public IEntityComponent Caller;
-    public int PiercingCount = 0;
-    public int BouncingCount = 0;
-    public Vector2 Scale = Vector2.One;
-    public float KnockbackForce = 0;
-    public float PullStrength = 0;
-    public float PullRadius = 0;
-    public string CustomProjectilePath = string.Empty;
-    public MovementMode MovementMode = MovementMode.STRAIGHT;
-    public float Distance = -1;
-    public uint CollisionMask;
-    public uint DetectCollisionMask;
-    public float AngleOffset = 0;
-    public float Life = -1;
-    public List<IProjectileBehavior> Behaviors = new();
-
-    public Godot.Collections.Dictionary<string, Variant> ToDict()
-    {
-        var dict = new Godot.Collections.Dictionary<string, Variant>()
-        {
-            { nameof(CastGuid),  this.CastGuid},
-            { nameof(Parent), Parent?.GetPath() ?? string.Empty },
-            { nameof(AnimationResourcePath), AnimationResourcePath},
-            {nameof(AnimationOffset), AnimationOffset},
-            { nameof(Speed), Speed },
-            { nameof(StartPosition), StartPosition },
-            { nameof(Direction), Direction },
-            { nameof(TimeToBeALive), TimeToBeALive },
-            { nameof(Caller), ((Node2D)Caller).GetPath() },
-            { nameof(PiercingCount), PiercingCount },
-            { nameof(BouncingCount), BouncingCount },
-            { nameof(Scale), Scale },
-            { nameof(KnockbackForce), KnockbackForce },
-            { nameof(PullRadius), PullRadius },
-            { nameof(PullStrength), PullStrength },
-            { nameof(CustomProjectilePath), CustomProjectilePath },
-            { nameof(MovementMode), (int)MovementMode },
-            { nameof(Distance), Distance },
-            { nameof(CollisionMask), CollisionMask },
-            { nameof(AngleOffset), AngleOffset },
-            { nameof(Life), Life},
-        };
-        return dict;
-    }
-
-    public static ProjectileStats FromDict(Godot.Collections.Dictionary<string, Variant> dict, GameManager manager)
-    {
-        var parentString = (string)dict[nameof(Parent)];
-        var stats = new ProjectileStats()
-        {
-            CastGuid = (string)dict[nameof(CastGuid)],
-            AngleOffset = (float)dict[nameof(AngleOffset)],
-            CollisionMask = (uint)dict[nameof(CollisionMask)],
-            Distance = (float)dict[nameof(Distance)],
-            MovementMode = (MovementMode)(int)dict[nameof(MovementMode)],
-            CustomProjectilePath = (string)dict[nameof(CustomProjectilePath)],
-            PullStrength = (float)dict[nameof(PullStrength)],
-            PullRadius = (float)dict[nameof(PullRadius)],
-            KnockbackForce = (float)dict[nameof(KnockbackForce)],
-            Scale = (Vector2)dict[nameof(Scale)],
-            BouncingCount = (int)dict[nameof(BouncingCount)],
-            PiercingCount = (int)dict[nameof(PiercingCount)],
-            Caller = (IEntityComponent)manager.GetNode((string)dict[nameof(Caller)]),
-            TimeToBeALive = (float)dict[nameof(TimeToBeALive)],
-            Direction = (Vector2)dict[nameof(Direction)],
-            StartPosition = (Vector2)dict[nameof(StartPosition)],
-            Speed = (float)dict[nameof(Speed)],
-            AnimationResourcePath = (string)dict[nameof(AnimationResourcePath)],
-            AnimationOffset =  (Vector2)dict[nameof(AnimationOffset)],
-            Parent = !string.IsNullOrEmpty(parentString) ? (Node2D)manager.GetNode((string)dict[nameof(Parent)]) : null,
-            Life = (float)dict[nameof(Life)],
-        };
-        return stats;
-    }
-}
-
-public enum MovementMode
-{
-    NONE,
-    STRAIGHT,
-    CURVE
 }

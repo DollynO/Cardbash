@@ -132,19 +132,16 @@ public partial class GlobalAbilitySpawner : Node2D
         return aoe;
     }
 
-    public Projectile SpawnProjectile(ProjectileStats projectileStats)
+    public Projectile SpawnProjectile(ProjectileSpawnRequest spawnRequest, ProjectileRuntime runtime = null)
     {
-        var projectile = instantiateProjectile(projectileStats.CustomProjectilePath);
+        var projectile = instantiateProjectile(spawnRequest.Visual.ScenePath);
         var name = GenerateSpawnName(SpawnType.PROJECTILE);
         projectile.Name = name;
 
-        projectile.SetStats(projectileStats);
+        projectile.Initialize(spawnRequest, runtime);
         
-        var dict = projectileStats.ToDict();
-        if (projectileStats.Parent == null)
-        {
-            this.AddChild(projectile);
-        }
+        var dict = spawnRequest.ToDict();
+        AddChild(projectile);
         
         Rpc(MethodName.spawnProjectileOnClient, dict, name);
         return projectile;
@@ -153,14 +150,11 @@ public partial class GlobalAbilitySpawner : Node2D
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void spawnProjectileOnClient(Variant dict, string name)
     {
-        var projectileStats = ProjectileStats.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
-        var projectile = instantiateProjectile(projectileStats.CustomProjectilePath);
+        var spawnRequest = ProjectileSpawnRequest.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
+        var projectile = instantiateProjectile(spawnRequest.Visual.ScenePath);
         projectile.Name = name;
-        projectile.SetStats(projectileStats);
-        if (projectileStats.Parent == null)
-        {
-            this.AddChild(projectile);
-        }
+        projectile.Initialize(spawnRequest);
+        AddChild(projectile);
     }
 
     private Projectile instantiateProjectile(string path)

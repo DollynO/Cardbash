@@ -1,14 +1,12 @@
 ﻿using System;
+using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
-using Godot.Collections;
 
 namespace CardBase.Scripts.Abilities;
 
 public abstract class ProjectileAbility : Ability
 {
-    private PackedScene ProjectileScene = GD.Load<PackedScene>("res://Scenes//Projectiles//Projectile.tscn");
-
     protected int SpawnCount;
     protected float SpawnDelay;
     
@@ -34,19 +32,19 @@ public abstract class ProjectileAbility : Ability
 
     protected Projectile SpawnProjectile()
     {
-        var projectile_stats = GetProjectileStats();
+        var spawnRequest = GetProjectileSpawnRequest();
 
         if (Caller.TryGetComponent(out AimComponent aimComponent))
         {
-            projectile_stats.StartPosition = aimComponent.GetProjectileStartPosition();
+            spawnRequest.StartPosition = aimComponent.GetProjectileStartPosition();
         }
         else
         {
-            projectile_stats.StartPosition = ((Node2D)Caller).GlobalPosition;
+            spawnRequest.StartPosition = ((Node2D)Caller).GlobalPosition;
         }
 
-        projectile_stats.Caller = Caller;
-        var projectile = GlobalAbilitySpawner.SpawnProjectile(projectile_stats);
+        spawnRequest.Caller = Caller;
+        var projectile = GlobalAbilitySpawner.SpawnProjectile(spawnRequest, GetProjectileRuntime());
         
         projectile.OnCollision += _onProjectileCollided;
         projectile.OnPiercing += _onProjectilePierced;
@@ -70,5 +68,45 @@ public abstract class ProjectileAbility : Ability
         
     }
 
-    protected abstract ProjectileStats GetProjectileStats();
+    protected virtual ProjectileRuntime GetProjectileRuntime()
+    {
+        return ProjectileRuntime.Empty();
+    }
+
+    protected Vector2 GetAimDirection()
+    {
+        return Caller.TryGetComponent(out AimComponent aimComponent) ? aimComponent.GetLookAtDirection() : Vector2.Zero;
+    }
+
+    protected ProjectileSpawnRequest AimedProjectile(string animationPath, float speed, float lifetime)
+    {
+        return new ProjectileSpawnRequest
+        {
+            Caller = Caller,
+            Movement = new ProjectileMovementConfig
+            {
+                Direction = GetAimDirection(),
+                Speed = speed,
+            },
+            Lifetime = new ProjectileLifetimeConfig
+            {
+                Seconds = lifetime,
+            },
+            Visual = new ProjectileVisualConfig
+            {
+                AnimationPath = animationPath,
+            },
+        };
+    }
+
+    protected ProjectileRuntime CreateProjectileRuntime(Action<IEntityComponent, Projectile> onHit = null, params IProjectileBehavior[] behaviors)
+    {
+        return new ProjectileRuntime
+        {
+            OnHit = onHit,
+            Behaviors = new System.Collections.Generic.List<IProjectileBehavior>(behaviors),
+        };
+    }
+
+    protected abstract ProjectileSpawnRequest GetProjectileSpawnRequest();
 }

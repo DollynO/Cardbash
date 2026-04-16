@@ -39,21 +39,13 @@ public class CorruptedBolt : ProjectileAbility
         }
     }
     
-    protected override ProjectileStats GetProjectileStats()
+    protected override ProjectileRuntime GetProjectileRuntime()
     {
-        var direction = Vector2.Zero;
-        if (Caller.TryGetComponent(out AimComponent aimComponent))
-        {
-            direction = aimComponent.GetLookAtDirection();
-        }
-        return new ProjectileStats
-        {
-            Caller = Caller,
-            Direction = direction,
-            Speed = 300,
-            TimeToBeALive = 4,
-            AnimationResourcePath = "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
-            OnHit = applyCorruption,
-        };
+        return CreateProjectileRuntime(applyCorruption);
+    }
+
+    protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
+    {
+        return AimedProjectile("res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres", 300, 4);
     }
 }
