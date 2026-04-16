@@ -6464,7 +6464,6 @@ _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
 [node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar")]
-visible = false
 script = ExtResource("4_e1s5y")
 _abilityFrames = [NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame"), NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame2"), NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame3"), NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame4")]
 _drawUiContainer = NodePath("DrawUi")

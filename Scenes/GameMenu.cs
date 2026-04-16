@@ -12,6 +12,7 @@ public partial class GameMenu : CanvasLayer
 	{
 		_settings.Disabled = true;
 		_leaveMatch.ButtonDown += leaveMatchOnButtonDown;
+		Visible = false;
 	}
 
 	private void leaveMatchOnButtonDown()
@@ -22,5 +23,13 @@ public partial class GameMenu : CanvasLayer
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
+	}
+	
+	public override void _Input(InputEvent @event)
+	{
+		if (@event.IsActionPressed("OpenGameMenu"))
+		{
+			Visible = !Visible;
+		}
 	}
 }
