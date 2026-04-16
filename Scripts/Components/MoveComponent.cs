@@ -44,9 +44,12 @@ public partial class MoveComponent : Node2D, IComponent
 
     private bool repositionBlock;
 
+    public bool IsMovementDisabled { get; set; }
+
     public MoveComponent()
     {
         Name = "MoveComponent";
+        IsMovementDisabled = false;
     }
     
     public void ProcessMovement(double delta, Vector2 direction)
@@ -56,6 +59,11 @@ public partial class MoveComponent : Node2D, IComponent
             return;
         }
 
+        if (IsMovementDisabled)
+        {
+            return;
+        }
+        
         if (Stun)
         {
             StunTime -= (float)delta;

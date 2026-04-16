@@ -2,6 +2,8 @@ using Godot;
 
 public partial class SceneManager : Node
 {
+	public static SceneManager Instance;
+	
 	[Export] private PackedScene MenuScene;
 	[Export] private PackedScene DeckBuilderScene;
 	[Export] private PackedScene LobbyScene;
@@ -15,10 +17,9 @@ public partial class SceneManager : Node
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
+		Instance = this;
 		Menu = MenuScene.Instantiate();
 		DeckBuilder = DeckBuilderScene.Instantiate();
-		Lobby = LobbyScene.Instantiate();
-		Game = GameScene.Instantiate();
 		LoadMenuScene();
 	}
 
@@ -37,6 +38,7 @@ public partial class SceneManager : Node
 	{
 		Remove(DeckBuilder);
 		UnloadLobby();
+		UnloadGame();
 
 		if (Menu.GetParent() == null)
 		{
@@ -55,6 +57,7 @@ public partial class SceneManager : Node
 	public void LoadLobbyScene()
 	{
 		Remove(Menu);
+		
 		Lobby ??= LobbyScene.Instantiate();
 		AddChild(Lobby);
 	}
@@ -62,6 +65,8 @@ public partial class SceneManager : Node
 	public void LoadGameScene(GameModeSettings gameSettings)
 	{
 		UnloadLobby();
+		Game ??= GameScene.Instantiate();
+		
 		if (Game is GameManager manager)
 		{
 			manager.SetStats(gameSettings);
@@ -70,10 +75,18 @@ public partial class SceneManager : Node
 		Rpc(MethodName.loadGameOnClient);
 	}
 
+	public void LeaveGame()
+	{
+		UnloadGame();
+		AddChild(Menu);
+	}
+
 	[Rpc(CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
 	private void loadGameOnClient()
 	{
 		UnloadLobby();
+		
+		Game ??= GameScene.Instantiate();
 		AddChild(Game);
 	}
 
@@ -82,6 +95,13 @@ public partial class SceneManager : Node
 		Remove(Lobby);
 		Lobby?.QueueFree();
 		Lobby = null;
+	}
+
+	private void UnloadGame()
+	{
+		Remove(Game);
+		Game?.QueueFree();
+		Game = null;
 	}
 
 	private void Remove(Node node)

@@ -10,7 +10,7 @@ public partial class PlayerUi : Control
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		PlayerOverview.Visible = false;
+		PlayerOverviewPanel.Visible = false;
 		gameManager = GetNode<GameManager>("/root/Main/Game");
 	}
 

@@ -19,6 +19,8 @@ public partial class LobbyManager : ColorRect
 
 	private SceneManager _sceneManager;
 	private NetworkManager _network;
+	private bool _subscribedToServerDisconnected;
+	private bool _subscribedToPlayerJoined;
 	
 	private Player currentPlayer;
 	
@@ -32,9 +34,11 @@ public partial class LobbyManager : ColorRect
 		_sceneManager = GetNode<SceneManager>("/root/Main");
 		_network = GetNode<NetworkManager>(NetworkManager.GetNetworkManagerPath());
 		_network.OnServerDisconnected += open_main_menu;
+		_subscribedToServerDisconnected = true;
 		if (Multiplayer.IsServer())
 		{
-			_network.OnPlayerJoined += _ => { Rpc(MethodName._allUnready); };
+			_network.OnPlayerJoined += on_player_joined;
+			_subscribedToPlayerJoined = true;
 		}
 
 		while (_teamSelect.ItemCount > 0)
@@ -96,8 +100,28 @@ public partial class LobbyManager : ColorRect
 				slot.Visible = false;
 			}
 		}
-		
+
 		_teamSelect.Selected = currentPlayer?.TeamNumber ?? 0;
+	}
+
+	public override void _ExitTree()
+	{
+		if (_network == null)
+		{
+			return;
+		}
+
+		if (_subscribedToServerDisconnected)
+		{
+			_network.OnServerDisconnected -= open_main_menu;
+			_subscribedToServerDisconnected = false;
+		}
+
+		if (_subscribedToPlayerJoined)
+		{
+			_network.OnPlayerJoined -= on_player_joined;
+			_subscribedToPlayerJoined = false;
+		}
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -144,13 +168,24 @@ public partial class LobbyManager : ColorRect
 
 	private void _on_back_pressed()
 	{
-		Multiplayer?.MultiplayerPeer.Close();
+		if (Multiplayer.IsServer())
+		{
+			_network.CloseServer();
+			return;
+		}
+
+		_network.DeleteClient();
 		_sceneManager?.LoadMenuScene();
 	}
 
 	private void open_main_menu()
 	{
 		_sceneManager?.LoadMenuScene();
+	}
+
+	private void on_player_joined(long id)
+	{
+		Rpc(MethodName._allUnready);
 	}
 	
 	private void _on_team_selected(int index)

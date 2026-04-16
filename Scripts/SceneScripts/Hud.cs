@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
-using CardBase.Scripts.Items;
 using CardBase.Scripts.PlayerScripts;
 using Godot.Collections;
 

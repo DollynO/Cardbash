@@ -170,4 +170,12 @@ public partial class AbilityComponent : Node2D, IComponent
             networkAbilities[entry.Key].Stacks = new Vector2((int)abilityEntry["sx"],  (int)abilityEntry["sy"]);
         }
     }
+
+    public void Cleanup()
+    {
+        foreach (var ability in Abilities)
+        {
+            ability.ClearAbility();
+        }
+    }
 }

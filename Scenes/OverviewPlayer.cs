@@ -18,6 +18,17 @@ public partial class OverviewPlayer : Control
 		var index = 0;
 		foreach (var ability in player.AbilityComponent.Abilities)
 		{
+			if (index >= abilityIcons.Length)
+			{
+				break;
+			}
+
+			if (abilityIcons[index] == null)
+			{
+				index++;
+				continue;
+			}
+
 			abilityIcons[index].Texture = IconLoader.Instance.LoadImage(ability.IconPath);
 			index++;
 		}

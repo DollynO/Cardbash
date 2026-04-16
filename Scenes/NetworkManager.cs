@@ -7,6 +7,8 @@ public partial class NetworkManager : Node
 {
 	public Dictionary<long, Player> CurrentPlayers = new ();
 	public string LocalUsername { get; set; }
+	private bool _hostSignalsConnected;
+	private bool _clientSignalsConnected;
 
 	[Export] private PackedScene player_scene;
 	//[Export] private MultiplayerSpawner multiplayer_spawner;
@@ -38,6 +40,7 @@ public partial class NetworkManager : Node
 
 	public void StartHost(int port)
 	{
+		ResetNetworkState();
 		CurrentPlayers.Clear();
 		clearMultiplayerSpawner();
 		var peer = new ENetMultiplayerPeer();
@@ -46,6 +49,7 @@ public partial class NetworkManager : Node
 		
 		Multiplayer.PeerConnected += _on_player_connected;
 		Multiplayer.PeerDisconnected += _on_player_disconnected;
+		_hostSignalsConnected = true;
 		
 		_on_player_connected(Multiplayer.GetUniqueId());
 		_connected_to_server();
@@ -53,6 +57,7 @@ public partial class NetworkManager : Node
 
 	public void StartClient(string ip, int port)
 	{
+		ResetNetworkState();
 		CurrentPlayers.Clear();
 		var peer = new ENetMultiplayerPeer();
 		peer.CreateClient(ip, port);
@@ -61,18 +66,38 @@ public partial class NetworkManager : Node
 		Multiplayer.ConnectedToServer += _connected_to_server;
 		Multiplayer.ConnectionFailed += _connection_failed;
 		Multiplayer.ServerDisconnected += _server_disconnected;
+		_clientSignalsConnected = true;
 	}
 
 	public void DeleteClient()
 	{
-		Multiplayer.ConnectedToServer -= _connected_to_server;
-		Multiplayer.ConnectionFailed -= _connection_failed;
-		Multiplayer.ServerDisconnected -= _server_disconnected;
-		foreach (var child in this.GetChildren())
+		ResetNetworkState();
+	}
+
+	public async void CloseServer()
+	{
+		if (!Multiplayer.IsServer())
 		{
-			child.QueueFree();
+			return;
 		}
-		Multiplayer.MultiplayerPeer = null;
+
+		if (Multiplayer.MultiplayerPeer == null)
+		{
+			SceneManager.Instance?.LoadMenuScene();
+			ResetNetworkState();
+			return;
+		}
+
+		Rpc(MethodName.CloseNetworkSceneOnPeer);
+		await ToSignal(GetTree().CreateTimer(0.1), Timer.SignalName.Timeout);
+
+		if (Multiplayer.MultiplayerPeer != null)
+		{
+			Multiplayer.MultiplayerPeer.Close();
+		}
+
+		ResetNetworkState();
+		SceneManager.Instance?.LoadMenuScene();
 	}
 
 	public async void DisconnectPlayer(int playerId)
@@ -178,12 +203,52 @@ public partial class NetworkManager : Node
 		EmitSignal(SignalName.OnServerDisconnected);
 	}
 
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	private void CloseNetworkSceneOnPeer()
+	{
+		ResetNetworkState();
+		SceneManager.Instance?.LoadMenuScene();
+	}
+
+	private void ResetNetworkState()
+	{
+		if (_hostSignalsConnected)
+		{
+			Multiplayer.PeerConnected -= _on_player_connected;
+			Multiplayer.PeerDisconnected -= _on_player_disconnected;
+			_hostSignalsConnected = false;
+		}
+
+		if (_clientSignalsConnected)
+		{
+			Multiplayer.ConnectedToServer -= _connected_to_server;
+			Multiplayer.ConnectionFailed -= _connection_failed;
+			Multiplayer.ServerDisconnected -= _server_disconnected;
+			_clientSignalsConnected = false;
+		}
+
+		foreach (var child in this.GetChildren())
+		{
+			child.QueueFree();
+		}
+
+		CurrentPlayers.Clear();
+
+		if (Multiplayer.MultiplayerPeer != null)
+		{
+			Multiplayer.MultiplayerPeer.Close();
+		}
+
+		Multiplayer.MultiplayerPeer = null;
+	}
+
 	private void clearMultiplayerSpawner()
 	{
-		while (CurrentPlayers.Count > 0)
+		foreach (var player in CurrentPlayers.Values)
 		{
-			CurrentPlayers[0].QueueFree();
-			CurrentPlayers.Remove(CurrentPlayers.First().Key);
+			player.QueueFree();
 		}
+
+		CurrentPlayers.Clear();
 	}
 }

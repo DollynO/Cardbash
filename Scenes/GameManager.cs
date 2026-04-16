@@ -240,4 +240,42 @@ public partial class GameManager : Node2D
 	{
 		return this._currentCharacters.Values.ToList();
 	}
+
+	public void LeaveGame(long playerId)
+	{
+		if (Multiplayer.IsServer())
+		{
+
+			foreach (var character in _currentCharacters.Values)
+			{
+				character.Cleanup();
+				character.QueueFree();
+			}
+			_currentCharacters.Clear();
+			_network.CloseServer();
+			return;
+		}
+
+		RpcId(1, MethodName.requestClientLeaveMatch,  playerId);
+		Multiplayer.MultiplayerPeer = null;
+		SceneManager.Instance.LeaveGame();
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+	private void requestClientLeaveMatch(long playerId)
+	{
+		if (!Multiplayer.IsServer())
+		{
+			return;
+		}
+		
+		var character = _currentCharacters[playerId];
+		if (character == null)
+		{
+			return;
+		}
+		
+		character.Cleanup();
+		_currentCharacters.Remove(playerId);
+	}
 }

@@ -265,6 +265,21 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     {
         this.Modulate = new Godot.Color(this.Modulate, 1.0f);
     }
+
+    public void Cleanup()
+    {
+        if (this.TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.IsMovementDisabled = true;
+        }
+
+        if (this.TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.Cleanup();  
+        }
+        
+        this.GlobalPosition = Vector2.One * -20000;
+    }
     
 }
 
