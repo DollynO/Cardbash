@@ -20,6 +20,9 @@ public partial class Hud : CanvasLayer
 	
 	[Export] private HealthBar _healthBar;
 	
+	[Export] private GridContainer statOverviewContainer;
+	[Export] private PackedScene statOverviewScene;
+	
 	private PackedScene _abilityCardTemplate;
 	private PackedScene _itemCardTemplate;
 
@@ -34,6 +37,15 @@ public partial class Hud : CanvasLayer
 		_abilityCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/AbiltyCardTemlate.res") as PackedScene;
 		_itemCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/ItemCardTemlate.res") as PackedScene;
 		_healthBar.AllowGreater = true;
+
+		var element = statOverviewScene.Instantiate<StatOverviewElement>();
+		var data = new StatOverviewElementData(
+			"res://Sprites/StatOverview/crit.png",
+			"Crit",
+			"Crit change doubles damage",
+			"20");
+		statOverviewContainer.AddChild(element);
+		element.Init(data);
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.

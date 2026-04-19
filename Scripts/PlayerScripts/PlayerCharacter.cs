@@ -234,6 +234,16 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             healthComponent.Reset(StatBlock.GetStat(StatType.Life));
         }
 
+        if (TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.IsMovementDisabled = false;
+        }
+
+        if (TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.Disable();
+        }
+
         this.NewRoundStarted?.Invoke(this,  EventArgs.Empty);
     }
 
@@ -268,17 +278,18 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
     public void Cleanup()
     {
-        if (this.TryGetComponent(out MoveComponent moveComponent))
+        if (TryGetComponent(out MoveComponent moveComponent))
         {
             moveComponent.IsMovementDisabled = true;
         }
 
-        if (this.TryGetComponent(out AbilityComponent abilityComponent))
+        if (TryGetComponent(out AbilityComponent abilityComponent))
         {
-            abilityComponent.Cleanup();  
+            abilityComponent.Cleanup();
+            abilityComponent.Disable();
         }
         
-        this.GlobalPosition = Vector2.One * -20000;
+        GlobalPosition = Vector2.One * -20000;
     }
     
 }

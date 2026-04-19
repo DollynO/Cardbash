@@ -11,7 +11,7 @@ public sealed class LastTeamStandingMode : IGameMode
     private GameContext _ctx;
     
     
-    private System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<Team>> roundWins = new ();
+    private Dictionary<int, List<Team>> roundWins = new ();
 
     public LastTeamStandingMode(GameModeSettings settings) => Settings = settings;
 

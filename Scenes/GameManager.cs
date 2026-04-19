@@ -66,6 +66,8 @@ public partial class GameManager : Node2D
 	public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter  killer)
 	{
 		EmitSignal(SignalName.OnPlayerKilled, victim.PlayerId, killer.PlayerId);
+		victim.Cleanup();
+		
 	}
 
 	public WorldContext GetWorldContext()

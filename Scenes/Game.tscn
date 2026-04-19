@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=4 uid="uid://dshvuihnhyh7b"]
+[gd_scene load_steps=46 format=4 uid="uid://dshvuihnhyh7b"]
 
 [ext_resource type="Script" path="res://Scenes/GameManager.cs" id="1_awesl"]
 [ext_resource type="PackedScene" uid="uid://hpbx14ma8p0v" path="res://Scenes/PlayerCharacter.tscn" id="2_dr7ob"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://ckfr6u0m0juo8" path="res://Scenes/overview_player.tscn" id="13_bqj63"]
 [ext_resource type="Script" path="res://Scripts/SceneScripts/HealthBar.cs" id="13_k22l3"]
 [ext_resource type="Script" path="res://Scripts/Abilities/GlobalAbilitySpawner.cs" id="13_v4tnd"]
+[ext_resource type="PackedScene" uid="uid://dlg058r1qx4fo" path="res://Scenes/stat_overview_element.tscn" id="14_7mrme"]
 [ext_resource type="Texture2D" uid="uid://di6t0aob1ceoh" path="res://Sprites/Items/ArmorItem.png" id="14_of2kk"]
 [ext_resource type="PackedScene" uid="uid://cewc4ky5xxtch" path="res://Prefabs/Buttons/green_button.res" id="17_hab0t"]
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="17_jlbfk"]
@@ -6463,9 +6464,9 @@ tile_set = SubResource("TileSet_b8d8o")
 _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar", "statOverviewContainer")]
 script = ExtResource("4_e1s5y")
-_abilityFrames = [NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame"), NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame2"), NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame3"), NodePath("PlayerUi/Control/HBoxContainer/AbilityFrame4")]
+_abilityFrames = [NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame"), NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame2"), NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame3"), NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame4")]
 _drawUiContainer = NodePath("DrawUi")
 _statsText = NodePath("StatsEdit")
 _waitLabel = NodePath("DrawUi/WaitLabel")
@@ -6473,8 +6474,10 @@ _cardBox = NodePath("DrawUi/VBoxContainer/CardBox")
 _darknessEffect = NodePath("DarknessEffect")
 _roundLabel = NodePath("RoundLabel")
 _lockButton = NodePath("DrawUi/VBoxContainer/CardLock")
-_itemContainer = NodePath("PlayerUi/Control/ScrollContainer/ItemContainer")
-_healthBar = NodePath("PlayerUi/Control/HealthBar")
+_itemContainer = NodePath("PlayerUi/HBoxContainer/Control/ScrollContainer/ItemContainer")
+_healthBar = NodePath("PlayerUi/HBoxContainer/Control/HealthBar")
+statOverviewContainer = NodePath("PlayerUi/HBoxContainer/PanelContainer/GridContainer")
+statOverviewScene = ExtResource("14_7mrme")
 
 [node name="DarknessEffect" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_cerkr")
@@ -6613,7 +6616,7 @@ mouse_default_cursor_shape = 4
 layout_mode = 2
 abilityIcons = [NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_1"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_2"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_4"), null]
 
-[node name="Control" type="VBoxContainer" parent="HUD/PlayerUi"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HUD/PlayerUi"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -6621,24 +6624,34 @@ anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -198.0
-offset_top = -139.0
+offset_top = -131.0
 offset_right = 198.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="ScrollContainer" type="ScrollContainer" parent="HUD/PlayerUi/Control"]
+[node name="PanelContainer" type="PanelContainer" parent="HUD/PlayerUi/HBoxContainer"]
 layout_mode = 2
 
-[node name="ItemContainer" type="HBoxContainer" parent="HUD/PlayerUi/Control/ScrollContainer"]
+[node name="GridContainer" type="GridContainer" parent="HUD/PlayerUi/HBoxContainer/PanelContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="Control" type="VBoxContainer" parent="HUD/PlayerUi/HBoxContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HUD/PlayerUi/HBoxContainer/Control"]
+layout_mode = 2
+
+[node name="ItemContainer" type="HBoxContainer" parent="HUD/PlayerUi/HBoxContainer/Control/ScrollContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TextureRect" type="TextureRect" parent="HUD/PlayerUi/Control/ScrollContainer/ItemContainer"]
+[node name="TextureRect" type="TextureRect" parent="HUD/PlayerUi/HBoxContainer/Control/ScrollContainer/ItemContainer"]
 layout_mode = 2
 texture = ExtResource("14_of2kk")
 expand_mode = 2
 
-[node name="HealthBar" type="ProgressBar" parent="HUD/PlayerUi/Control" node_paths=PackedStringArray("_label")]
+[node name="HealthBar" type="ProgressBar" parent="HUD/PlayerUi/HBoxContainer/Control" node_paths=PackedStringArray("_label")]
 texture_repeat = 2
 layout_mode = 2
 theme_override_styles/fill = SubResource("StyleBoxFlat_daybr")
@@ -6648,25 +6661,25 @@ allow_greater = true
 script = ExtResource("13_k22l3")
 _label = NodePath("Label")
 
-[node name="Label" type="Label" parent="HUD/PlayerUi/Control/HealthBar"]
+[node name="Label" type="Label" parent="HUD/PlayerUi/HBoxContainer/Control/HealthBar"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="HUD/PlayerUi/Control"]
+[node name="HBoxContainer" type="HBoxContainer" parent="HUD/PlayerUi/HBoxContainer/Control"]
 layout_mode = 2
 size_flags_vertical = 8
 
-[node name="AbilityFrame" parent="HUD/PlayerUi/Control/HBoxContainer" instance=ExtResource("4_2154d")]
+[node name="AbilityFrame" parent="HUD/PlayerUi/HBoxContainer/Control/HBoxContainer" instance=ExtResource("4_2154d")]
 layout_mode = 2
 
-[node name="AbilityFrame2" parent="HUD/PlayerUi/Control/HBoxContainer" instance=ExtResource("4_2154d")]
+[node name="AbilityFrame2" parent="HUD/PlayerUi/HBoxContainer/Control/HBoxContainer" instance=ExtResource("4_2154d")]
 layout_mode = 2
 
-[node name="AbilityFrame3" parent="HUD/PlayerUi/Control/HBoxContainer" instance=ExtResource("4_2154d")]
+[node name="AbilityFrame3" parent="HUD/PlayerUi/HBoxContainer/Control/HBoxContainer" instance=ExtResource("4_2154d")]
 layout_mode = 2
 
-[node name="AbilityFrame4" parent="HUD/PlayerUi/Control/HBoxContainer" instance=ExtResource("4_2154d")]
+[node name="AbilityFrame4" parent="HUD/PlayerUi/HBoxContainer/Control/HBoxContainer" instance=ExtResource("4_2154d")]
 layout_mode = 2
 
 [node name="GameMenu" type="CanvasLayer" parent="." node_paths=PackedStringArray("_leaveMatch", "_settings", "_gameManager")]

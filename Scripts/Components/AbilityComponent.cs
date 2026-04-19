@@ -141,6 +141,16 @@ public partial class AbilityComponent : Node2D, IComponent
         };
         networkAbilities.Add(guid, newNetAbility);
     }
+
+    public void Enable()
+    {
+        active = true;
+    }
+
+    public void Disable()
+    {
+        active = false;
+    }
     
     public Ability? GetActiveAbility()
     {

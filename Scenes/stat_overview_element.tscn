@@ -1,0 +1,40 @@
+[gd_scene load_steps=4 format=3 uid="uid://dlg058r1qx4fo"]
+
+[ext_resource type="Script" path="res://Scenes/StatOverviewElement.cs" id="1_1rmcf"]
+[ext_resource type="Texture2D" uid="uid://rnwts3obemjs" path="res://Sprites/StatOverview/amor_icon.png" id="1_v0xy2"]
+[ext_resource type="PackedScene" uid="uid://duyevho01k7nl" path="res://Scenes/tooltip.tscn" id="2_4o5fc"]
+
+[node name="StatOverviewElement" type="Control" node_paths=PackedStringArray("_tooltip", "_value", "_icon", "_container")]
+custom_minimum_size = Vector2(80, 40)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_1rmcf")
+_tooltip = NodePath("Tooltip")
+_value = NodePath("HBoxContainer/Value")
+_icon = NodePath("HBoxContainer/Icon")
+_container = NodePath("HBoxContainer")
+
+[node name="Tooltip" parent="." instance=ExtResource("2_4o5fc")]
+visible = false
+layout_mode = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Icon" type="TextureRect" parent="HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+texture = ExtResource("1_v0xy2")
+expand_mode = 2
+
+[node name="Value" type="Label" parent="HBoxContainer"]
+layout_mode = 2
+text = "888"
