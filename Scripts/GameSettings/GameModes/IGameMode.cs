@@ -13,6 +13,8 @@ public interface IGameMode
     void ServerStartGame();
     void ServerStartRound(int roundIndex);
 
+    void ServerStartCombat();
+
     // Called by flow controller during Combat
     void ServerTick(double delta);
 

@@ -236,7 +236,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
         if (TryGetComponent(out MoveComponent moveComponent))
         {
-            moveComponent.IsMovementDisabled = false;
+            moveComponent.IsMovementDisabled = true;
         }
 
         if (TryGetComponent(out AbilityComponent abilityComponent))
@@ -245,6 +245,19 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         }
 
         this.NewRoundStarted?.Invoke(this,  EventArgs.Empty);
+    }
+
+    public void RoundStart()
+    {
+        if (TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.IsMovementDisabled = false;
+        }
+
+        if (TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.Enable();
+        }
     }
 
     public void EnterStealth()

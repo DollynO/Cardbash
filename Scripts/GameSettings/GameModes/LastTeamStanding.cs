@@ -37,6 +37,14 @@ public sealed class LastTeamStandingMode : IGameMode
         }
     }
 
+    public void ServerStartCombat()
+    {
+        foreach (var p in _ctx.Players.Values)
+        {
+            p.RoundStart();
+        }
+    }
+
     public void ServerTick(double delta) { }
 
     public bool ServerIsRoundOver(out RoundResult result)

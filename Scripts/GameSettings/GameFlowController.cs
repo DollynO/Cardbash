@@ -89,7 +89,15 @@ public partial class GameFlowController : Node
                 break;
             
             case MatchPhase.CardDrawEnd:
-                ServerAdvance(ServerCheckDrawEnd() ? MatchPhase.Combat : MatchPhase.CardDraw);
+                if (ServerCheckDrawEnd())
+                {
+                    StartCombatRound();
+                    ServerAdvance(MatchPhase.Combat);
+                }
+                else
+                {
+                    ServerAdvance(MatchPhase.CardDraw);                    
+                }
                 break;
 
             case MatchPhase.Combat:
@@ -130,6 +138,11 @@ public partial class GameFlowController : Node
         Rpc(nameof(ClientRoundSetup), _roundIndex);
 
         ServerAdvance(MatchPhase.CardDraw);
+    }
+
+    private void StartCombatRound()
+    {
+        _mode.ServerStartCombat();
     }
 
     private void ServerAdvance(MatchPhase next)
