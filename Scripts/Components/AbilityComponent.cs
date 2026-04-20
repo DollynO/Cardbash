@@ -62,11 +62,8 @@ public partial class AbilityComponent : Node2D, IComponent
 
     private void OnPlayerDeath(object sender, EventArgs args)
     {
+        InterruptAbilities();
         active = false;
-        foreach (var ability in Abilities)
-        {
-            
-        }
     }
     
     public void NotifyAbilityCasted(Ability ability)
@@ -111,6 +108,14 @@ public partial class AbilityComponent : Node2D, IComponent
             ability.CancelAbility();
         }
     }
+
+    public void RoundReset()
+    {
+        foreach (var ability in Abilities)
+        {
+            ability.RoundReset();
+        }
+    }
     
     public bool AddUpdateAbility(string abilityGuid)
     {
@@ -149,6 +154,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void Disable()
     {
+        InterruptAbilities();
         active = false;
     }
     
@@ -183,6 +189,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void Cleanup()
     {
+        InterruptAbilities();
         foreach (var ability in Abilities)
         {
             ability.ClearAbility();

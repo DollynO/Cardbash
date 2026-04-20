@@ -241,6 +241,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
         if (TryGetComponent(out AbilityComponent abilityComponent))
         {
+            abilityComponent.RoundReset();
             abilityComponent.Disable();
         }
 

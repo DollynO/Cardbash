@@ -26,7 +26,7 @@ public class ChargingBeam : Ability
 
     public override void RoundReset()
     {
-        return;
+        CancelAbility();
     }
 
     public override void InternalUse()
@@ -47,6 +47,7 @@ public class ChargingBeam : Ability
         };
         
         _ray = (Ray)GlobalAbilitySpawner.Spawn(spawnData);
+        _ray?.SetCollisionTick(onHit);
     }
 
     private void onHit(IEntityComponent entityComponent, float delta)

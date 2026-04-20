@@ -66,6 +66,10 @@ public partial class Ray : Node2D
         _innerLine.Texture = _centerTextureList[0];
         _innerLine.Width = _innerLine.Texture.GetHeight();
         
+        this.sync = ReplicationHelper.CreateSynchronizer(this,
+            new ReplicationProperties(":position", SceneReplicationConfig.ReplicationMode.Always),
+            new ReplicationProperties(":rotation", SceneReplicationConfig.ReplicationMode.Always));
+
         if (!Multiplayer.IsServer())
         {
             SetPhysicsProcess(false);
@@ -76,12 +80,9 @@ public partial class Ray : Node2D
         AddChild(_shapeCast2D);
         _state = GetWorld2D().GetDirectSpaceState();
         var rectShape = new RectangleShape2D();
-        rectShape.Size = new Vector2(5, width); // width x length
+        rectShape.Size = new Vector2(5, _innerLine.Width / 2f);
         _shapeCast2D.Shape = rectShape;
         
-        _shapeCast2D.Position = Vector2.Zero;
-        _shapeCast2D.TargetPosition = Vector2.Right * _rayStats.Range;
-        _shapeCast2D.Rotation = Mathf.Pi / 2;
         _shapeCast2D.CollisionMask = _rayStats.CollisionMask;
         if (_rayStats.Caster is CharacterbodyEntityComponent cec)
         {
@@ -89,10 +90,6 @@ public partial class Ray : Node2D
         }
 
         _shapeCast2D.MaxResults = 10;
-        
-        this.sync = ReplicationHelper.CreateSynchronizer(this,
-            new ReplicationProperties(":position", SceneReplicationConfig.ReplicationMode.Always),
-            new ReplicationProperties(":rotation", SceneReplicationConfig.ReplicationMode.Always));
     }
 
     public override void _Process(double delta)
@@ -105,7 +102,17 @@ public partial class Ray : Node2D
 
         if (_innerLine.Points.Length > 1)
         {
-            _endSprite.GlobalPosition = ToGlobal(_innerLine.Points[1]);
+            var start = _innerLine.Points[0];
+            var end = _innerLine.Points[1];
+            var direction = end - start;
+            if (direction != Vector2.Zero)
+            {
+                var spriteRotation = direction.Angle();
+                _originSprite.Rotation = spriteRotation;
+                _endSprite.Rotation = spriteRotation;
+            }
+
+            _endSprite.GlobalPosition = ToGlobal(end);
         }
     }
     
@@ -124,8 +131,18 @@ public partial class Ray : Node2D
         }
         
         var pierceCount = _rayStats.PierceCount + 1;
-        var from = ToGlobal(_shapeCast2D.Position);
         var direction = aimComponent.GetLookAtDirection();
+        if (direction == Vector2.Zero)
+        {
+            return;
+        }
+        
+        _shapeCast2D.Position = direction * 32;
+        _shapeCast2D.Rotation = direction.Angle();
+        _shapeCast2D.TargetPosition = Vector2.Right * Mathf.Max(_rayStats.Range - 32, 0);
+        _shapeCast2D.ForceShapecastUpdate();
+
+        var from = ToGlobal(_shapeCast2D.Position);
         var to = GlobalPosition + direction * _rayStats.Range;
 
         var hittedObjects = new List<IEntityComponent>();
@@ -142,6 +159,7 @@ public partial class Ray : Node2D
                     {
                         var hitPosition = _shapeCast2D.GetCollisionPoint(i);
                         var hitObject = _shapeCast2D.GetCollider(i);
+                        lastHitPosition = hitPosition;
                         
                         if (hitObject is IEntityComponent hitableObject)
                         {
@@ -151,7 +169,6 @@ public partial class Ray : Node2D
                         }
                         else
                         {
-                            lastHitPosition = hitPosition;
                             pierceCount = 0;
                         }
 
@@ -168,9 +185,9 @@ public partial class Ray : Node2D
                 }
             }
 
-            foreach (var hitableObject in hittedObjects)
+            foreach (var hitableObject in hittedObjects.Distinct())
             {
-                _rayStats.CollisionTick(hitableObject, (float)delta);
+                _rayStats.CollisionTick?.Invoke(hitableObject, (float)delta);
             }
             
             var toHit = lastHitPosition - from;
@@ -181,6 +198,7 @@ public partial class Ray : Node2D
         var newPoints = new [] { ToLocal(GlobalPosition + aimComponent.GetLookAtDirection() * 32), ToLocal(to)};
         var dict = new Godot.Collections.Dictionary<string, Variant>
         {
+            ["global_position"] = GlobalPosition,
             ["points"] = newPoints
         };
         Rpc(MethodName.syncClient, dict);
@@ -195,8 +213,14 @@ public partial class Ray : Node2D
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
     private void syncClient(Godot.Collections.Dictionary<string, Variant> dict)
     {
+        GlobalPosition = (Vector2)dict["global_position"];
         var newPoints = (Vector2[])dict["points"];
         _innerLine.Points = newPoints;
+    }
+
+    public void SetCollisionTick(Action<IEntityComponent, float> collisionTick)
+    {
+        _rayStats.CollisionTick = collisionTick;
     }
 
     public void Destroy()
@@ -230,6 +254,7 @@ public class RayStats
         {
             { nameof(Range), Range },
             { nameof(Caster), ((Node2D)Caster).GetPath() },
+            { nameof(CollisionMask), CollisionMask },
             { nameof(AnimationResource), AnimationResource},
             { nameof(CenterLoopFolder), CenterLoopFolder},
             { nameof(CenterLoopCount), CenterLoopCount},
@@ -243,7 +268,7 @@ public class RayStats
         {
             Range = (float)dict[nameof(Range)],
             Caster = (IEntityComponent)manager.GetNode((string)dict[nameof(Caster)]),
-            CollisionMask = 0,
+            CollisionMask = (uint)(int)dict[nameof(CollisionMask)],
             CollisionTick = null,
             AnimationResource = (string)dict[nameof(AnimationResource)],
             CenterLoopFolder = (string)dict[nameof(CenterLoopFolder)],
