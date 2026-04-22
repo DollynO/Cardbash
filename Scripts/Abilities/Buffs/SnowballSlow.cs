@@ -18,7 +18,7 @@ public class SnowballSlow : Buff
 
     public void SetSnowballScale(Vector2 scale)
     {
-        slow = 0.7f / (0.9f+Mathf.Pow((float)Mathf.E,-0.5f*(scale.X-6)));
+        slow = 0.7f / (0.9f + Mathf.Pow((float)Mathf.E, -0.5f * (scale.X - 6)));
     }
 
     protected override void InternalOnActivate()
@@ -27,7 +27,7 @@ public class SnowballSlow : Buff
         if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
         {
             modifier = new StatModifier(System.Guid.NewGuid().ToString(), StatType.MovementSpeed, StatOp.PercentMult,
-                - slow);
+                -slow);
             statBlock.AddModifiers(modifier);
         }
     }

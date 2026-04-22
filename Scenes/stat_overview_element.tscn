@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://dlg058r1qx4fo"]
 
-[ext_resource type="Script" path="res://Scenes/StatOverviewElement.cs" id="1_1rmcf"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Game/StatOverviewElement.cs" id="1_1rmcf"]
 [ext_resource type="Texture2D" uid="uid://rnwts3obemjs" path="res://Sprites/StatOverview/amor_icon.png" id="1_v0xy2"]
 [ext_resource type="PackedScene" uid="uid://duyevho01k7nl" path="res://Scenes/tooltip.tscn" id="2_4o5fc"]
 

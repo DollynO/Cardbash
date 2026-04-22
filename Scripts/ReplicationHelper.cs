@@ -28,9 +28,9 @@ public static class ReplicationHelper
             config.PropertySetReplicationMode(
                 property.PropertyPath,
                 property.ReplicationMode);
-            config.PropertySetSpawn(property.PropertyPath,true);
+            config.PropertySetSpawn(property.PropertyPath, true);
         }
-        
+
         sync.ReplicationConfig = config;
         owner.AddChild(sync);
         return sync;

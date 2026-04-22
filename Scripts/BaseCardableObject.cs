@@ -10,7 +10,7 @@ public class BaseCardableObject : IBaseProperty
     public string Description { get; protected init; }
     public string IconPath { get; protected init; }
     public string GUID { get; init; }
-    
+
     public BaseCardableObject(string guid)
     {
         GUID = guid ?? throw new ArgumentNullException(nameof(guid), "GUID cannot be null");

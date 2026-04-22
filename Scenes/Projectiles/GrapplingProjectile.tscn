@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://prm4imph6ynn"]
 
-[ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/GrapplingHook.cs" id="1_r487b"]
+[ext_resource type="Script" path="res://Scripts/Abilities/Projectiles/Types/GrapplingHook.cs" id="1_r487b"]
 [ext_resource type="SpriteFrames" uid="uid://dq6rbunvw8qp8" path="res://AnimationRes/Projectile/Electricity/E_LargeBlue.tres" id="2_ex05f"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_e0kvs"]

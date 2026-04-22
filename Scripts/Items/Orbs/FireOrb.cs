@@ -11,7 +11,7 @@ public class FireOrb : Item
     public FireOrb() : base(ItemIds.FireOrbGuid)
     {
         this.DisplayName = "Fire Orb";
-        this.Description = $"Increases the fire damage by {Math.Round(StatIncrease * 100,0)} %";
+        this.Description = $"Increases the fire damage by {Math.Round(StatIncrease * 100, 0)} %";
         this.IconPath = "res://Sprites/Items/fire_orb.png";
     }
 
@@ -31,7 +31,7 @@ public class FireOrb : Item
             statblock.DamageModifier.Add(_damageModifier);
         }
     }
-    
+
     public override void RemoveItem(IEntityComponent targetEntity)
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))

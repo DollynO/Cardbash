@@ -25,7 +25,7 @@ public partial class BuffRow2D : Node2D
 
     public void AddBuffIcon(BuffIconTemplate icon)
     {
-//        AddChild(icon);
+        //        AddChild(icon);
         Rearrange();
     }
 

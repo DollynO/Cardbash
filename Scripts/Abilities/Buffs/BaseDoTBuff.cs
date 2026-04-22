@@ -7,7 +7,7 @@ public class BaseDoTBuff : Buff
     protected float BaseDamage;
     protected DamageType BaseDamageType;
     protected DamageAbleComponent dac;
-    
+
     public BaseDoTBuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
     }
@@ -23,7 +23,7 @@ public class BaseDoTBuff : Buff
         {
             return;
         }
-        
+
         var damage = new Damage { DamageNumber = BaseDamage * StackCount * delta, AilmentChance = 0, Type = BaseDamageType };
         var ctx = new HitContext
         {

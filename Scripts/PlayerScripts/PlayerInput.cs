@@ -23,20 +23,20 @@ public partial class PlayerInput : MultiplayerSynchronizer
 {
     [Export]
     public float XDirection;
-	
+
     [Export]
     public float YDirection;
-    
+
     [Export]
     public Array<AbilityKeyState> KeyState = new();
-    
+
     [Export]
     public Node2D LookAtRotation;
 
     [Export] public float LookAtRotationValue;
 
     [Export] public Vector2 ClientGlobalMousePosition;
-	
+
     public override void _Ready()
     {
         if (GetMultiplayerAuthority() != Multiplayer.GetUniqueId())
@@ -80,7 +80,7 @@ public partial class PlayerInput : MultiplayerSynchronizer
         }
 
         KeyState = new Array<AbilityKeyState>(KeyState);
-        ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition(); 
+        ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition();
         LookAtRotation.LookAt(ClientGlobalMousePosition);
         LookAtRotation.Rotate(-Mathf.Tau / 4);
         LookAtRotationValue = LookAtRotation.Rotation;
@@ -91,10 +91,12 @@ public partial class PlayerInput : MultiplayerSynchronizer
         if (Input.IsActionJustPressed(actionName))
         {
             keyState = AbilityKeyState.ABILITY_PRESSED;
-        } else if (Input.IsActionPressed(actionName))
+        }
+        else if (Input.IsActionPressed(actionName))
         {
             keyState = AbilityKeyState.ABILITY_HOLD;
-        } else if (Input.IsActionJustReleased(actionName))
+        }
+        else if (Input.IsActionJustReleased(actionName))
         {
             keyState = AbilityKeyState.ABILITY_RELEASED;
         }

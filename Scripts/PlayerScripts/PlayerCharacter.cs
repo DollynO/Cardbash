@@ -14,18 +14,18 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 {
     [Export] private MultiplayerSynchronizer _inputSync;
     [Export] private AnimatedSprite2D _playerAnimation;
-    public PlayerInput PlayerInput => _playerInput; 
+    public PlayerInput PlayerInput => _playerInput;
     private PlayerInput _playerInput;
     private GameManager _gameManager;
 
 
     [Export] private Label _playerNameLabel;
-    
+
     [Export] private Sprite2D _lookAtIndicator;
     [Export] private Node2D _lookAtDirectionPoint;
     private Vector2 _lookAtDirectionCorrection = Vector2.FromAngle(Mathf.Tau / 4);
     [Export] private Node2D _characterCenterPoint;
-    
+
     [Export]
     private Camera2D _camera;
 
@@ -35,13 +35,13 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
     [Signal]
     public delegate void OnKilledEventHandler(long victimId, long killerId);
-    
+
     public HealthComponent HealthComponent { get; private set; }
     public AbilityComponent AbilityComponent { get; private set; }
     public StatblockComponent StatBlock { get; private set; }
     private VisualComponent visualComponent;
     public ItemManagerComponent ItemManagerComponent { get; private set; }
-    
+
     public string PlayerName
     {
         get => _playerName;
@@ -57,46 +57,46 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
-    
-    public event EventHandler<PlayerEventArgs>? KilledPlayer;
+
+    public event EventHandler<PlayerEventArgs> KilledPlayer;
     public void NotifyPlayerKilled(PlayerCharacter victim)
     {
         this.KilledPlayer?.Invoke(this, new PlayerEventArgs(victim));
     }
-    
-    public event EventHandler<DamageEventArgs>? DamageDealt;
+
+    public event EventHandler<DamageEventArgs> DamageDealt;
     public void NotifyDamageDealt(List<Damage> damage)
     {
         this.DamageDealt?.Invoke(this, new DamageEventArgs(damage));
     }
-    
-    public event EventHandler<DamageEventArgs>? DamageMitigated;
+
+    public event EventHandler<DamageEventArgs> DamageMitigated;
     public void NotifyDamageMitigated(List<Damage> damage)
     {
         this.DamageMitigated?.Invoke(this, new DamageEventArgs(damage));
     }
-    
-    public event EventHandler<BuffEventArgs>? BuffApplied;
+
+    public event EventHandler<BuffEventArgs> BuffApplied;
     public void NotifyBuffApplied(Buff buff)
     {
         this.BuffApplied?.Invoke(this, new BuffEventArgs(buff));
     }
-    
-    public event EventHandler<BuffEventArgs>? BuffRemoved;
+
+    public event EventHandler<BuffEventArgs> BuffRemoved;
     public void NotifyBuffRemoved(Buff buff)
     {
         this.BuffRemoved?.Invoke(this, new BuffEventArgs(buff));
     }
 
-    public event EventHandler? NewRoundStarted;
+    public event EventHandler NewRoundStarted;
 
     private bool _statsInitialized;
-    
+
     public override void _EnterTree()
     {
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
-        
+
         _gameManager = (GameManager)GetNode("/root/Main/Game");
 
         if (int.Parse(Name) == Multiplayer.GetUniqueId())
@@ -119,13 +119,13 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         ItemManagerComponent = new ItemManagerComponent();
         ItemManagerComponent.Name = nameof(ItemManagerComponent);
         AddComponent(ItemManagerComponent);
-        
+
         BuffManagerComponent = new BuffManagerComponent();
         AddComponent(BuffManagerComponent);
 
         HealthComponent = new HealthComponent();
         AddComponent(HealthComponent);
-        
+
         AbilityComponent = new AbilityComponent
         {
             Position = _characterCenterPoint.Position
@@ -134,12 +134,12 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
         var dac = new DamageAbleComponent();
         AddComponent(dac);
-        
+
         StatBlock = new StatblockComponent();
         AddComponent(StatBlock);
-        
+
         AddComponent(new MoveComponent());
-        
+
         var aimComponent = new AimComponent(_characterCenterPoint, _lookAtDirectionPoint, _lookAtDirectionCorrection);
         AddComponent(aimComponent);
 
@@ -148,12 +148,12 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         var shader = GD.Load<Shader>("res://Shaders/PlayerCharacter_TeamColor.gdshader");
         var shaderMaterial = new ShaderMaterial();
         shaderMaterial.Shader = shader;
-        shaderMaterial.SetShaderParameter("mask_color", new Vector4(0.341f,0.227f,0.196f,1));
-        shaderMaterial.SetShaderParameter("mask_color_2", new Vector4(0.251f,0.153f,0.09f,1));
+        shaderMaterial.SetShaderParameter("mask_color", new Vector4(0.341f, 0.227f, 0.196f, 1));
+        shaderMaterial.SetShaderParameter("mask_color_2", new Vector4(0.251f, 0.153f, 0.09f, 1));
         shaderMaterial.SetShaderParameter("tolerance", 0.1f);
         var teamColor = ColorPlate.GetColor(TeamId);
         shaderMaterial.SetShaderParameter("team_color", teamColor);
-        
+
         AddComponent(visualComponent);
         visualComponent.SetShader(shaderMaterial);
 
@@ -185,7 +185,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         _statsInitialized = true;
         defineCharacterStats();
     }
-    
+
     private void defineCharacterStats()
     {
         StatBlock.Define(StatType.MovementSpeed, 150, 0, float.PositiveInfinity);
@@ -196,9 +196,9 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.CritChance, 0, 0, 100);
         StatBlock.Define(StatType.Darkness, 0, 0, 20);
         StatBlock.Define(StatType.Blinding, 0, 0, 20);
-        
+
         StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
-        StatBlock.Define(StatType.AddPullStrength, 0, 0,  float.PositiveInfinity);
+        StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.CooldownReduction, 1, 0.2f, 1.8f); // max +-80% cooldown 
     }
 
@@ -245,7 +245,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             abilityComponent.Disable();
         }
 
-        this.NewRoundStarted?.Invoke(this,  EventArgs.Empty);
+        this.NewRoundStarted?.Invoke(this, EventArgs.Empty);
     }
 
     public void RoundStart()
@@ -278,13 +278,13 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             this.Modulate = new Godot.Color(this.Modulate, 0.0f);
         }
     }
-    
+
     public void ExitStealth()
     {
         Rpc(MethodName.exitStealthServer);
     }
 
-    [Rpc(MultiplayerApi.RpcMode.Authority,  CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void exitStealthServer()
     {
         this.Modulate = new Godot.Color(this.Modulate, 1.0f);
@@ -302,10 +302,10 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             abilityComponent.Cleanup();
             abilityComponent.Disable();
         }
-        
+
         GlobalPosition = Vector2.One * -20000;
     }
-    
+
 }
 
 public class AbilityEventArgs : EventArgs
@@ -333,7 +333,7 @@ public class DamageEventArgs : EventArgs
     {
         Damage = damage;
     }
-    
+
 }
 
 public class BuffEventArgs : EventArgs

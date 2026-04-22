@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Abilities;
 public readonly struct Hit
 {
     public readonly Node Source;
-    public readonly HitContext  Context;
+    public readonly HitContext Context;
 
     public Hit(Node source, HitContext context)
     {

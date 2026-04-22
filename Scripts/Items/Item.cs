@@ -10,7 +10,7 @@ public abstract partial class Item : BaseCardableObject
 {
     public bool IsDisabled { get; protected set; }
     public string InstanceGuid { get; init; }
-    
+
     protected Item(string guid) : base(guid)
     {
         this.InstanceGuid = Guid.NewGuid().ToString("N");
@@ -36,9 +36,9 @@ public sealed class NetItem
 {
     public string DisplayName { get; init; }
     public string IconPath { get; init; }
-    
+
     public bool IsDisabled { get; set; }
-    
+
     public Texture2D Icon { get; init; }
 
     public NetItem(string displayName, string iconPath, bool isDisabled)
@@ -53,7 +53,7 @@ public sealed class NetItem
         : this(item.DisplayName, item.IconPath, item.IsDisabled)
     {
     }
-    
+
     public Dictionary<string, Variant> ToDict()
     {
         return new Dictionary<string, Variant>()

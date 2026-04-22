@@ -11,7 +11,7 @@ public class IceOrb : Item
     public IceOrb() : base(ItemIds.IceOrbGuid)
     {
         this.DisplayName = "Ice Orb";
-        this.Description = $"Increases the ice damage by {Math.Round(StatIncrease * 100,0)} %";
+        this.Description = $"Increases the ice damage by {Math.Round(StatIncrease * 100, 0)} %";
         this.IconPath = "res://Sprites/Items/ice_orb.png";
     }
 
@@ -31,7 +31,7 @@ public class IceOrb : Item
             statblock.DamageModifier.Add(_damageModifier);
         }
     }
-    
+
     public override void RemoveItem(IEntityComponent targetEntity)
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))

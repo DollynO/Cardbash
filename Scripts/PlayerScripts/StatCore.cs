@@ -7,8 +7,8 @@ namespace CardBase.Scripts.PlayerScripts;
 
 public enum StatOp
 {
-    FlatAdd, 
-    PercentAdd, 
+    FlatAdd,
+    PercentAdd,
     PercentMult
 }
 
@@ -23,7 +23,7 @@ public enum StatType
     Darkness,
     Blinding,
     CooldownReduction,
-    
+
     DmgBonus,
     // typed damage bonus
     DmgLightningBonus,
@@ -33,7 +33,7 @@ public enum StatType
     DmgDarknessBonus,
     DmgPhysicalBonus,
     DmgPoisonBonus,
-    
+
     AddPullRadius,
     AddPullStrength,
 }
@@ -63,8 +63,9 @@ public sealed class StatBlock
 
         Recompute(stat);
     }
-    
-    public void SetBase(StatType stat, float v) { 
+
+    public void SetBase(StatType stat, float v)
+    {
         _base[stat] = v;
         Recompute(stat);
     }
@@ -87,14 +88,18 @@ public sealed class StatBlock
         var valueTuples = mods.ToList();
         list.AddRange(valueTuples);
         Recompute(stat);
-        return _current.Where(kvp => kvp.Key == stat);
+
+        var changedStats = new HashSet<StatType> { stat };
         if (_linkedStats.TryGetValue(stat, out var linkedStatList))
         {
             foreach (var linkedStat in linkedStatList)
             {
                 AddSourceMods(sourceId, linkedStat, valueTuples.ToList());
+                changedStats.Add(linkedStat);
             }
         }
+
+        return _current.Where(kvp => changedStats.Contains(kvp.Key));
     }
 
     public IEnumerable<KeyValuePair<StatType, float>> RemoveSource(string sourceId)
@@ -103,7 +108,7 @@ public sealed class StatBlock
         {
             return Enumerable.Empty<KeyValuePair<StatType, float>>();
         }
-        
+
         if (!_modsPerSourcePerStat.Remove(sourceId, out var byStat))
             return Enumerable.Empty<KeyValuePair<StatType, float>>();
 
@@ -111,7 +116,7 @@ public sealed class StatBlock
         {
             Recompute(stat);
         }
-        
+
         return _current.Where(kvp => byStat.Keys.Contains(kvp.Key));
     }
 
@@ -137,13 +142,13 @@ public sealed class StatBlock
                 }
             }
         }
-        
-        var finalVal = (b+flat) * (1f + addPct) * mult;
+
+        var finalVal = (b + flat) * (1f + addPct) * mult;
         if (_clamp.TryGetValue(stat, out var clamp))
         {
             finalVal = Mathf.Clamp(finalVal, clamp.Min, clamp.Max);
         }
-        
+
         _current[stat] = finalVal;
     }
 

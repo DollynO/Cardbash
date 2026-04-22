@@ -6,13 +6,14 @@ namespace CardBase.Scripts;
 
 public partial class Player : Node
 {
-    private enum PropertyIds{
+    private enum PropertyIds
+    {
         Username = 1,
         TeamNumber = 2,
         PlayerId = 3,
         IsReady = 4
-    } 
-    
+    }
+
     public override void _EnterTree()
     {
         SetMultiplayerAuthority(int.Parse(Name));
@@ -86,7 +87,7 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void SyncProperty(int property, Variant value)
     {
-        
+
         switch (property)
         {
             case 1:
@@ -101,7 +102,7 @@ public partial class Player : Node
             case 4:
                 IsReady = (bool)value;
                 break;
-            
+
             default:
                 return;
         }
@@ -116,7 +117,7 @@ public partial class Player : Node
             { (int)PropertyIds.PlayerId, PlayerId },
             { (int)PropertyIds.IsReady, IsReady }
         };
-        
+
         return dict;
     }
 

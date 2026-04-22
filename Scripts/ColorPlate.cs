@@ -27,7 +27,7 @@ public static class ColorPlate
     public static readonly Array<Godot.Color> Colors = new Array<Godot.Color>
     {
         new("f3c300"),
-        new("875692"), 
+        new("875692"),
         new("f38400"),
         new("a1caf1"),
         new("be0032"),
@@ -43,7 +43,7 @@ public static class ColorPlate
         new("2d3d26")
     };
     public static int MaxTeams => Colors.Count;
-    
+
     public static Godot.Color GetColor(int teamNumber)
     {
         return Colors[teamNumber % Colors.Count];

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://duyevho01k7nl"]
 
-[ext_resource type="Script" path="res://Scenes/Tooltip.cs" id="1_1e8g5"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Game/Tooltip.cs" id="1_1e8g5"]
 
 [node name="Tooltip" type="Control" node_paths=PackedStringArray("_description", "_name")]
 layout_mode = 3

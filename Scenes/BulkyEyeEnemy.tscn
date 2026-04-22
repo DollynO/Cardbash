@@ -1,6 +1,6 @@
 [gd_scene load_steps=34 format=3 uid="uid://dx111osqm677i"]
 
-[ext_resource type="Script" path="res://Scenes/BulkyEyeEnemy.cs" id="1_lr3mg"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Game/BulkyEyeEnemy.cs" id="1_lr3mg"]
 [ext_resource type="Texture2D" uid="uid://daw0s5uwxoray" path="res://Sprites/GameSprites/Enemy_05_A.png" id="1_mxdn7"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qbc8m"]

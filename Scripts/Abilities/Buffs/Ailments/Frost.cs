@@ -7,7 +7,7 @@ public class Frost : Buff
     private StatModifier slow_modifier;
     private float base_reduction = 0.20f;
     private float stack_increase = 0.04f;
-    
+
     public Frost(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Reduces the movement speed of the target by {base_reduction}";

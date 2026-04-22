@@ -7,11 +7,11 @@ public sealed class LastTeamStandingMode : IGameMode
 {
     public ModeId Id => ModeId.LastTeamStanding;
     public GameModeSettings Settings { get; }
-    public List<RoundResult> RoundResults { get; } = new ();
+    public List<RoundResult> RoundResults { get; } = new();
     private GameContext _ctx;
-    
-    
-    private Dictionary<int, List<Team>> roundWins = new ();
+
+
+    private Dictionary<int, List<Team>> roundWins = new();
 
     public LastTeamStandingMode(GameModeSettings settings) => Settings = settings;
 
@@ -58,7 +58,7 @@ public sealed class LastTeamStandingMode : IGameMode
                 _ctx.ScoreSystem.AddToPlayerScore(player, Settings.PointsOnRoundEnd);
             }
             result = RoundResult.TeamWin(aliveTeams.Count == 1 ? aliveTeams[0] : null);
-            
+
             return true;
         }
 
@@ -79,7 +79,7 @@ public sealed class LastTeamStandingMode : IGameMode
             var teamScore = _ctx.ScoreSystem.PlayerScores.Where(kvp => kvp.Key.TeamId == teams.Key).Sum(kvp => kvp.Value);
             dict.Add(teams.Value, teamScore);
         }
-        
+
         var winningTeams = dict.Where(kvp => kvp.Value >= Settings.PointsToWin).Select(kvp => kvp.Key).ToList();
         if (winningTeams.Any())
         {

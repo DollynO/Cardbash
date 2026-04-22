@@ -1,11 +1,10 @@
 [gd_scene load_steps=3 format=3 uid="uid://bxgcdemqccp15"]
 
-[ext_resource type="Script" path="res://Scenes/ProgressBar/OverheadUiBar.cs" id="1_js4bv"]
-[ext_resource type="StyleBox" uid="uid://bn7dqeshaf8av" path="res://Scenes/ProgressBar/BGColorr.tres" id="1_lricl"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Shared/ProgressBar/OverheadUiBar.cs" id="1_js4bv"]
+[ext_resource type="StyleBox" uid="uid://bn7dqeshaf8av" path="res://Scenes/ProgressBar/BGColor.tres" id="1_lricl"]
 
-[node name="OverheadUiBar" type="Node2D" node_paths=PackedStringArray("bar")]
+[node name="OverheadUiBar" type="Node2D"]
 script = ExtResource("1_js4bv")
-bar = NodePath("ProgressBar")
 
 [node name="ProgressBar" type="ProgressBar" parent="."]
 anchors_preset = 8

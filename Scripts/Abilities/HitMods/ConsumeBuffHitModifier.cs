@@ -9,7 +9,7 @@ public class ConsumeBuffHitModifier : IHitModifier
     private Action<int, HitContext> onBuffConsume;
     private Type consumeType;
     private bool beforeAfter;
-    
+
     public ConsumeBuffHitModifier(Action<int, HitContext> on_buff_consume, Type type, bool beforeAfter)
     {
         onBuffConsume = on_buff_consume ?? throw new ArgumentNullException(nameof(on_buff_consume));
@@ -20,7 +20,7 @@ public class ConsumeBuffHitModifier : IHitModifier
         consumeType = type;
         this.beforeAfter = beforeAfter;
     }
-    
+
     public void ApplyBefore(HitContext ctx)
     {
         if (beforeAfter)

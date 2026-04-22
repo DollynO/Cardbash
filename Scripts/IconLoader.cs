@@ -10,7 +10,7 @@ public class IconLoader
     private Dictionary<string, Texture2D> loadedImages = new Dictionary<string, Texture2D>();
     private Dictionary<string, SpriteFrames> loadedAnimations = new Dictionary<string, SpriteFrames>();
     private Dictionary<string, List<Texture2D>> loadedSingleAnimations = new Dictionary<string, List<Texture2D>>();
-    
+
 
     public Texture2D LoadImage(string path)
     {
@@ -18,7 +18,7 @@ public class IconLoader
         {
             loadedImages.Add(path, GD.Load<Texture2D>(path));
         }
-        
+
         return (Texture2D)loadedImages[path].Duplicate();
     }
 
@@ -28,7 +28,7 @@ public class IconLoader
         {
             loadedAnimations.Add(path, ResourceLoader.Load<SpriteFrames>(path));
         }
-        
+
         return (SpriteFrames)loadedAnimations[path].Duplicate();
     }
 

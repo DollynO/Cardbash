@@ -14,7 +14,7 @@ public partial class Counter : Resource
     {
         Count = 1;
     }
-    
+
     public Counter(int count)
     {
         Count = count;
@@ -50,7 +50,7 @@ public partial class Deck : Node
             cardDict[card.EffectGUID] = (int)card.CardType * 1000 + counter.Count;
         }
         dict["Cards"] = cardDict;
-        
+
         return dict;
     }
 
@@ -76,10 +76,10 @@ public partial class Deck : Node
 
         return deck;
     }
-    
+
     public void LoadDeckFromJson(string json)
     {
-        
+
     }
 
     public void AddCard(Card card)
@@ -97,7 +97,7 @@ public partial class Deck : Node
             card1.Count -= 1;
             return false;
         }
-        
+
         Cards.Remove(card);
         return true;
     }
@@ -120,4 +120,4 @@ public partial class Deck : Node
             _ => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png")
         };
     }
-} 
+}

@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://ccfyc0ji023uj"]
 
-[ext_resource type="Script" path="res://Scripts/SceneScripts/MainScreen.cs" id="1_oyuer"]
+[ext_resource type="Script" path="res://Scripts/Scenes/MainMenu/MainScreen.cs" id="1_oyuer"]
 [ext_resource type="PackedScene" uid="uid://7dp11nbgmeoo" path="res://Prefabs/Buttons/green_button_big.tscn" id="12_vbn57"]
 [ext_resource type="PackedScene" uid="uid://oj676k2vorbg" path="res://Prefabs/Buttons/red_button_big.tscn" id="13_crb0r"]
 

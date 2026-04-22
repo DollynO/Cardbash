@@ -11,7 +11,7 @@ public class PhysicalOrb : Item
     public PhysicalOrb() : base(ItemIds.PhysicalOrbGuid)
     {
         this.DisplayName = "Physical Orb";
-        this.Description = $"Increases the physical damage by {Math.Round(StatIncrease * 100,0)} %";
+        this.Description = $"Increases the physical damage by {Math.Round(StatIncrease * 100, 0)} %";
         this.IconPath = "res://Sprites/Items/physical_orb.png";
     }
 

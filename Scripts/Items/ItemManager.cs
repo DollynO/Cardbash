@@ -20,7 +20,7 @@ public class ItemManager
         {ItemIds.PhysicalOrbGuid, () =>new PhysicalOrb()},
         {ItemIds.PoisonOrbGuid, () =>new PoisonOrb()},
     };
-    
+
     public static BaseCardableObject Create(string guid)
     {
         return Items.TryGetValue(guid, out var constructor) ? constructor() : null;

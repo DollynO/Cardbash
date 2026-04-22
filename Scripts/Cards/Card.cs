@@ -4,7 +4,8 @@ using Godot.Collections;
 
 namespace CardBase.Scripts.Cards;
 
-public enum CardType {
+public enum CardType
+{
     Ability = 0,
     Item,
     Spell,
@@ -28,9 +29,9 @@ public partial class Card : Node, ICard
 
     public Card()
     {
-        
+
     }
-    
+
     public Card(CardType type)
     {
         this.CardType = type;
@@ -38,12 +39,12 @@ public partial class Card : Node, ICard
 
     public virtual void ApplyEffect(IContext context)
     {
-        
+
     }
 
     public override void _Ready()
     {
-        
+
     }
 
     public Dictionary ToDict()

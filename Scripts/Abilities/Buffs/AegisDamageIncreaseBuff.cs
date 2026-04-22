@@ -9,7 +9,7 @@ public class AegisDamageIncreaseBuff : Buff
     {
         this.Guid = System.Guid.NewGuid().ToString("N");
         mod = new StatModifier(this.Guid, StatType.DmgBonus, StatOp.PercentAdd, 0.10f);
-        this.IsRefreshable =  true;
+        this.IsRefreshable = true;
         this.Description = "Short damage buff on a aegis proc.";
         this.DisplayName = "Impact surge";
         this.IconPath = "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png";

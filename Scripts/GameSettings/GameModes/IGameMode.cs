@@ -41,7 +41,7 @@ public sealed class RoundResult
         winnerTeams = new List<Team>();
         WinningTeams = winnerTeams;
     }
-    
+
     public static RoundResult TeamWin(Team winnerTeam)
     {
         var res = new RoundResult();

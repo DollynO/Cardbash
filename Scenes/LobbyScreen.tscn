@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://br2igbh2h3386"]
 
 [ext_resource type="PackedScene" uid="uid://cewc4ky5xxtch" path="res://Prefabs/Buttons/green_button.res" id="1_33tii"]
-[ext_resource type="Script" path="res://Scripts/SceneScripts/LobbyManager.cs" id="1_iigad"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Lobby/LobbyManager.cs" id="1_iigad"]
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="2_7rmyw"]
 [ext_resource type="PackedScene" uid="uid://gi8i5cvds6au" path="res://Scenes/PlayerSlot.tscn" id="3_p6nru"]
 

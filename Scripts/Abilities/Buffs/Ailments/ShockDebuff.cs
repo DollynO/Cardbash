@@ -6,7 +6,7 @@ public class ShockDebuff : Buff
 {
     private StatModifier stat_modifier;
     private float base_reduction = 5;
-    
+
     public ShockDebuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Reduces the energy shield of the target by {base_reduction}";
@@ -21,9 +21,10 @@ public class ShockDebuff : Buff
     }
 
 
-    protected override void InternalOnActivate() {
+    protected override void InternalOnActivate()
+    {
         if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
-        { 
+        {
             statBlock.AddModifiers(stat_modifier);
         }
     }

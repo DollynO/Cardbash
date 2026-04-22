@@ -14,27 +14,27 @@ public partial class GameFlowController : Node
     private int _roundIndex;
     private double _phaseTime;
 
-    private readonly List<(long id, string guid)> pickedCards =  new();
+    private readonly List<(long id, string guid)> pickedCards = new();
     private int drawRoundIndex;
     private bool allCardsDrawn;
-    
+
     public GameFlowController(GameContext ctx, GameModeSettings settings)
     {
         _ctx = ctx;
         this.settings = settings;
     }
-    
+
     public override void _Ready()
     {
         // Node lifecycle reference: :contentReference[oaicite:3]{index=3}
         if (Multiplayer.IsServer())
         {
-            
+
             _mode = new LastTeamStandingMode(settings);
             _mode.ServerInitialize(_ctx);
-            
+
         }
-        
+
         _ctx.GameManager.Hud.CardLocked += HudOnCardLocked;
     }
 
@@ -48,12 +48,12 @@ public partial class GameFlowController : Node
     {
         if (Multiplayer.IsServer())
         {
-           pickedCards.Add((playerId, cardGuid));
-           
-           if (pickedCards.Count == _ctx.Players.Count)
-           {
-                   ServerFinishDraw();
-           }
+            pickedCards.Add((playerId, cardGuid));
+
+            if (pickedCards.Count == _ctx.Players.Count)
+            {
+                ServerFinishDraw();
+            }
         }
         else
         {
@@ -87,7 +87,7 @@ public partial class GameFlowController : Node
                 ServerApplyCards();
                 ServerAdvance(MatchPhase.CardDrawEnd);
                 break;
-            
+
             case MatchPhase.CardDrawEnd:
                 if (ServerCheckDrawEnd())
                 {
@@ -96,7 +96,7 @@ public partial class GameFlowController : Node
                 }
                 else
                 {
-                    ServerAdvance(MatchPhase.CardDraw);                    
+                    ServerAdvance(MatchPhase.CardDraw);
                 }
                 break;
 
@@ -121,12 +121,12 @@ public partial class GameFlowController : Node
     {
         return drawRoundIndex == settings.CardsPerRound;
     }
-    
+
     private bool ServerIsCardSelectionComplete()
     {
         return allCardsDrawn;
     }
-    
+
     private void ServerEnterRoundSetup()
     {
         _roundIndex++;
@@ -170,7 +170,7 @@ public partial class GameFlowController : Node
         }
     }
 
-    [Rpc(CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void OpenDrawOnClient(long id, Array<string> cardArray)
     {
         var player = _ctx.Players[id];
@@ -184,12 +184,12 @@ public partial class GameFlowController : Node
         allCardsDrawn = true;
     }
 
-    [Rpc(CallLocal = true,  TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void CloseDrawOnClient()
     {
         _ctx.GameManager.Hud.ShowDrawUi(false, null);
     }
-    
+
     private void ServerApplyCards()
     {
         foreach (var kvp in _ctx.Players)
@@ -197,10 +197,10 @@ public partial class GameFlowController : Node
             var selectedCards = pickedCards.Where(p => p.id == kvp.Key).Select(p => p.guid).ToList();
             _ctx.CardSystem.ServerApplyCards(selectedCards, kvp.Value);
         }
-        
+
         pickedCards.Clear();
     }
-    
+
 
     private void ServerEndRound(RoundResult rr)
     {
@@ -208,15 +208,15 @@ public partial class GameFlowController : Node
         _phase = MatchPhase.RoundEnd;
         _phaseTime = 0;
     }
-    
+
     [Rpc] private void ClientPhaseChanged(int phase) { /* update HUD */ }
-    
+
     [Rpc]
     private void ClientRoundSetup(int roundIndex) { /* show */ }
-    
+
     [Rpc]
     private void ClientCardsApplied(Variant dto) { /* show */ }
-    
+
     [Rpc]
     private void ClientRoundEnded(Variant dto) { /* scoreboard */ }
 

@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://Scripts/PlayerScripts/PlayerInput.cs" id="2_uj4u6"]
 [ext_resource type="Shader" path="res://Shaders/PlayerCharacter_TeamColor.gdshader" id="3_hy4ar"]
 [ext_resource type="SpriteFrames" uid="uid://ba5dci0gt20at" path="res://AnimationRes/PlayerAnimation/PlayerCharacterAnimation.tres" id="4_r6kvb"]
-[ext_resource type="Script" path="res://Scenes/PlayerAnimation.cs" id="4_xt6qq"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Game/PlayerAnimation.cs" id="4_xt6qq"]
 [ext_resource type="Texture2D" uid="uid://dqboie3r12b81" path="res://Sprites/DirectionArrow/direction_arrow_256.png" id="6_dieop"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_3kik1"]

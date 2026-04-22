@@ -9,9 +9,9 @@ public sealed class GameContext
 {
     public GameManager GameManager { get; }
     public TeamSystem TeamSystem { get; }
-    
+
     public CardSystem CardSystem { get; }
-    
+
     public ScoreSystem ScoreSystem { get; }
 
     public IReadOnlyDictionary<long, PlayerCharacter> Players => _players;
@@ -31,7 +31,7 @@ public sealed class TeamSystem
 {
     public GameManager GameManager { get; }
     private readonly Dictionary<long, PlayerCharacter> _players;
-    public Dictionary<int, Team> Teams { get; } = new ();
+    public Dictionary<int, Team> Teams { get; } = new();
     public TeamSystem(GameManager gm, Dictionary<long, PlayerCharacter> players)
     {
         GameManager = gm;
@@ -55,7 +55,7 @@ public sealed class TeamSystem
                 };
                 Teams.Add(team.TeamId, team);
             }
-            
+
             team.AddPlayer(player);
         }
     }
@@ -68,7 +68,7 @@ public sealed class Team
 
     public bool AddPlayer(PlayerCharacter player)
     {
-        if  (Players.Contains(player)) return false;
+        if (Players.Contains(player)) return false;
         Players.Add(player);
         return true;
     }
@@ -97,7 +97,7 @@ public sealed class CardSystem
     public List<string> DrawCards(Deck deck, int amount)
     {
         deck.Cards.Keys.Where(c => c.ExhaustionCount > 0).ToList().ForEach(c => c.ExhaustionCount--);
-        
+
         var rng = new Random();
         var cards = new List<Card>();
         foreach (var deckCard in deck.Cards.Where(c => c.Key.ExhaustionCount == 0))
@@ -107,7 +107,7 @@ public sealed class CardSystem
                 cards.Add(deckCard.Key);
             }
         }
-        
+
         var handCards = new List<string>();
         for (var i = 0; i < amount; i++)
         {
@@ -115,7 +115,7 @@ public sealed class CardSystem
             {
                 break;
             }
-            
+
             var number = rng.NextInt64(0, cards.Count - 1);
             var guid = cards[(int)number].EffectGUID;
             handCards.Add(guid);
@@ -124,7 +124,7 @@ public sealed class CardSystem
 
         return handCards;
     }
-    
+
     public void ServerApplyCards(List<string> cardGuids, PlayerCharacter player)
     {
         foreach (var cardGuid in cardGuids)
@@ -133,12 +133,13 @@ public sealed class CardSystem
             if (GlobalCardManager.Instance.AbilityCards.ContainsKey(cardGuid))
             {
                 applyAbility(cardGuid, player);
-            } else if (GlobalCardManager.Instance.ItemCards.TryGetValue(cardGuid, out var item))
+            }
+            else if (GlobalCardManager.Instance.ItemCards.TryGetValue(cardGuid, out var item))
             {
                 applyItem(item, player);
             }
         }
-        
+
     }
 
     private void applyAbility(string guid, PlayerCharacter player)

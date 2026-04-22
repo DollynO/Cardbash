@@ -35,7 +35,7 @@ public class PoisonDebuff : Buff
         {
             return;
         }
-        
+
         poisonDamage.DamageNumber = baseDamage * this.StackCount * delta;
         var ctx = new HitContext
         {

@@ -7,7 +7,8 @@ namespace CardBase.Scripts.Abilities;
  * @brief Different types of damage modifiers.
  * @details Calculation order. Conversion -> Extra Damage -> Modifier.
  */
-public enum DamageModifierType{
+public enum DamageModifierType
+{
     ExtraDamage,        //!< Gain extra damage based from the base damage. The base damage is not affected with this modifier
     Conversion,         //!< Converts a part of the base damage in the new type.
     Modifier            //!< Modifies the Target type.

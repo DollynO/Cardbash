@@ -6,7 +6,7 @@ public class ResetCooldownHitModifier : IHitModifier
 {
     public void ApplyBefore(HitContext ctx)
     {
-        
+
     }
 
     public void ApplyAfter(HitContext ctx)

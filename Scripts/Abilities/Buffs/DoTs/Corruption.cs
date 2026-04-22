@@ -4,7 +4,7 @@ namespace CardBase.Scripts.Abilities.Buffs.DoTs;
 
 public class Corruption : BaseDoTBuff
 {
-    
+
     public Corruption(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = ".";

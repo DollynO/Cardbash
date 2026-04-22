@@ -24,8 +24,8 @@ public static class DamageCalculator
             var orgDamage = orgDamageDict.Value;
             var baseDamage = new Damage()
             {
- 
-                Type = orgDamage.Type, 
+
+                Type = orgDamage.Type,
                 DamageNumber = orgDamage.DamageNumber,
                 AilmentChance = orgDamage.AilmentChance
             };
@@ -67,7 +67,7 @@ public static class DamageCalculator
                 {
                     break;
                 }
-            
+
                 var convValue = 0f;
                 if (totalConversion + conv.Value < 100)
                 {
@@ -92,7 +92,7 @@ public static class DamageCalculator
 
             foreach (var mod in extraDamageList
                          .Where(mod => mod.TargetDamageType == orgDamage.Type)
-                         .Where(mod => !totalDamageList.TryAdd(mod.OutputDamageType, new Damage() { DamageNumber = orgDamage.DamageNumber * mod.Value / 100, Type = mod.OutputDamageType, AilmentChance = baseDamage.AilmentChance})))
+                         .Where(mod => !totalDamageList.TryAdd(mod.OutputDamageType, new Damage() { DamageNumber = orgDamage.DamageNumber * mod.Value / 100, Type = mod.OutputDamageType, AilmentChance = baseDamage.AilmentChance })))
             {
                 totalDamageList[mod.OutputDamageType].DamageNumber += (orgDamage.DamageNumber * mod.Value / 100);
             }
@@ -102,7 +102,7 @@ public static class DamageCalculator
             {
                 modifierMaxList[mod.OutputDamageType] += mod.Value;
             }
-            
+
             foreach (var mod in modifierMaxList)
             {
                 totalDamageList[mod.Key].DamageNumber *= 1 + mod.Value;
@@ -113,14 +113,14 @@ public static class DamageCalculator
                 if (!calculatedDamages.TryAdd(dmg.Key, dmg.Value))
                 {
                     calculatedDamages[dmg.Key].DamageNumber += dmg.Value.DamageNumber;
-                    calculatedDamages[dmg.Key].AilmentChance 
+                    calculatedDamages[dmg.Key].AilmentChance
                         = Math.Max(calculatedDamages[dmg.Key].AilmentChance, dmg.Value.AilmentChance);
                 }
             }
         }
 
         if (calculatedDamages.Count <= 0) return;
-        
+
         orgDamages.Clear();
         foreach (var calculatedDamage in calculatedDamages)
         {
