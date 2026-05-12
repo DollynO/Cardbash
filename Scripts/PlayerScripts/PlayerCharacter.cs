@@ -218,7 +218,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         {
             if (TryGetComponent(out AbilityComponent abilityComponent))
             {
-                abilityComponent.ProcessAbilities(delta, _playerInput.KeyState.ToArray());
+                abilityComponent.ProcessAbilities(delta, _playerInput.ConsumeAbilityKeyStates());
             }
         }
     }

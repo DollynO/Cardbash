@@ -1,5 +1,5 @@
-﻿using Godot;
-using Godot.Collections;
+﻿using System.Collections.Generic;
+using Godot;
 
 namespace CardBase.Scripts.PlayerScripts;
 
@@ -21,14 +21,23 @@ public enum AbilityKeyState
 
 public partial class PlayerInput : MultiplayerSynchronizer
 {
+    private const int AbilitySlotCount = 4;
+    private static readonly string[] AbilityActions = { "Ability1", "Ability2", "Ability3", "Ability4" };
+    
     [Export]
     public float XDirection;
 
     [Export]
     public float YDirection;
 
-    [Export]
-    public Array<AbilityKeyState> KeyState = new();
+    private readonly Queue<AbilityKeyState>[] pendingAbilityStates =
+    {
+        new Queue<AbilityKeyState>(),
+        new Queue<AbilityKeyState>(),
+        new Queue<AbilityKeyState>(),
+        new Queue<AbilityKeyState>()
+    };
+    private readonly bool[] heldAbilities = new bool[AbilitySlotCount];
 
     [Export]
     public Node2D LookAtRotation;
@@ -43,10 +52,6 @@ public partial class PlayerInput : MultiplayerSynchronizer
         {
             SetPhysicsProcess(false);
         }
-        KeyState.Add(AbilityKeyState.ABILITY_NONE);
-        KeyState.Add(AbilityKeyState.ABILITY_NONE);
-        KeyState.Add(AbilityKeyState.ABILITY_NONE);
-        KeyState.Add(AbilityKeyState.ABILITY_NONE);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -54,55 +59,114 @@ public partial class PlayerInput : MultiplayerSynchronizer
     {
         XDirection = Input.GetAxis("MoveLeft", "MoveRight");
         YDirection = Input.GetAxis("MoveUp", "MoveDown");
-        var state = AbilityKeyState.ABILITY_NONE;
-        if ((int)KeyState[1] + (int)KeyState[2] + (int)KeyState[3] == 0)
-        {
-            setKeyState(ref state, "Ability1");
-            KeyState[0] = state;
-        }
-
-        if ((int)KeyState[0] + (int)KeyState[2] + (int)KeyState[3] == 0)
-        {
-            setKeyState(ref state, "Ability2");
-            KeyState[1] = state;
-        }
-
-        if ((int)KeyState[1] + (int)KeyState[0] + (int)KeyState[3] == 0)
-        {
-            setKeyState(ref state, "Ability3");
-            KeyState[2] = state;
-        }
-
-        if ((int)KeyState[1] + (int)KeyState[2] + (int)KeyState[0] == 0)
-        {
-            setKeyState(ref state, "Ability4");
-            KeyState[3] = state;
-        }
-
-        KeyState = new Array<AbilityKeyState>(KeyState);
         ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition();
         LookAtRotation.LookAt(ClientGlobalMousePosition);
         LookAtRotation.Rotate(-Mathf.Tau / 4);
         LookAtRotationValue = LookAtRotation.Rotation;
     }
 
-    private void setKeyState(ref AbilityKeyState keyState, string actionName)
+    public override void _Input(InputEvent @event)
     {
-        if (Input.IsActionJustPressed(actionName))
+        if (GetMultiplayerAuthority() != Multiplayer.GetUniqueId())
         {
-            keyState = AbilityKeyState.ABILITY_PRESSED;
+            return;
         }
-        else if (Input.IsActionPressed(actionName))
+
+        if (@event is InputEventKey { Echo: true })
         {
-            keyState = AbilityKeyState.ABILITY_HOLD;
+            return;
         }
-        else if (Input.IsActionJustReleased(actionName))
+
+        for (var i = 0; i < AbilityActions.Length; i++)
         {
-            keyState = AbilityKeyState.ABILITY_RELEASED;
+            if (@event.IsActionPressed(AbilityActions[i]))
+            {
+                SendAbilityPressed(i);
+            }
+
+            if (@event.IsActionReleased(AbilityActions[i]))
+            {
+                SendAbilityReleased(i);
+            }
         }
-        else
+    }
+
+    public AbilityKeyState[] ConsumeAbilityKeyStates()
+    {
+        var states = new AbilityKeyState[AbilitySlotCount];
+        for (var i = 0; i < AbilitySlotCount; i++)
         {
-            keyState = AbilityKeyState.ABILITY_NONE;
+            if (pendingAbilityStates[i].Count > 0)
+            {
+                states[i] = pendingAbilityStates[i].Dequeue();
+            }
+            else if (heldAbilities[i])
+            {
+                states[i] = AbilityKeyState.ABILITY_HOLD;
+            }
+            else
+            {
+                states[i] = AbilityKeyState.ABILITY_NONE;
+            }
         }
+
+        return states;
+    }
+
+    private void SendAbilityPressed(int slot)
+    {
+        if (Multiplayer.IsServer())
+        {
+            RequestAbilityPressed(slot);
+            return;
+        }
+
+        RpcId(1, MethodName.RequestAbilityPressed, slot);
+    }
+
+    private void SendAbilityReleased(int slot)
+    {
+        if (Multiplayer.IsServer())
+        {
+            RequestAbilityReleased(slot);
+            return;
+        }
+
+        RpcId(1, MethodName.RequestAbilityReleased, slot);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void RequestAbilityPressed(int slot)
+    {
+        if (!IsValidAbilityRequest(slot))
+        {
+            return;
+        }
+
+        pendingAbilityStates[slot].Enqueue(AbilityKeyState.ABILITY_PRESSED);
+        heldAbilities[slot] = true;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void RequestAbilityReleased(int slot)
+    {
+        if (!IsValidAbilityRequest(slot))
+        {
+            return;
+        }
+
+        pendingAbilityStates[slot].Enqueue(AbilityKeyState.ABILITY_RELEASED);
+        heldAbilities[slot] = false;
+    }
+
+    private bool IsValidAbilityRequest(int slot)
+    {
+        if (slot is < 0 or >= AbilitySlotCount)
+        {
+            return false;
+        }
+
+        var senderId = Multiplayer.GetRemoteSenderId();
+        return senderId == 0 || senderId == GetMultiplayerAuthority();
     }
 }
