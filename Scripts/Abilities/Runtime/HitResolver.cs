@@ -20,7 +20,7 @@ public class HitResolver
         var hitMods = new List<IHitModifier>();
         if (ctx.Source.TryGetComponent<AbilityComponent>(out var component))
         {
-            var abilityHitMods = component.Abilities.FirstOrDefault(a => a.GUID == ctx.AbilityGuid)?.GetHitModifiers();
+            var abilityHitMods = component.Abilities.FirstOrDefault(a => a.Value.GUID == ctx.AbilityGuid).Value.GetHitModifiers();
             if (abilityHitMods != null)
             {
                 hitMods.AddRange(abilityHitMods);

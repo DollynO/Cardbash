@@ -24,6 +24,40 @@ public class NetAbility
     }
     private string iconPath;
     public string GUID { get; set; }
+    
+    public int Index { get; set; }
+
+    public static NetAbility CreateFromAbility(Ability ability, int index)
+    {
+        return new NetAbility()
+        {
+            GUID = ability.GUID,
+            IconPath = ability.IconPath,
+            Index = index,
+            Cooldowns = new Vector2((float)ability.CurrentCooldown, (float)ability.BaseCooldown),
+            Stacks = new Vector2(ability.CurrentStack, ability.MaxStack)
+        };
+    }
+
+    public Godot.Collections.Dictionary<string, Variant> ToDict()
+    {
+        return new Godot.Collections.Dictionary<string, Variant>()
+        {
+            { nameof(IconPath), IconPath },
+            { nameof(GUID), GUID },
+            { nameof(Index), Index }
+        };
+    }
+
+    public static NetAbility CreateFromDict(Godot.Collections.Dictionary<string, Variant> dict)
+    {
+        return new NetAbility()
+        {
+            GUID = (string)dict[nameof(GUID)],
+            IconPath = (string)dict[nameof(IconPath)],
+            Index = (int)dict[nameof(Index)],
+        };
+    }
 }
 
 public partial class AbilityComponent : Node2D, IComponent
@@ -37,7 +71,7 @@ public partial class AbilityComponent : Node2D, IComponent
     public RingContainer RingContainer { get; private set; }
 
     public Dictionary<string, NetAbility> networkAbilities = new();
-    public List<Ability> Abilities = new();
+    public Dictionary<int, Ability> Abilities = new();
     private bool active = false;
 
     public event EventHandler<AbilityEventArgs> AbilityCasted;
@@ -72,23 +106,21 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void ProcessAbilities(double delta, AbilityKeyState[] keyStates)
     {
-        if (!active)
-        {
-            return;
-        }
-
         if (keyStates.Length < Abilities.Count)
         {
             throw new ArgumentOutOfRangeException();
         }
 
         var dict = new Godot.Collections.Dictionary<string, Variant>();
-        for (var i = 0; i < Abilities.Count; i++)
-        {
-            var ability = Abilities[i];
-            ability.ProcessAbility((float)delta);
-            ability.HandleInput(keyStates[i], delta);
+        foreach(var (key, ability) in Abilities) {
+            if (active)
+            {
+                ability.ProcessAbility((float)delta);
+                ability.HandleInput(keyStates[key], delta);
+            }
+            
             ability.UpdateCooldown(delta);
+
             var netAbilityDict = new Godot.Collections.Dictionary<string, Variant>();
             dict.Add(ability.GUID, netAbilityDict);
             netAbilityDict["cdx"] = ability.CurrentCooldown;
@@ -102,7 +134,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void InterruptAbilities()
     {
-        foreach (var ability in Abilities)
+        foreach (var ability in Abilities.Values)
         {
             ability.CancelAbility();
         }
@@ -110,7 +142,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void RoundReset()
     {
-        foreach (var ability in Abilities)
+        foreach (var ability in Abilities.Values)
         {
             ability.RoundReset();
         }
@@ -118,30 +150,46 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public bool AddUpdateAbility(string abilityGuid)
     {
-        if (Abilities.FirstOrDefault(a => a.GUID == abilityGuid) is { } ability)
+        if (Abilities.Values.FirstOrDefault(a => a.GUID == abilityGuid) is { } ability)
         {
             ability.ApplyUpdate();
             return true;
         }
 
-        if (Abilities.Count >= 4)
+        var newAbility = (Ability)AbilityManager.Create(abilityGuid, (PlayerCharacter)Parent);
+        var index = 0;
+        
+        if (Abilities.Count > 0)
         {
-            return false;
+            var indexList = Abilities.Keys.ToList();
+            indexList.Sort();
+
+            var maxIndex = Mathf.Max(indexList.Last(), 4);
+            for (var i = 0; i < maxIndex; i++)
+            {
+                if (indexList.Contains(i))
+                {
+                    continue;
+                }
+
+                index = i;
+                break;
+            }
         }
 
-        var newAbility = (Ability)AbilityManager.Create(abilityGuid, (PlayerCharacter)Parent);
-        Abilities.Add(newAbility);
-        Rpc(MethodName.addNetworkAbility, newAbility.GUID, newAbility.IconPath);
+        Abilities.Add(index, newAbility);
+        Rpc(MethodName.addNetworkAbility, newAbility.GUID, newAbility.IconPath, index);
         return true;
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void addNetworkAbility(string guid, string iconPath)
+    private void addNetworkAbility(string guid, string iconPath,  int index)
     {
         var newNetAbility = new NetAbility()
         {
             GUID = guid,
             IconPath = iconPath,
+            Index = index,
         };
         networkAbilities.Add(guid, newNetAbility);
     }
@@ -159,7 +207,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public IList<NetAbility> GetNetAbilities()
     {
-        return networkAbilities.Values.ToList();
+        return networkAbilities.Values.OrderBy(v => v.Index).ToList();
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
@@ -184,9 +232,61 @@ public partial class AbilityComponent : Node2D, IComponent
     public void Cleanup()
     {
         InterruptAbilities();
-        foreach (var ability in Abilities)
+        foreach (var ability in Abilities.Values)
         {
             ability.ClearAbility();
+        }
+    }
+    
+    public void SwapAbilities(int targetIndex, int sourceIndex)
+    {
+        RpcId(1, MethodName.swapAbilitiesServer,  targetIndex, sourceIndex);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode =  MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void swapAbilitiesServer(int targetIndex, int sourceIndex)
+    {
+        Abilities.TryGetValue(sourceIndex, out var abilitySource);
+        Abilities.TryGetValue(targetIndex, out var abilityTarget);
+
+        if (abilityTarget is null)
+        {
+            Abilities.Remove(sourceIndex);
+            Abilities.Add(targetIndex, abilitySource);
+        }
+        else
+        {
+            if (abilitySource is not null)
+            {
+                
+                Abilities[targetIndex] = abilitySource;
+                Abilities[sourceIndex] = abilityTarget; 
+            }
+        }
+        
+        networkAbilities.Clear();
+        var dict = new Godot.Collections.Dictionary<string, Variant>();
+        foreach (var kvp in Abilities)
+        {
+            networkAbilities.Add(kvp.Value.GUID, NetAbility.CreateFromAbility(kvp.Value, kvp.Key));
+            dict.Add(kvp.Value.GUID, networkAbilities[kvp.Value.GUID].ToDict());
+        }
+
+        var senderId = Multiplayer.GetRemoteSenderId();
+
+        if (senderId != 1)
+        {
+            RpcId(senderId, MethodName.syncNetworkAbilities, dict);
+        }
+    }
+    
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false,  TransferMode =  MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void syncNetworkAbilities(Godot.Collections.Dictionary<string, Variant> dict)
+    {
+        networkAbilities.Clear();
+        foreach (var kvp in dict)
+        {
+            networkAbilities.Add(kvp.Key, NetAbility.CreateFromDict(kvp.Value.AsGodotDictionary<string, Variant>()));
         }
     }
 }

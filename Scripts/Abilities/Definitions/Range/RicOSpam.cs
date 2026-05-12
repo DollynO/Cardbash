@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -9,7 +10,7 @@ public class RicOSpam : ProjectileAbility
 {
     private Dictionary<string, List<Projectile>> projectileLists = new();
     private Random rnd = new();
-    private string currentCcastGuid = string.Empty;
+    private string currentCastGuid = string.Empty;
 
     public RicOSpam(PlayerCharacter creator) : base(AbilityIds.RicOSpamGuid, creator)
     {
@@ -31,7 +32,7 @@ public class RicOSpam : ProjectileAbility
     {
         var offset = rnd.NextInt64(-15, 15);
         var request = AimedProjectile("res://AnimationRes/Projectile/RicOSpam/P_RicOSpam.tres", 500, 10);
-        request.CastGuid = currentCcastGuid;
+        request.CastGuid = currentCastGuid;
         request.Movement.AngleOffset = offset * Mathf.Pi / 180;
         request.Movement.BounceCount = 2;
         request.Visual.Scale = new Vector2(0.5f, 0.5f);
@@ -95,6 +96,15 @@ public class RicOSpam : ProjectileAbility
         }
     }
 
+    private void deleteProjectileList(List<Projectile> projectiles)
+    {
+        while (projectiles.Count > 0)
+        {
+            projectiles[0].QueueFree();
+            projectiles.Remove(projectiles[0]);
+        }
+    }
+    
     protected override void _onProjectileDestroyed(Vector2 position, Projectile projectile)
     {
         if (projectileLists.TryGetValue(projectile.SpawnRequest.CastGuid, out var _projectiles))
@@ -111,10 +121,17 @@ public class RicOSpam : ProjectileAbility
         }
     }
 
-    protected override void PreSpawnProjectile()
+    protected override bool PreSpawnProjectile()
     {
-        currentCcastGuid = Guid.NewGuid().ToString();
-        projectileLists.Add(currentCcastGuid, new List<Projectile>());
+        while (projectileLists.Count > 3)
+        {
+            var kvp = projectileLists.First();
+            deleteProjectileList(kvp.Value);
+            projectileLists.Remove(kvp.Key);
+        }
+        currentCastGuid = Guid.NewGuid().ToString();
+        projectileLists.Add(currentCastGuid, new List<Projectile>());
+        return true;
     }
 
     protected override void PostSpawnProjectile(Projectile projectile)
@@ -123,5 +140,15 @@ public class RicOSpam : ProjectileAbility
         {
             _projectiles.Add(projectile);
         }
+    }
+
+    protected override void InternalCancel()
+    {
+        foreach (var kvp in projectileLists)
+        {
+            deleteProjectileList(kvp.Value);
+        }
+        
+        projectileLists.Clear();
     }
 }

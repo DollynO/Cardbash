@@ -8,7 +8,6 @@ using Godot.Collections;
 
 public partial class Hud : CanvasLayer
 {
-    [Export] Array<AbilityFrame> _abilityFrames;
     [Export] private Container _drawUiContainer;
     [Export] private TextEdit _statsText;
     [Export] private Label _waitLabel;
@@ -22,6 +21,7 @@ public partial class Hud : CanvasLayer
 
     [Export] private GridContainer statOverviewContainer;
     [Export] private PackedScene statOverviewScene;
+
 
     private PackedScene _abilityCardTemplate;
     private PackedScene _itemCardTemplate;
@@ -88,13 +88,6 @@ public partial class Hud : CanvasLayer
         if (player == null)
         {
             return;
-        }
-
-        for (var i = 0; i < _abilityFrames.Count; i++)
-        {
-            var networkAbilities = new NetAbility[player.AbilityComponent.GetNetAbilities().Count];
-            player.AbilityComponent.GetNetAbilities().CopyTo(networkAbilities, 0);
-            _abilityFrames[i].UpdateUi(networkAbilities.Length > i ? networkAbilities[i] : null);
         }
 
         ((ShaderMaterial)_darknessEffect.Material).SetShaderParameter("fill_amount", Math.Clamp(player.StatBlock.GetStat(StatType.Darkness) * 0.1, 0, 1));

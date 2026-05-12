@@ -80,6 +80,8 @@ public abstract class Ability : BaseCardableObject
 
     protected bool AutoCast = false;
 
+    private AbilityKeyState lastInputState = AbilityKeyState.ABILITY_NONE;
+
     protected GlobalAbilitySpawner GlobalAbilitySpawner => globalAbilitySpawner ??= ((Node2D)Caller).GetTree().Root
         .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
 
@@ -221,7 +223,14 @@ public abstract class Ability : BaseCardableObject
         switch (state)
         {
             case AbilityKeyState.ABILITY_PRESSED:
-                TriggerStrategy.OnKeyJustPressed(this);
+                if (lastInputState is AbilityKeyState.ABILITY_PRESSED or AbilityKeyState.ABILITY_HOLD)
+                {
+                    TriggerStrategy.OnKeyPressed(this, delta);
+                }
+                else
+                {
+                    TriggerStrategy.OnKeyJustPressed(this);
+                }
                 break;
             case AbilityKeyState.ABILITY_HOLD:
                 TriggerStrategy.OnKeyPressed(this, delta);
@@ -232,6 +241,8 @@ public abstract class Ability : BaseCardableObject
             default:
                 break;
         }
+
+        lastInputState = state;
     }
 
     public void ApplyUpdate()

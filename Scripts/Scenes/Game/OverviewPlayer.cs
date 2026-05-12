@@ -29,7 +29,7 @@ public partial class OverviewPlayer : Control
                 continue;
             }
 
-            abilityIcons[index].Texture = IconLoader.Instance.LoadImage(ability.IconPath);
+            abilityIcons[index].Texture = IconLoader.Instance.LoadImage(ability.Value.IconPath);
             index++;
         }
 

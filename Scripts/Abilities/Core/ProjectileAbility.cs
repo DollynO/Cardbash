@@ -19,20 +19,29 @@ public abstract class ProjectileAbility : Ability
 
     }
 
-    protected virtual void PreSpawnProjectile()
+    protected virtual bool PreSpawnProjectile()
     {
-
+        return true;
     }
 
     public override void InternalUse()
     {
-        PreSpawnProjectile();
-        PostSpawnProjectile(SpawnProjectile());
+        if (PreSpawnProjectile())
+        {
+            if (SpawnProjectile() is { } proj)
+            {
+                PostSpawnProjectile(proj);
+            }
+        }
     }
 
     protected Projectile SpawnProjectile()
     {
         var spawnRequest = GetProjectileSpawnRequest();
+        if (spawnRequest == null)
+        {
+            return null;
+        }
 
         if (Caller.TryGetComponent(out AimComponent aimComponent))
         {

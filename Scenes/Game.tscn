@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=4 uid="uid://dshvuihnhyh7b"]
+[gd_scene load_steps=47 format=4 uid="uid://dshvuihnhyh7b"]
 
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/GameManager.cs" id="1_awesl"]
 [ext_resource type="PackedScene" uid="uid://hpbx14ma8p0v" path="res://Scenes/PlayerCharacter.tscn" id="2_dr7ob"]
@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="17_jlbfk"]
 [ext_resource type="Texture2D" uid="uid://djgroq5dnnltd" path="res://Sprites/SkillFrame/UI_PanelsA_16.png" id="17_jvgbx"]
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/GameMenu.cs" id="17_t3fuk"]
+[ext_resource type="PackedScene" uid="uid://co5hgjvqoxwbt" path="res://Scenes/AbilityPopupMenu.tscn" id="18_xl0mr"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_iwi0f"]
 vertices = PackedVector2Array(8, 8, -8, 8, -8, -8, 8, -8)
@@ -6464,9 +6465,8 @@ tile_set = SubResource("TileSet_b8d8o")
 _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_abilityFrames", "_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar", "statOverviewContainer")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar", "statOverviewContainer")]
 script = ExtResource("4_e1s5y")
-_abilityFrames = [NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame"), NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame2"), NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame3"), NodePath("PlayerUi/HBoxContainer/Control/HBoxContainer/AbilityFrame4")]
 _drawUiContainer = NodePath("DrawUi")
 _statsText = NodePath("StatsEdit")
 _waitLabel = NodePath("DrawUi/WaitLabel")
@@ -6565,7 +6565,7 @@ size_flags_horizontal = 4
 text = "Round 1 / 0"
 label_settings = SubResource("LabelSettings_pcaqj")
 
-[node name="PlayerUi" type="Control" parent="HUD" node_paths=PackedStringArray("PlayerOverviewPanel", "PlayerOverview")]
+[node name="PlayerUi" type="Control" parent="HUD" node_paths=PackedStringArray("PlayerOverviewPanel", "PlayerOverview", "_abilityFrames", "_abilityPopupMenu")]
 z_index = 2
 layout_mode = 3
 anchors_preset = 15
@@ -6580,6 +6580,8 @@ script = ExtResource("12_eaqiq")
 PlayerOverviewPanel = NodePath("PlayerOverview")
 PlayerOverview = NodePath("PlayerOverview/ScrollContainer/VBoxContainer")
 PlayerOverviewScene = ExtResource("13_bqj63")
+_abilityFrames = [NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame4")]
+_abilityPopupMenu = NodePath("AbilityPopupMenu")
 
 [node name="PlayerOverview" type="Panel" parent="HUD/PlayerUi"]
 layout_mode = 1
@@ -6681,6 +6683,20 @@ layout_mode = 2
 
 [node name="AbilityFrame4" parent="HUD/PlayerUi/HBoxContainer/Control/HBoxContainer" instance=ExtResource("4_2154d")]
 layout_mode = 2
+
+[node name="AbilityPopupMenu" parent="HUD/PlayerUi" instance=ExtResource("18_xl0mr")]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 1
+grow_vertical = 1
 
 [node name="GameMenu" type="CanvasLayer" parent="." node_paths=PackedStringArray("_leaveMatch", "_settings", "_gameManager")]
 visible = false

@@ -1,8 +1,5 @@
 using Godot;
-using System;
-using System.Globalization;
 using CardBase.Scripts;
-using CardBase.Scripts.Abilities;
 
 public partial class AbilityFrame : TextureRect
 {
@@ -13,6 +10,12 @@ public partial class AbilityFrame : TextureRect
     [Export] private ProgressBar _cdBar;
 
     [Export] private Label _stackCount;
+
+    [Signal]
+    public delegate void ClickedEventHandler(int index);
+    
+    public int SlotIndex { get; set; }
+    
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
     {
@@ -49,6 +52,19 @@ public partial class AbilityFrame : TextureRect
         }
 
         _stackCount.Text = ability.Stacks.Y > 1 ? $"{ability.Stacks.X} / {ability.Stacks.Y}" : string.Empty;
-        _abilityIcon.Texture ??= IconLoader.Instance.LoadImage(ability.IconPath);
+        _abilityIcon.Texture = IconLoader.Instance.LoadImage(ability.IconPath);
+    }
+
+    public override void _GuiInput(InputEvent @event)
+    {
+        if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true })
+        {
+            EmitSignal(SignalName.Clicked, SlotIndex);
+        }
+    }
+    
+    public void on_frame_clicked()
+    {
+        
     }
 }
