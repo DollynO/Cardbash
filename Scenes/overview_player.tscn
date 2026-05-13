@@ -16,7 +16,7 @@ script = ExtResource("1_aioxu")
 playerName = NodePath("Panel/MarginContainer/HBoxContainer/Playername")
 points = NodePath("Panel/MarginContainer/HBoxContainer/Points")
 teamColor = NodePath("Panel/MarginContainer/HBoxContainer/TeamColor")
-abilityIcons = [NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_1"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_2"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_4"), null]
+abilityIcons = [NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_1"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_2"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_3"), NodePath("Panel/MarginContainer/HBoxContainer/Abilities/Ability_4")]
 itemContainer = NodePath("Panel/MarginContainer/HBoxContainer/Items")
 
 [node name="Panel" type="Panel" parent="."]

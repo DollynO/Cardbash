@@ -276,7 +276,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
         if (senderId != 1)
         {
-            RpcId(senderId, MethodName.syncNetworkAbilities, dict);
+            Rpc(MethodName.syncNetworkAbilities, dict);
         }
     }
     

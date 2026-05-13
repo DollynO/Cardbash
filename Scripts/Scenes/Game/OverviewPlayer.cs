@@ -15,22 +15,14 @@ public partial class OverviewPlayer : Control
     {
         playerName.Text = player.PlayerName;
         teamColor.Color = ColorPlate.GetColor(player.TeamId);
-        var index = 0;
-        foreach (var ability in player.AbilityComponent.Abilities)
+        foreach (var ability in player.AbilityComponent.GetNetAbilities())
         {
-            if (index >= abilityIcons.Length)
+            if (ability.Index >= abilityIcons.Length)
             {
                 break;
             }
 
-            if (abilityIcons[index] == null)
-            {
-                index++;
-                continue;
-            }
-
-            abilityIcons[index].Texture = IconLoader.Instance.LoadImage(ability.Value.IconPath);
-            index++;
+            abilityIcons[ability.Index ].Texture = IconLoader.Instance.LoadImage(ability.IconPath);
         }
 
         foreach (var child in itemContainer.GetChildren())
