@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.PlayerScripts;
-using Godot.Collections;
 
 public partial class Hud : CanvasLayer
 {
@@ -23,8 +22,8 @@ public partial class Hud : CanvasLayer
     [Export] private PackedScene statOverviewScene;
 
 
-    private PackedScene _abilityCardTemplate;
-    private PackedScene _itemCardTemplate;
+    private PackedScene _cardDrawTemplate;
+    private List<CardDrawTemplate> cardTemplates = new();
 
     [Signal]
     public delegate void CardLockedEventHandler(int playerId, string cardGuid);
@@ -34,8 +33,7 @@ public partial class Hud : CanvasLayer
     public override void _Ready()
     {
         _clear_card_box();
-        _abilityCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/AbilityCardTemplate.res") as PackedScene;
-        _itemCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/ItemCardTemplate.res") as PackedScene;
+        _cardDrawTemplate = ResourceLoader.Load("res://Scenes/CardDrawTemplate.tscn") as PackedScene;
         _healthBar.AllowGreater = true;
 
         var element = statOverviewScene.Instantiate<StatOverviewElement>();
@@ -113,26 +111,18 @@ public partial class Hud : CanvasLayer
 
     private void _displayDrawnCards(List<Card> cards, HBoxContainer container)
     {
+        cardTemplates.Clear();
         foreach (var card in cards)
         {
-            var cardTemplate = card.CardType switch
-            {
-                CardType.Ability => _abilityCardTemplate.Instantiate() as CardTemplate,
-                CardType.Item => _itemCardTemplate.Instantiate() as CardTemplate,
-                CardType.Spell => _itemCardTemplate.Instantiate() as CardTemplate,
-                CardType.WorldModifier => _itemCardTemplate.Instantiate() as CardTemplate,
-                CardType.Modifier => _itemCardTemplate.Instantiate() as CardTemplate,
-                _ => throw new ArgumentOutOfRangeException(nameof(card.CardType), card.CardType, null)
-            };
-
-            if (cardTemplate == null)
+            if (_cardDrawTemplate.Instantiate() is not CardDrawTemplate cardTemplate)
             {
                 continue;
             }
-
+            
             cardTemplate.Name = card.EffectGUID;
-            cardTemplate.Card = card;
+            cardTemplate.SetCard(card);
             cardTemplate.CardClicked += on_card_clicked;
+            cardTemplates.Add(cardTemplate);
             container.AddChild(cardTemplate);
         }
         _cardBox.Visible = true;
@@ -155,6 +145,7 @@ public partial class Hud : CanvasLayer
     private void on_card_clicked(Card card)
     {
         _selectedCard = card;
+        cardTemplates.ForEach(ct => ct.NotifyCardSelected(card.EffectGUID));
     }
 
     private void PrintStats(PlayerCharacter player)

@@ -5,13 +5,13 @@
 [ext_resource type="Texture2D" uid="uid://bedbc0kvqmar3" path="res://Sprites/GameSprites/Tilesets/TX Tileset Grass.png" id="3_yybvc"]
 [ext_resource type="PackedScene" uid="uid://cfqf887dfiqag" path="res://Scenes/AbilityFrame.res" id="4_2154d"]
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/Hud.cs" id="4_e1s5y"]
-[ext_resource type="PackedScene" uid="uid://kjmx4hc47ru5" path="res://Prefabs/Cards/AbilityCardTemplate.res" id="4_uhla2"]
 [ext_resource type="Texture2D" uid="uid://d1ikfmixyxppl" path="res://Sprites/GameSprites/Tilesets/TX Struct.png" id="4_we2gk"]
 [ext_resource type="PackedScene" uid="uid://7dp11nbgmeoo" path="res://Prefabs/Buttons/green_button_big.tscn" id="5_amcby"]
 [ext_resource type="Texture2D" uid="uid://d20d1pbggem0u" path="res://Sprites/GameSprites/Tilesets/TX Tileset Stone Ground.png" id="5_fgcmq"]
 [ext_resource type="Texture2D" uid="uid://xuhxt6p0201i" path="res://Sprites/GameSprites/Tilesets/TX Tileset Wall.png" id="6_vi2nn"]
 [ext_resource type="Texture2D" uid="uid://2vtmcm302l2w" path="res://Sprites/GameSprites/Tilesets/RA_Ruins.png" id="7_5bwrg"]
 [ext_resource type="Shader" path="res://Shaders/DarknessShader.gdshader" id="10_wx1yi"]
+[ext_resource type="PackedScene" uid="uid://h3vkd3vmb12d" path="res://Scenes/CardDrawTemplate.tscn" id="11_3iw8n"]
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/PlayerUi.cs" id="12_eaqiq"]
 [ext_resource type="PackedScene" uid="uid://ckfr6u0m0juo8" path="res://Scenes/overview_player.tscn" id="13_bqj63"]
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/HealthBar.cs" id="13_k22l3"]
@@ -6512,22 +6512,23 @@ layout_mode = 2
 theme_override_constants/separation = 20
 
 [node name="CardBox" type="HBoxContainer" parent="HUD/DrawUi/VBoxContainer"]
+custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="AbilityCardTemplate" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("4_uhla2")]
+[node name="CardDrawTemplate2" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("11_3iw8n")]
 layout_mode = 2
 
-[node name="AbilityCardTemplate2" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("4_uhla2")]
+[node name="CardDrawTemplate" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("11_3iw8n")]
 layout_mode = 2
 
-[node name="AbilityCardTemplate3" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("4_uhla2")]
+[node name="CardDrawTemplate3" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("11_3iw8n")]
 layout_mode = 2
 
-[node name="AbilityCardTemplate4" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("4_uhla2")]
+[node name="CardDrawTemplate4" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("11_3iw8n")]
 layout_mode = 2
 
-[node name="AbilityCardTemplate5" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("4_uhla2")]
+[node name="CardDrawTemplate5" parent="HUD/DrawUi/VBoxContainer/CardBox" instance=ExtResource("11_3iw8n")]
 layout_mode = 2
 
 [node name="CardLock" parent="HUD/DrawUi/VBoxContainer" instance=ExtResource("5_amcby")]
@@ -6584,6 +6585,7 @@ _abilityFrames = [NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame"), 
 _abilityPopupMenu = NodePath("AbilityPopupMenu")
 
 [node name="PlayerOverview" type="Panel" parent="HUD/PlayerUi"]
+visible = false
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

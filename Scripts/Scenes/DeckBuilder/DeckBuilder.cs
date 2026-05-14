@@ -30,8 +30,7 @@ public partial class DeckBuilder : Control
     private int _selectedDeckIconNumber = 0;
     private Godot.Collections.Dictionary<Card, Counter> _cards = new();
 
-    private PackedScene _abilityCardTemplate;
-    private PackedScene _itemCardTemplate;
+    private PackedScene _cardTemplate;
     private PackedScene _deckCardDisplayLineTemplate;
     private PackedScene _mainScreen;
 
@@ -43,8 +42,7 @@ public partial class DeckBuilder : Control
         _deleteButton.Disabled = true;
         _mainScreen = ResourceLoader.Load("res://Scenes/MainScreen.tscn") as PackedScene;
 
-        _abilityCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/AbilityCardTemplate.res") as PackedScene;
-        _itemCardTemplate = ResourceLoader.Load("res://Prefabs/Cards/ItemCardTemplate.res") as PackedScene;
+        _cardTemplate = ResourceLoader.Load("res://Prefabs/Cards/CardTemplate.res") as PackedScene;
         _deckCardDisplayLineTemplate = ResourceLoader.Load("res://Prefabs/Cards/DeckCardDisplayLine.res") as PackedScene;
 
         _deckList.ItemSelected += id => _on_deck_selected((Deck)_deckList.GetItemMetadata((int)id));
@@ -262,15 +260,8 @@ public partial class DeckBuilder : Control
 
         foreach (var card in cards.Values)
         {
-            var cardTemplate = type switch
-            {
-                CardType.Ability => _abilityCardTemplate.Instantiate() as CardTemplate,
-                CardType.Item => _itemCardTemplate.Instantiate() as CardTemplate,
-                CardType.Spell => _itemCardTemplate.Instantiate() as CardTemplate,
-                CardType.WorldModifier => _itemCardTemplate.Instantiate() as CardTemplate,
-                CardType.Modifier => _itemCardTemplate.Instantiate() as CardTemplate,
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
+            var cardTemplate = _cardTemplate.Instantiate() as CardTemplate;
+            cardTemplate.CardType = type;
 
             if (cardTemplate == null)
             {

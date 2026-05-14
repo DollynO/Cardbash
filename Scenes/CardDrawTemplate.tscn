@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3 uid="uid://h3vkd3vmb12d"]
+
+[ext_resource type="Script" path="res://CardDrawTemplate.cs" id="1_7roni"]
+[ext_resource type="PackedScene" uid="uid://kjmx4hc47ru5" path="res://Prefabs/Cards/CardTemplate.res" id="2_2xk7w"]
+[ext_resource type="PackedScene" uid="uid://d1mdwyqwxe0ba" path="res://Prefabs/Buttons/blue_button.tscn" id="3_vc43k"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ph2dl"]
+bg_color = Color(0.369851, 0.396902, 0.386915, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.0768358, 0.0768358, 0.0768358, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[node name="CardDrawTemplate" type="Control" node_paths=PackedStringArray("_selectIndicator", "_cardTemplate", "_lockCard")]
+custom_minimum_size = Vector2(195, 385)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 195.0
+offset_bottom = 385.0
+size_flags_horizontal = 6
+size_flags_vertical = 6
+script = ExtResource("1_7roni")
+_selectIndicator = NodePath("VBoxContainer/SelectedIndicator")
+_cardTemplate = NodePath("VBoxContainer/AbilityCardTemplate")
+_lockCard = NodePath("VBoxContainer/LockCard")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/separation = 15
+
+[node name="SelectedIndicator" type="Panel" parent="VBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_ph2dl")
+
+[node name="AbilityCardTemplate" parent="VBoxContainer" instance=ExtResource("2_2xk7w")]
+layout_mode = 2
+
+[node name="LockCard" parent="VBoxContainer" instance=ExtResource("3_vc43k")]
+layout_mode = 2
+Text = "Lock Card"

@@ -11,11 +11,30 @@ public partial class CardTemplate : TextureRect
     [Export] private TextureRect HoverFrame;
     [Export] private Panel DetailDescriptionPanel;
     [Export] private Label DetailDescriptionLabel;
+    [Export] private TextureRect CardTemplateTexture;
 
 
     [Signal]
     public delegate void CardClickedEventHandler(Card card);
 
+    public CardType CardType
+    {
+        get => cardType;
+        set
+        {
+            var texture = cardType switch
+            {
+                CardType.Ability => IconLoader.Instance.LoadImage("res://Sprites/Cards/AbilityCardFront.png"),
+                CardType.Item => IconLoader.Instance.LoadImage("res://Sprites/Cards/AbilityCardFront.png"),
+                _ => IconLoader.Instance.LoadImage("res://Sprites/Cards/WorldCardFront.png")
+            };
+
+            CardTemplateTexture.Texture = texture;
+            cardType = value;
+        }
+    }
+    
+    private CardType cardType;
 
     private Card card;
     public Card Card
@@ -24,6 +43,7 @@ public partial class CardTemplate : TextureRect
         set
         {
             card = value;
+            CardType = value.CardType;
             NameLabel.Text = card.DisplayName;
             DescriptionLabel.Text = card.Description;
             DetailDescriptionLabel.Text = card.Description;
