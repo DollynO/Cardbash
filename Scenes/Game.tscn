@@ -6465,10 +6465,9 @@ tile_set = SubResource("TileSet_b8d8o")
 _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_drawUiContainer", "_statsText", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar", "statOverviewContainer")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_drawUiContainer", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar", "_gameManager")]
 script = ExtResource("4_e1s5y")
 _drawUiContainer = NodePath("DrawUi")
-_statsText = NodePath("StatsEdit")
 _waitLabel = NodePath("DrawUi/WaitLabel")
 _cardBox = NodePath("DrawUi/VBoxContainer/CardBox")
 _darknessEffect = NodePath("DarknessEffect")
@@ -6476,8 +6475,7 @@ _roundLabel = NodePath("RoundLabel")
 _lockButton = NodePath("DrawUi/VBoxContainer/CardLock")
 _itemContainer = NodePath("PlayerUi/HBoxContainer/Control/ScrollContainer/ItemContainer")
 _healthBar = NodePath("PlayerUi/HBoxContainer/Control/HealthBar")
-statOverviewContainer = NodePath("PlayerUi/HBoxContainer/PanelContainer/GridContainer")
-statOverviewScene = ExtResource("14_7mrme")
+_gameManager = NodePath("..")
 
 [node name="DarknessEffect" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_cerkr")
@@ -6534,25 +6532,13 @@ layout_mode = 2
 [node name="CardLock" parent="HUD/DrawUi/VBoxContainer" instance=ExtResource("5_amcby")]
 layout_mode = 2
 size_flags_horizontal = 4
-Text = "Lock"
+Text = "Submit"
 
 [node name="WaitLabel" type="Label" parent="HUD/DrawUi"]
 visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 80
 text = "Waiting ..."
-
-[node name="StatsEdit" type="TextEdit" parent="HUD"]
-offset_right = 282.0
-offset_bottom = 214.0
-text = "Movement Speed:
-Armor:
-LifE:
-Energy Shield:
-Int
-Str"
-editable = false
-scroll_fit_content_height = true
 
 [node name="RoundLabel" type="Label" parent="HUD"]
 anchors_preset = 5
@@ -6566,7 +6552,7 @@ size_flags_horizontal = 4
 text = "Round 1 / 0"
 label_settings = SubResource("LabelSettings_pcaqj")
 
-[node name="PlayerUi" type="Control" parent="HUD" node_paths=PackedStringArray("PlayerOverviewPanel", "PlayerOverview", "_abilityFrames", "_abilityPopupMenu")]
+[node name="PlayerUi" type="Control" parent="HUD" node_paths=PackedStringArray("PlayerOverviewPanel", "PlayerOverview", "_abilityFrames", "_abilityPopupMenu", "statOverviewContainer")]
 z_index = 2
 layout_mode = 3
 anchors_preset = 15
@@ -6583,6 +6569,8 @@ PlayerOverview = NodePath("PlayerOverview/ScrollContainer/VBoxContainer")
 PlayerOverviewScene = ExtResource("13_bqj63")
 _abilityFrames = [NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame4")]
 _abilityPopupMenu = NodePath("AbilityPopupMenu")
+statOverviewContainer = NodePath("HBoxContainer/PanelContainer/GridContainer")
+statOverviewScene = ExtResource("14_7mrme")
 
 [node name="PlayerOverview" type="Panel" parent="HUD/PlayerUi"]
 visible = false
@@ -6644,6 +6632,7 @@ columns = 2
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HUD/PlayerUi/HBoxContainer/Control"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
 [node name="ItemContainer" type="HBoxContainer" parent="HUD/PlayerUi/HBoxContainer/Control/ScrollContainer"]

@@ -74,8 +74,6 @@ public partial class AbilityComponent : Node2D, IComponent
     public Dictionary<int, Ability> Abilities = new();
     private bool active = false;
 
-    public event EventHandler<AbilityEventArgs> AbilityCasted;
-
     public override void _EnterTree()
     {
         Name = "AbilityComponent";
@@ -85,23 +83,22 @@ public partial class AbilityComponent : Node2D, IComponent
             Name = "RingContainer"
         };
         AddChild(RingContainer);
-        if (Parent.TryGetComponent(out HealthComponent hc))
-        {
-            hc.Death += OnPlayerDeath;
-        }
+        Parent.EventBus.CombatEventBus.KilledEventHandler += OnPlayerDeath;
 
         active = true;
     }
 
-    private void OnPlayerDeath(object sender, EventArgs args)
+    private void OnPlayerDeath(object sender, KilledEventArgs args)
     {
+        if (args.Target != Parent) return;
+        
         InterruptAbilities();
         active = false;
     }
 
     public void NotifyAbilityCasted(Ability ability)
     {
-        AbilityCasted?.Invoke(this, new AbilityEventArgs(ability));
+        Parent.EventBus.CombatEventBus.EmitAbilityCasted(new AbilityEventArgs(ability));
     }
 
     public void ProcessAbilities(double delta, AbilityKeyState[] keyStates)

@@ -14,6 +14,9 @@ public partial class CardDrawTemplate : Control
 	[Signal]
 	public delegate void CardClickedEventHandler(Card card);
 	
+	[Signal]
+	public delegate void LockCardClickedEventHandler(Card card);
+	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
@@ -23,8 +26,14 @@ public partial class CardDrawTemplate : Control
 		_selectIndicator.AddThemeStyleboxOverride("panel", indicatorStyle);
 
 		_cardTemplate.CardClicked += CardTemplateOnCardClicked;
+		_lockCard.ButtonDown += LockCardOnButtonDown;
 		
 		SetProcess(false);
+	}
+
+	private void LockCardOnButtonDown()
+	{
+		EmitSignal(SignalName.LockCardClicked, _cardTemplate.Card);
 	}
 
 	private void CardTemplateOnCardClicked(Card card)

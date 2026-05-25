@@ -4,11 +4,13 @@ using System.Linq;
 using Godot;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 using Godot.Collections;
 
 public partial class GameManager : Node2D
 {
+    public GameContext Context { get; private set; }
     private int _playersInGame;
     private int _playersReady;
     private readonly HashSet<long> _readyPeers = new();
@@ -27,6 +29,12 @@ public partial class GameManager : Node2D
 
     [Signal]
     public delegate void OnPlayerKilledEventHandler(PlayerCharacter victimId, PlayerCharacter killerId);
+    
+    public EventBus EventBus { get; } = new EventBus();
+    public ScoreSystem ScoreSystem { get; private set; }
+    public TeamSystem TeamSystem { get; private set; }
+    public CardSystem CardSystem { get; private set; }
+    public GameModeSettings Settings { get; } = new ();
 
     public override void _EnterTree()
     {
@@ -38,12 +46,12 @@ public partial class GameManager : Node2D
     {
         _network = GetNode<NetworkManager>(NetworkManager.GetNetworkManagerPath());
 
-        var ts = new TeamSystem(this, _currentCharacters);
-        var cs = new CardSystem();
-        var ss = new ScoreSystem();
-        var ctx = new GameContext(this, _currentCharacters, ts, cs, ss);
+        this.TeamSystem = new TeamSystem(this, _currentCharacters);
+        this.ScoreSystem = new ScoreSystem();
+        this.CardSystem = new CardSystem(this);
+        Context = new GameContext(this, _currentCharacters, TeamSystem, CardSystem, ScoreSystem);
 
-        _flowController = new GameFlowController(ctx, settings);
+        _flowController = new GameFlowController(Context, Settings);
         _flowController.Name = "flowControl";
         AddChild(_flowController);
 
@@ -57,10 +65,9 @@ public partial class GameManager : Node2D
         }
     }
 
-    private GameModeSettings settings = new();
     public void SetStats(GameModeSettings stats)
     {
-        settings = stats;
+        Settings.Copy(stats);
     }
 
     public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter killer)
@@ -186,8 +193,8 @@ public partial class GameManager : Node2D
 
         node.GlobalPosition = GetNextFreeSpawnPoint();
         node.Deck = deck;
-
         _currentCharacters.Add(node.PlayerId, node);
+        node.AssignEventBus(this.EventBus);
         return node;
     }
 

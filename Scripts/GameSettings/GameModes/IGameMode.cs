@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CardBase.Scripts.GameSettings;
 
 public enum ModeId { LastTeamStanding, CaptureTheFlag, Herrschaft }
 public enum MatchPhase { None, RoundSetup, CardDraw, CardApply, CardDrawEnd, Combat, RoundEnd, GameEnd }

@@ -124,7 +124,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             var hc = new HealthComponent();
             hc.Reset(SpawnRequest.Health.Life);
             AddComponent(hc);
-            hc.Death += onProjectileDeath;
+            EventBus.CombatEventBus.KilledEventHandler += onProjectileDeath;
             var oui = new OverHeadUiComponent();
             AddComponent(oui);
             var dac = new DamageAbleComponent();
@@ -132,8 +132,10 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         }
     }
 
-    private void onProjectileDeath(object sender, EventArgs e)
+    private void onProjectileDeath(object sender, KilledEventArgs e)
     {
+        if (e.Target != this) return;
+        
         DestroyProjectile();
     }
 

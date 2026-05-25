@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -32,7 +33,7 @@ public sealed class LastTeamStandingMode : IGameMode
         // reset alive, respawns, etc.
         foreach (var p in _ctx.Players.Values)
         {
-            p.RoundReset();
+            p.RoundReset(roundIndex);
             p.GlobalPosition = _ctx.GameManager.GetNextFreeSpawnPoint();
         }
     }

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.PlayerScripts;
@@ -8,19 +9,14 @@ using CardBase.Scripts.PlayerScripts;
 public partial class Hud : CanvasLayer
 {
     [Export] private Container _drawUiContainer;
-    [Export] private TextEdit _statsText;
     [Export] private Label _waitLabel;
     [Export] private HBoxContainer _cardBox;
     [Export] private ColorRect _darknessEffect;
     [Export] private Label _roundLabel;
     [Export] private ButtonPrefab _lockButton;
     [Export] private HBoxContainer _itemContainer;
-
     [Export] private HealthBar _healthBar;
-
-    [Export] private GridContainer statOverviewContainer;
-    [Export] private PackedScene statOverviewScene;
-
+    [Export] private GameManager _gameManager;
 
     private PackedScene _cardDrawTemplate;
     private List<CardDrawTemplate> cardTemplates = new();
@@ -35,15 +31,6 @@ public partial class Hud : CanvasLayer
         _clear_card_box();
         _cardDrawTemplate = ResourceLoader.Load("res://Scenes/CardDrawTemplate.tscn") as PackedScene;
         _healthBar.AllowGreater = true;
-
-        var element = statOverviewScene.Instantiate<StatOverviewElement>();
-        var data = new StatOverviewElementData(
-            "res://Sprites/StatOverview/crit.png",
-            "Crit",
-            "Crit change doubles damage",
-            "20");
-        statOverviewContainer.AddChild(element);
-        element.Init(data);
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -93,7 +80,6 @@ public partial class Hud : CanvasLayer
         {
             _healthBar.SetHealth(healthComponent.CurrentHealth, healthComponent.MaxHealth);
         }
-        PrintStats(player);
 
         if (player.TryGetComponent(out ItemManagerComponent imc))
         {
@@ -122,12 +108,20 @@ public partial class Hud : CanvasLayer
             cardTemplate.Name = card.EffectGUID;
             cardTemplate.SetCard(card);
             cardTemplate.CardClicked += on_card_clicked;
+            cardTemplate.LockCardClicked += on_lock_clicked;
             cardTemplates.Add(cardTemplate);
             container.AddChild(cardTemplate);
         }
         _cardBox.Visible = true;
     }
 
+    private void on_lock_clicked(Card card)
+    {
+        var player = _gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
+        if (player == null) return;
+        
+        _gameManager.Context.CardSystem.LockCard(player, card);
+    }
 
     private void _on_card_lock_pressed()
     {
@@ -146,11 +140,6 @@ public partial class Hud : CanvasLayer
     {
         _selectedCard = card;
         cardTemplates.ForEach(ct => ct.NotifyCardSelected(card.EffectGUID));
-    }
-
-    private void PrintStats(PlayerCharacter player)
-    {
-        _statsText.Text = player.StatBlock.GetStatDebugText();
     }
 
     private void RefreshItems(ItemManagerComponent imc)

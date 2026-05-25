@@ -1,4 +1,5 @@
 using System.Linq;
+using CardBase.Scripts;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
@@ -12,6 +13,11 @@ public partial class PlayerUi : Control
     private PlayerCharacter currentPlayer;
     [Export] Array<AbilityFrame> _abilityFrames;
     [Export] private AbilityPopupMenu _abilityPopupMenu;
+    
+    [Export] private GridContainer statOverviewContainer;
+    [Export] private PackedScene statOverviewScene;
+    
+    private Dictionary<StatType, StatOverviewElement> _statOverviewElements = new();
 
     private int slotCallerIndex;
 
@@ -31,6 +37,58 @@ public partial class PlayerUi : Control
         _abilityPopupMenu.Clicked += newAbilityIndexClicked;
     }
 
+    private void createStatOverview()
+    {
+        _statOverviewElements.Clear();
+        foreach (var child in statOverviewContainer.GetChildren())
+        {
+            child.QueueFree();
+        }
+        
+        if (currentPlayer.TryGetComponent(out StatblockComponent component))
+        {
+            var element = statOverviewScene.Instantiate<StatOverviewElement>();
+            var data = new StatOverviewElementData(
+                "res://Sprites/StatOverview/crit.png",
+                "Crit",
+                "Crit change doubles damage",
+                component.GetStat(StatType.CritChance).ToString("0.00"));
+            statOverviewContainer.AddChild(element);
+            element.Init(data);   
+            _statOverviewElements.Add(StatType.CritChance, element);
+            
+            element =  statOverviewScene.Instantiate<StatOverviewElement>();
+            data = new StatOverviewElementData(
+                "res://Sprites/StatOverview/energy_shield_icon.png",
+                "Energy Shield",
+                "Shields for magic damage",
+                component.GetStat(StatType.EnergyShield).ToString("0.00"));
+            statOverviewContainer.AddChild(element);
+            element.Init(data);
+            _statOverviewElements.Add(StatType.EnergyShield, element);
+            
+            element =  statOverviewScene.Instantiate<StatOverviewElement>();
+            data = new StatOverviewElementData(
+                "res://Sprites/StatOverview/amor_icon.png",
+                "Armor",
+                "Defends the player from physical damage",
+                component.GetStat(StatType.Armor).ToString("0.00"));
+            statOverviewContainer.AddChild(element);
+            element.Init(data);
+            _statOverviewElements.Add(StatType.Armor, element);
+            
+            element =  statOverviewScene.Instantiate<StatOverviewElement>();
+            data = new StatOverviewElementData(
+                "res://Sprites/StatOverview/movement.png",
+                "Movement speed",
+                "Movement speed of the player",
+                component.GetStat(StatType.MovementSpeed).ToString("0"));
+            statOverviewContainer.AddChild(element);
+            element.Init(data);
+            _statOverviewElements.Add(StatType.MovementSpeed, element);
+        }
+    }
+    
     private void newAbilityIndexClicked(int index)
     {
         _abilityPopupMenu.Visible = false;
@@ -60,7 +118,9 @@ public partial class PlayerUi : Control
         {
             return;
         }
-        
+
+        createStatOverview();
+
         var networkAbilities = currentPlayer.AbilityComponent.GetNetAbilities();
         for (var i = 0; i < _abilityFrames.Count; i++)
         {

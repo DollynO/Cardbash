@@ -164,7 +164,7 @@ public partial class GameFlowController : Node
         drawRoundIndex++;
         foreach (var kvp in _ctx.Players)
         {
-            var cards = _ctx.CardSystem.DrawCards(kvp.Value.Deck, 5);
+            var cards = _ctx.CardSystem.DrawCards(kvp.Value.Deck, 5, kvp.Value);
             var cardArray = new Array<string>(cards);
             RpcId(kvp.Key, MethodName.OpenDrawOnClient, kvp.Key, cardArray);
         }

@@ -39,6 +39,11 @@ public partial class StatOverviewElement : Control
         _icon.Texture = IconLoader.Instance.LoadImage(data.IconPath);
         _tooltip.Init(data.Description, data.Name);
     }
+
+    public void UpdateValue(string value)
+    {
+        _value.Text = value;
+    }
 }
 
 public record StatOverviewElementData(string IconPath, string Name, string Description, string Value)

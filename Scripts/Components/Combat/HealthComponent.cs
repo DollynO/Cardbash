@@ -16,13 +16,9 @@ public partial class HealthComponent : Node2D, IComponent
     public float CurrentHealth { get; private set; }
     public bool IsDead => CurrentHealth <= 0;
 
-    public event EventHandler<DamageEventArgs> DamageTaken;
-    public event EventHandler Death;
-
     private Godot.Collections.Dictionary<string, float> maxHealthChanges = new();
     private GameManager gameManager;
-
-
+    
     public override void _Ready()
     {
         Name = "HealthComponent";
@@ -45,18 +41,18 @@ public partial class HealthComponent : Node2D, IComponent
         damageValue = Mathf.Abs(damageValue);
         CurrentHealth -= damageValue;
         Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+
         if (CurrentHealth == 0)
         {
             if (Parent is PlayerCharacter victimPlayer && component is PlayerCharacter killerPlayer)
             {
                 gameManager?.NotifyPlayerDeath(victimPlayer, killerPlayer);
             }
-            this.Death?.Invoke(this, EventArgs.Empty);
+            Parent.EventBus.CombatEventBus.EmitKilled(new KilledEventArgs(component, Parent));
         }
         else
         {
-
-            this.DamageTaken?.Invoke(this, new DamageEventArgs(damage));
+            Parent.EventBus.CombatEventBus.EmitDamageTaked(new DamageEventArgs(component, Parent, damage));
         }
     }
 
@@ -117,14 +113,4 @@ public partial class HealthComponent : Node2D, IComponent
             Mathf.Clamp(CurrentHealth, 1, MaxHealth);
         }
     }
-}
-
-public class DamageEventArgs : EventArgs
-{
-    public Damage Damage { get; init; }
-    public DamageEventArgs(Damage damage)
-    {
-        Damage = damage;
-    }
-
 }

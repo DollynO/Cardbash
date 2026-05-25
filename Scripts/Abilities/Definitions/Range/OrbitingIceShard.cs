@@ -27,12 +27,12 @@ public class OrbitingIceShard : Ability
 
         if (creator != null && creator.TryGetComponent(out AbilityComponent abilityComponent))
         {
-            creator.NewRoundStarted += CreatorOnNewRoundStarted;
+            creator.EventBus.MatchEventBus.RoundStartEventHandler += CreatorOnNewRoundStarted;
             ring = abilityComponent.RingContainer.AddRing(100, 1);
         }
     }
 
-    private void CreatorOnNewRoundStarted(object sender, EventArgs e)
+    private void CreatorOnNewRoundStarted(object sender, MatchEventArgs e)
     {
         CurrentStack = 0;
         CurrentCooldown = BaseCooldown;

@@ -58,38 +58,6 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
 
-    public event EventHandler<PlayerEventArgs> KilledPlayer;
-    public void NotifyPlayerKilled(PlayerCharacter victim)
-    {
-        this.KilledPlayer?.Invoke(this, new PlayerEventArgs(victim));
-    }
-
-    public event EventHandler<DamageEventArgs> DamageDealt;
-    public void NotifyDamageDealt(List<Damage> damage)
-    {
-        this.DamageDealt?.Invoke(this, new DamageEventArgs(damage));
-    }
-
-    public event EventHandler<DamageEventArgs> DamageMitigated;
-    public void NotifyDamageMitigated(List<Damage> damage)
-    {
-        this.DamageMitigated?.Invoke(this, new DamageEventArgs(damage));
-    }
-
-    public event EventHandler<BuffEventArgs> BuffApplied;
-    public void NotifyBuffApplied(Buff buff)
-    {
-        this.BuffApplied?.Invoke(this, new BuffEventArgs(buff));
-    }
-
-    public event EventHandler<BuffEventArgs> BuffRemoved;
-    public void NotifyBuffRemoved(Buff buff)
-    {
-        this.BuffRemoved?.Invoke(this, new BuffEventArgs(buff));
-    }
-
-    public event EventHandler NewRoundStarted;
-
     private bool _statsInitialized;
 
     public override void _EnterTree()
@@ -225,7 +193,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
 
 
-    public void RoundReset()
+    public void RoundReset(int roundIndex)
     {
         BuffManagerComponent.ClearAllBuffs();
         StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
@@ -245,7 +213,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             abilityComponent.Disable();
         }
 
-        this.NewRoundStarted?.Invoke(this, EventArgs.Empty);
+        EventBus.MatchEventBus.EmitRoundStart(new MatchEventArgs(roundIndex));
     }
 
     public void RoundStart()
@@ -304,34 +272,6 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         }
 
         GlobalPosition = Vector2.One * -20000;
-    }
-
-}
-
-public class AbilityEventArgs : EventArgs
-{
-    public readonly Ability Ability;
-    public AbilityEventArgs(Ability ability)
-    {
-        Ability = ability;
-    }
-}
-
-public class PlayerEventArgs : EventArgs
-{
-    public readonly PlayerCharacter Player;
-    public PlayerEventArgs(PlayerCharacter player)
-    {
-        Player = player;
-    }
-}
-
-public class DamageEventArgs : EventArgs
-{
-    public readonly List<Damage> Damage;
-    public DamageEventArgs(List<Damage> damage)
-    {
-        Damage = damage;
     }
 
 }

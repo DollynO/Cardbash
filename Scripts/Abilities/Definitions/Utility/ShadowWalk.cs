@@ -20,15 +20,8 @@ public class ShadowWalk : Ability
 
         if (creator != null)
         {
-            if (creator.TryGetComponent(out healthComponent))
-            {
-                healthComponent.DamageTaken += CreatorOnDamageTaken;
-            }
-
-            if (creator.TryGetComponent(out AbilityComponent ac))
-            {
-                ac.AbilityCasted += CreatorOnAbilityCasted;
-            }
+            creator.EventBus.CombatEventBus.DamageTakeEventHandler += CreatorOnDamageTaken;
+            creator.EventBus.CombatEventBus.AbilityCastedEventHandler += CreatorOnAbilityCasted;
         }
 
         stealth = new Stealth(creator, creator)
@@ -79,7 +72,7 @@ public class ShadowWalk : Ability
             case 2:
                 if (healthComponent != null)
                 {
-                    healthComponent.DamageTaken -= CreatorOnDamageTaken;
+                    Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
                 }
 
                 break;
