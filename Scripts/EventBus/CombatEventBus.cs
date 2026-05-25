@@ -96,8 +96,11 @@ public class BuffEventArgs
 public class AbilityEventArgs : EventArgs
 {
     public readonly Ability Ability;
-    public AbilityEventArgs(Ability ability)
+    public readonly IEntityComponent Source;
+    
+    public AbilityEventArgs(Ability ability, IEntityComponent source)
     {
         Ability = ability;
+        Source = source;
     }
 }

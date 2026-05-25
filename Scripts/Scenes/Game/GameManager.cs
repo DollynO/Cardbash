@@ -30,7 +30,7 @@ public partial class GameManager : Node2D
     [Signal]
     public delegate void OnPlayerKilledEventHandler(PlayerCharacter victimId, PlayerCharacter killerId);
     
-    public EventBus EventBus { get; } = new EventBus();
+    public EventBus EventBus => EventBus.Instance;
     public ScoreSystem ScoreSystem { get; private set; }
     public TeamSystem TeamSystem { get; private set; }
     public CardSystem CardSystem { get; private set; }
@@ -194,7 +194,6 @@ public partial class GameManager : Node2D
         node.GlobalPosition = GetNextFreeSpawnPoint();
         node.Deck = deck;
         _currentCharacters.Add(node.PlayerId, node);
-        node.AssignEventBus(this.EventBus);
         return node;
     }
 

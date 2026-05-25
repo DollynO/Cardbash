@@ -8,7 +8,6 @@ public class ShadowWalk : Ability
 {
     private Stealth stealth;
     private FastMovement fastMovement;
-    private HealthComponent healthComponent;
 
     public ShadowWalk(IEntityComponent creator) : base(AbilityIds.ShadowWalkGuid, creator)
     {
@@ -17,7 +16,7 @@ public class ShadowWalk : Ability
         this.IconPath = "res://Sprites/SkillIcons/Dark/16_Shadow.png";
         this.BaseCooldown = 15;
         this.BaseType = DamageType.Darkness;
-
+        
         if (creator != null)
         {
             creator.EventBus.CombatEventBus.DamageTakeEventHandler += CreatorOnDamageTaken;
@@ -33,7 +32,8 @@ public class ShadowWalk : Ability
 
     private void CreatorOnAbilityCasted(object sender, AbilityEventArgs e)
     {
-        if (e.Ability.GUID == AbilityIds.ShadowWalkGuid)
+        if (e.Source != Caller 
+            || e.Ability.GUID == AbilityIds.ShadowWalkGuid)
         {
             return;
         }
@@ -72,11 +72,7 @@ public class ShadowWalk : Ability
             case 1:
                 break;
             case 2:
-                if (healthComponent != null)
-                {
-                    Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
-                }
-
+                Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
                 break;
         }
     }

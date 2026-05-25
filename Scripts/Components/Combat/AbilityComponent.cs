@@ -103,7 +103,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
     public void NotifyAbilityCasted(Ability ability)
     {
-        Parent.EventBus.CombatEventBus.EmitAbilityCasted(new AbilityEventArgs(ability));
+        Parent.EventBus.CombatEventBus.EmitAbilityCasted(new AbilityEventArgs(ability, Parent));
     }
 
     public void ProcessAbilities(double delta, AbilityKeyState[] keyStates)

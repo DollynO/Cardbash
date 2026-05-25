@@ -6,12 +6,7 @@ namespace CardBase.Scripts;
 public partial class CharacterbodyEntityComponent : CharacterBody2D, IEntityComponent
 {
     private System.Collections.Generic.Dictionary<Type, IComponent> components = new();
-    public EventBus EventBus { get; private set; }
-
-    public void AssignEventBus(EventBus eventBus)
-    {
-        this.EventBus = eventBus;
-    }
+    public EventBus EventBus => EventBus.Instance;
 
     public bool TryGetComponent<T>(out T component) where T : IComponent
     {
