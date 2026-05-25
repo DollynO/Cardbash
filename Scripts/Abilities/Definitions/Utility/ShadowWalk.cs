@@ -43,6 +43,8 @@ public class ShadowWalk : Ability
 
     private void CreatorOnDamageTaken(object sender, DamageEventArgs e)
     {
+        if (e.Target != Caller) return;
+        
         removeBuff();
     }
 

@@ -4,19 +4,19 @@ namespace CardBase.Scripts;
 
 public class CardSystemEventBus
 {
-    public EventHandler<CardEventArgs> CardLockedEventHandler;
+    public event EventHandler<CardEventArgs> CardLockedEventHandler;
     public void EmitCardLocked(CardEventArgs args)
     {
         this.CardLockedEventHandler?.Invoke(this, args);
     }
     
-    public EventHandler<CardEventArgs> CardUnlockedEventHandler;
+    public event EventHandler<CardEventArgs> CardUnlockedEventHandler;
     public void EmitCardUnlocked(CardEventArgs args)
     {
         this.CardUnlockedEventHandler?.Invoke(this, args);
     }
     
-    public EventHandler<CardEventArgs> CardPickedEventHandler;
+    public event EventHandler<CardEventArgs> CardPickedEventHandler;
     public void EmitCardPicked(CardEventArgs args)
     {
         this.CardPickedEventHandler?.Invoke(this, args);

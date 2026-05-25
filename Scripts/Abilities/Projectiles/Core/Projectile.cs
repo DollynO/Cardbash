@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
@@ -136,6 +137,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     {
         if (e.Target != this) return;
         
+        EventBus.CombatEventBus.KilledEventHandler -= onProjectileDeath;
         DestroyProjectile();
     }
 

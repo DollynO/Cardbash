@@ -7,49 +7,49 @@ namespace CardBase.Scripts;
 
 public class CombatEventBus
 {
-    public EventHandler<KilledEventArgs> KilledEventHandler;
+    public event EventHandler<KilledEventArgs> KilledEventHandler;
 
     public void EmitKilled(KilledEventArgs args)
     {
         this.KilledEventHandler?.Invoke(this, args);
     }
     
-    public EventHandler<DamageEventArgs> DamageTakeEventHandler;
+    public event EventHandler<DamageEventArgs> DamageTakeEventHandler;
 
     public void EmitDamageTaked(DamageEventArgs args)
     {
         this.DamageTakeEventHandler?.Invoke(this, args);
     }
     
-    public EventHandler<DamageEventArgs> DamageMitigatedEventHandler;
+    public event EventHandler<DamageEventArgs> DamageMitigatedEventHandler;
 
     public void EmitDamageMitigated(DamageEventArgs args)
     {
         this.DamageMitigatedEventHandler?.Invoke(this, args);
     }
     
-    public EventHandler<DamageEventArgs> DamageHealedEventHandler;
+    public event EventHandler<DamageEventArgs> DamageHealedEventHandler;
 
     public void EmitDamageHealed(DamageEventArgs args)
     {
         this.DamageHealedEventHandler?.Invoke(this, args);
     }
     
-    public EventHandler<BuffEventArgs> BuffAddedEventHandler;
+    public event EventHandler<BuffEventArgs> BuffAddedEventHandler;
 
     public void EmitBuffAdded(BuffEventArgs args)
     {
         this.BuffAddedEventHandler?.Invoke(this, args);
     }
 
-    public EventHandler<BuffEventArgs> BuffRemovedEventHandler;
+    public event EventHandler<BuffEventArgs> BuffRemovedEventHandler;
 
     public void EmitBuffRemoved(BuffEventArgs args)
     {
         this.BuffRemovedEventHandler?.Invoke(this, args);
     }
 
-    public EventHandler<AbilityEventArgs> AbilityCastedEventHandler;
+    public event EventHandler<AbilityEventArgs> AbilityCastedEventHandler;
 
     public void EmitAbilityCasted(AbilityEventArgs args)
     {

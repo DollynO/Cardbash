@@ -88,6 +88,11 @@ public partial class AbilityComponent : Node2D, IComponent
         active = true;
     }
 
+    public override void _ExitTree()
+    {
+        Parent.EventBus.CombatEventBus.KilledEventHandler -= OnPlayerDeath;
+    }
+
     private void OnPlayerDeath(object sender, KilledEventArgs args)
     {
         if (args.Target != Parent) return;
