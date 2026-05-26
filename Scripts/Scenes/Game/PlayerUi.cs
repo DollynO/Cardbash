@@ -17,7 +17,8 @@ public partial class PlayerUi : Control
     [Export] private GridContainer statOverviewContainer;
     [Export] private PackedScene statOverviewScene;
     
-    private Dictionary<StatType, StatOverviewElement> _statOverviewElements = new();
+    private System.Collections.Generic.Dictionary<StatType, StatOverviewElement> _statOverviewElements = new();
+    private PlayerCharacter _statOverviewPlayer;
 
     private int slotCallerIndex;
 
@@ -44,6 +45,8 @@ public partial class PlayerUi : Control
         {
             child.QueueFree();
         }
+
+        _statOverviewPlayer = currentPlayer;
         
         if (currentPlayer.TryGetComponent(out StatblockComponent component))
         {
@@ -88,6 +91,38 @@ public partial class PlayerUi : Control
             _statOverviewElements.Add(StatType.MovementSpeed, element);
         }
     }
+
+    private void updateStatOverview()
+    {
+        if (currentPlayer == null)
+        {
+            return;
+        }
+
+        if (_statOverviewPlayer != currentPlayer || _statOverviewElements.Count == 0)
+        {
+            createStatOverview();
+            return;
+        }
+
+        if (!currentPlayer.TryGetComponent(out StatblockComponent component))
+        {
+            return;
+        }
+
+        updateStatValue(StatType.CritChance, component.GetStat(StatType.CritChance).ToString("0.00"));
+        updateStatValue(StatType.EnergyShield, component.GetStat(StatType.EnergyShield).ToString("0.00"));
+        updateStatValue(StatType.Armor, component.GetStat(StatType.Armor).ToString("0.00"));
+        updateStatValue(StatType.MovementSpeed, component.GetStat(StatType.MovementSpeed).ToString("0"));
+    }
+
+    private void updateStatValue(StatType statType, string value)
+    {
+        if (_statOverviewElements.TryGetValue(statType, out var element))
+        {
+            element.UpdateValue(value);
+        }
+    }
     
     private void newAbilityIndexClicked(int index)
     {
@@ -119,23 +154,13 @@ public partial class PlayerUi : Control
             return;
         }
 
-        createStatOverview();
+        updateStatOverview();
 
         var networkAbilities = currentPlayer.AbilityComponent.GetNetAbilities();
         for (var i = 0; i < _abilityFrames.Count; i++)
         {
             var netAbility = networkAbilities.FirstOrDefault(a => a.Index == i);
             _abilityFrames[i].UpdateUi(netAbility);
-        }
-        foreach (var netAbility in networkAbilities)
-        {
-            if (_abilityFrames.Count < netAbility.Index)
-            {
-                GD.Print($"Net index error{netAbility.Index}");
-                return;
-            }
-            
-            _abilityFrames[netAbility.Index].UpdateUi(netAbility);    
         }
     }
 

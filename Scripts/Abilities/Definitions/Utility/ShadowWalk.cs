@@ -53,6 +53,17 @@ public class ShadowWalk : Ability
         return;
     }
 
+    public override void ClearAbility()
+    {
+        if (Caller == null)
+        {
+            return;
+        }
+
+        Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
+        Caller.EventBus.CombatEventBus.AbilityCastedEventHandler -= CreatorOnAbilityCasted;
+    }
+
     public override void InternalUse()
     {
         if (Caller.TryGetComponent(out BuffManagerComponent bmc))

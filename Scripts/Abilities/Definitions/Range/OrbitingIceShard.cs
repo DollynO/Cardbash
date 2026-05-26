@@ -43,6 +43,16 @@ public class OrbitingIceShard : Ability
         return;
     }
 
+    public override void ClearAbility()
+    {
+        if (Caller == null)
+        {
+            return;
+        }
+
+        Caller.EventBus.MatchEventBus.RoundStartEventHandler -= CreatorOnNewRoundStarted;
+    }
+
     protected override bool preventAutoCast()
     {
         return ring.GetStackCount() >= maxProjectiles;

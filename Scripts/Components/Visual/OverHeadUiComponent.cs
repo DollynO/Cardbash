@@ -23,8 +23,14 @@ public partial class OverHeadUiComponent : Node2D, IComponent
     private OverheadUiBar _stunBar;
     private HBoxContainer _barContainer;
 
-    private float refreshTimeMax = 1f / 60f;
+    private const float RefreshTimeMax = 0.1f;
     private float refreshTime = 0;
+    private bool hasLastUpdate;
+    private float lastMaxHealth;
+    private float lastCurrentHealth;
+    private bool lastStun;
+    private float lastMaxStunTime;
+    private float lastStunTime;
 
     private MoveComponent moveController = null;
     private HealthComponent healtController = null;
@@ -71,20 +77,43 @@ public partial class OverHeadUiComponent : Node2D, IComponent
         }
 
         refreshTime += (float)delta;
-        if (!(refreshTime > refreshTimeMax))
+        if (!(refreshTime > RefreshTimeMax))
         {
             return;
         }
 
         refreshTime = 0;
 
+        var maxHealth = healtController?.MaxHealth ?? -1;
+        var currentHealth = healtController?.CurrentHealth ?? -1;
+        var stun = moveController?.Stun ?? false;
+        var maxStunTime = moveController?.MaxStunTime ?? 0;
+        var stunTime = moveController?.StunTime ?? 0;
+
+        if (hasLastUpdate
+            && Mathf.IsEqualApprox(maxHealth, lastMaxHealth)
+            && Mathf.IsEqualApprox(currentHealth, lastCurrentHealth)
+            && stun == lastStun
+            && Mathf.IsEqualApprox(maxStunTime, lastMaxStunTime)
+            && (!stun || Mathf.IsEqualApprox(stunTime, lastStunTime)))
+        {
+            return;
+        }
+
+        hasLastUpdate = true;
+        lastMaxHealth = maxHealth;
+        lastCurrentHealth = currentHealth;
+        lastStun = stun;
+        lastMaxStunTime = maxStunTime;
+        lastStunTime = stunTime;
+
         var dict = new Godot.Collections.Dictionary<string, Variant>()
         {
-            { "MaxHealth", healtController?.MaxHealth ?? -1 },
-            { "CurrentHealth", healtController?.CurrentHealth ?? -1 },
-            { "Stun", moveController?.Stun ?? false },
-            { "MaxStunTime", moveController?.MaxStunTime ?? 0 },
-            { "StunTime", moveController?.StunTime ?? 0 },
+            { "MaxHealth", maxHealth },
+            { "CurrentHealth", currentHealth },
+            { "Stun", stun },
+            { "MaxStunTime", maxStunTime },
+            { "StunTime", stunTime },
         };
         Rpc(MethodName.updateClient, dict);
     }

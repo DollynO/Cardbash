@@ -108,6 +108,8 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             {
                 circleShape.Radius = SpawnRequest.Pull.Radius * 35;
             }
+
+            QueueRedraw();
         }
 
         var vs = new VisualComponent();
@@ -139,6 +141,11 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         
         EventBus.CombatEventBus.KilledEventHandler -= onProjectileDeath;
         DestroyProjectile();
+    }
+
+    public override void _ExitTree()
+    {
+        EventBus.CombatEventBus.KilledEventHandler -= onProjectileDeath;
     }
 
     private void OnBodyEntered(Node2D body)
@@ -197,16 +204,12 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     {
         if (Multiplayer.IsServer())
         {
-            var ecs = new IEntityComponent[entityInPullArea.Count];
-            entityInPullArea.CopyTo(ecs);
             foreach (var player in entityInPullArea)
                 if (player.TryGetComponent(out MoveComponent moveComponent))
                 {
                     moveComponent.Drag(this.GlobalPosition, SpawnRequest.Pull.Strength, 0.1f);
                 }
         }
-
-        QueueRedraw();
     }
 
     private Vector2 getNextPosition(ProjectileMovementConfig movement, float delta)
@@ -236,19 +239,6 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
                     handleTerrainCollision(collider);
                 }
             }
-
-            if (syncTime >= UpdateTime)
-            {
-                syncTime = 0;
-                var syncDict = new Godot.Collections.Dictionary<string, Variant>
-                {
-                    ["global_position"] = GlobalPosition,
-                    ["global_rotation"] = this.GlobalRotation,
-                };
-                //Rpc(MethodName.clientSyncPosition, syncDict);
-            }
-
-            syncTime += (float)delta;
 
             this.behaviors.ForEach(b => b.OnProcess((float)delta));
         }

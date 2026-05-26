@@ -20,6 +20,8 @@ public partial class Hud : CanvasLayer
 
     private PackedScene _cardDrawTemplate;
     private List<CardDrawTemplate> cardTemplates = new();
+    private ItemManagerComponent _displayedItemManager;
+    private string _displayedItemSignature = string.Empty;
 
     [Signal]
     public delegate void CardLockedEventHandler(int playerId, string cardGuid);
@@ -83,7 +85,7 @@ public partial class Hud : CanvasLayer
 
         if (player.TryGetComponent(out ItemManagerComponent imc))
         {
-            RefreshItems(imc);
+            RefreshItemsIfChanged(imc);
         }
     }
 
@@ -140,6 +142,22 @@ public partial class Hud : CanvasLayer
     {
         _selectedCard = card;
         cardTemplates.ForEach(ct => ct.NotifyCardSelected(card.EffectGUID));
+    }
+
+    private void RefreshItemsIfChanged(ItemManagerComponent imc)
+    {
+        var itemSignature = string.Join("|", imc.NetItems
+            .OrderBy(kvp => kvp.Key)
+            .Select(kvp => $"{kvp.Key}:{kvp.Value.IsDisabled}"));
+
+        if (_displayedItemManager == imc && _displayedItemSignature == itemSignature)
+        {
+            return;
+        }
+
+        _displayedItemManager = imc;
+        _displayedItemSignature = itemSignature;
+        RefreshItems(imc);
     }
 
     private void RefreshItems(ItemManagerComponent imc)

@@ -73,6 +73,8 @@ public partial class AbilityComponent : Node2D, IComponent
     public Dictionary<string, NetAbility> networkAbilities = new();
     public Dictionary<int, Ability> Abilities = new();
     private bool active = false;
+    private const float NetworkUpdateInterval = 0.1f;
+    private float networkUpdateTime = NetworkUpdateInterval;
 
     public override void _EnterTree()
     {
@@ -113,7 +115,19 @@ public partial class AbilityComponent : Node2D, IComponent
             throw new ArgumentOutOfRangeException();
         }
 
-        var dict = new Godot.Collections.Dictionary<string, Variant>();
+        networkUpdateTime += (float)delta;
+        var shouldSync = networkUpdateTime >= NetworkUpdateInterval;
+        if (shouldSync)
+        {
+            networkUpdateTime = 0;
+        }
+
+        Godot.Collections.Dictionary<string, Variant> dict = null;
+        if (shouldSync)
+        {
+            dict = new Godot.Collections.Dictionary<string, Variant>();
+        }
+
         foreach(var (key, ability) in Abilities) {
             if (active)
             {
@@ -123,15 +137,21 @@ public partial class AbilityComponent : Node2D, IComponent
             
             ability.UpdateCooldown(delta);
 
-            var netAbilityDict = new Godot.Collections.Dictionary<string, Variant>();
-            dict.Add(ability.GUID, netAbilityDict);
-            netAbilityDict["cdx"] = ability.CurrentCooldown;
-            netAbilityDict["cdy"] = ability.BaseCooldown;
-            netAbilityDict["sx"] = ability.CurrentStack;
-            netAbilityDict["sy"] = ability.MaxStack;
+            if (shouldSync)
+            {
+                var netAbilityDict = new Godot.Collections.Dictionary<string, Variant>();
+                dict.Add(ability.GUID, netAbilityDict);
+                netAbilityDict["cdx"] = ability.CurrentCooldown;
+                netAbilityDict["cdy"] = ability.BaseCooldown;
+                netAbilityDict["sx"] = ability.CurrentStack;
+                netAbilityDict["sy"] = ability.MaxStack;
+            }
         }
 
-        Rpc(MethodName.updateAbilities, dict);
+        if (shouldSync)
+        {
+            Rpc(MethodName.updateAbilities, dict);
+        }
     }
 
     public void InterruptAbilities()

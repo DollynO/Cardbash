@@ -15,6 +15,7 @@ public partial class AbilityFrame : TextureRect
     public delegate void ClickedEventHandler(int index);
     
     public int SlotIndex { get; set; }
+    private string _displayedAbilityGuid;
     
     // Called when the node enters the scene tree for the first time.
     public override void _Ready()
@@ -34,7 +35,11 @@ public partial class AbilityFrame : TextureRect
             _cdBar.Visible = false;
             _cdNumber.Visible = false;
             _stackCount.Text = string.Empty;
-            _abilityIcon.Texture = null;
+            if (_displayedAbilityGuid != null)
+            {
+                _abilityIcon.Texture = null;
+                _displayedAbilityGuid = null;
+            }
             return;
         }
 
@@ -52,7 +57,11 @@ public partial class AbilityFrame : TextureRect
         }
 
         _stackCount.Text = ability.Stacks.Y > 1 ? $"{ability.Stacks.X} / {ability.Stacks.Y}" : string.Empty;
-        _abilityIcon.Texture = IconLoader.Instance.LoadImage(ability.IconPath);
+        if (_displayedAbilityGuid != ability.GUID)
+        {
+            _abilityIcon.Texture = IconLoader.Instance.LoadImage(ability.IconPath);
+            _displayedAbilityGuid = ability.GUID;
+        }
     }
 
     public override void _GuiInput(InputEvent @event)
