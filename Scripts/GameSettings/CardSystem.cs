@@ -39,8 +39,9 @@ public partial class CardSystem : Node
         foreach (var card in cards)
         {
             dict.Add(card.guid, card.locked);
-            RpcId(id, MethodName.UpdateCards, dict);
         }
+
+        RpcId(id, MethodName.UpdateCards, dict);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer,  CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]

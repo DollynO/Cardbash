@@ -162,9 +162,10 @@ public partial class GameFlowController : Node
     private void ServerBeginCardDraw()
     {
         drawRoundIndex++;
+        _ctx.CardSystem.DrawCards(5);
+
         foreach (var kvp in _ctx.Players)
         {
-            _ctx.CardSystem.DrawCards(5);
             RpcId(kvp.Key, MethodName.OpenDrawOnClient);
         }
     }

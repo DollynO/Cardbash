@@ -19,7 +19,7 @@ public class IconLoader
             loadedImages.Add(path, GD.Load<Texture2D>(path));
         }
 
-        return (Texture2D)loadedImages[path].Duplicate();
+        return loadedImages[path];
     }
 
     public SpriteFrames LoadAnimation(string path)

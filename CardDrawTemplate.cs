@@ -56,7 +56,6 @@ public partial class CardDrawTemplate : Control
 	public void SetCard(Card card)
 	{
 		_cardTemplate.Card = card;
-		_cardTemplate.CardType = card.CardType;
 	}
 	
 	public void NotifyCardSelected(string card_guid)

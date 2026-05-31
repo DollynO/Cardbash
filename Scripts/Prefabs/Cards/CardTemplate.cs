@@ -22,10 +22,15 @@ public partial class CardTemplate : TextureRect
         get => cardType;
         set
         {
-            var texture = cardType switch
+            if (cardType == value && CardTemplateTexture.Texture != null)
+            {
+                return;
+            }
+
+            var texture = value switch
             {
                 CardType.Ability => IconLoader.Instance.LoadImage("res://Sprites/Cards/AbilityCardFront.png"),
-                CardType.Item => IconLoader.Instance.LoadImage("res://Sprites/Cards/AbilityCardFront.png"),
+                CardType.Item => IconLoader.Instance.LoadImage("res://Sprites/Cards/ItemCardFront.png"),
                 _ => IconLoader.Instance.LoadImage("res://Sprites/Cards/WorldCardFront.png")
             };
 
