@@ -7,8 +7,10 @@ public partial class CardDrawTemplate : Control
 	[Export] private Panel _selectIndicator;
 	[Export] private CardTemplate _cardTemplate;
 	[Export] private ButtonPrefab _lockCard;
+	[Export] private ButtonPrefab _unlockCard;
 
 	private bool is_selected;
+	private bool is_locked;
 	private StyleBoxFlat indicatorStyle;
 	
 	[Signal]
@@ -16,6 +18,9 @@ public partial class CardDrawTemplate : Control
 	
 	[Signal]
 	public delegate void LockCardClickedEventHandler(Card card);
+	
+	[Signal]
+	public delegate void UnLockCardClickedEventHandler(Card card);
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -27,6 +32,7 @@ public partial class CardDrawTemplate : Control
 
 		_cardTemplate.CardClicked += CardTemplateOnCardClicked;
 		_lockCard.ButtonDown += LockCardOnButtonDown;
+		_unlockCard.ButtonDown += UnlockCardOnButtonDown;
 		
 		SetProcess(false);
 	}
@@ -34,6 +40,11 @@ public partial class CardDrawTemplate : Control
 	private void LockCardOnButtonDown()
 	{
 		EmitSignal(SignalName.LockCardClicked, _cardTemplate.Card);
+	}
+
+	private void UnlockCardOnButtonDown()
+	{
+		EmitSignal(SignalName.UnLockCardClicked, _cardTemplate.Card);
 	}
 
 	private void CardTemplateOnCardClicked(Card card)
@@ -60,6 +71,18 @@ public partial class CardDrawTemplate : Control
 		}
 	}
 
+	public void SetLockState(bool locked)
+	{
+		_unlockCard.Visible = locked;
+		_lockCard.Visible = !locked;
+	}
+
+	public void NotifyCardUnlocked(string card_guid)
+	{
+		_lockCard.Visible = true;
+		_unlockCard.Visible = true;
+	}
+	
 	private void setSelectedState(bool selected)
 	{
 		is_selected = selected;

@@ -10,20 +10,58 @@ namespace CardBase.Scripts.GameSettings;
 public partial class CardSystem : Node
 {
     private Dictionary<PlayerCharacter, string> lockedCards = new();
+    private Dictionary<int, List<CardState>> serverHandCards = new();
+    private List<CardState> handCards = new();
     public GameManager gameManager;
+    
+    public event EventHandler<DrawCardEventArgs> UpdateHandCardsEventHandler;
     
     public CardSystem(GameManager gameManager)
     {
         this.gameManager = gameManager;
     }
-    
-    public List<string> DrawCards(Deck deck, int amount, PlayerCharacter player)
+
+    public void DrawCards(int amount)
     {
-        deck.Cards.Keys.Where(c => c.ExhaustionCount > 0).ToList().ForEach(c => c.ExhaustionCount--);
+        if (!Multiplayer.IsServer()) return;
+        
+        serverHandCards.Clear();
+        foreach (var player in gameManager.GetPlayers())
+        {
+            serverHandCards.Add((int)player.PlayerId, DrawCardsPlayer(amount, player));
+            UpdateCardsServer((int)player.PlayerId, serverHandCards[(int)player.PlayerId]);
+        }
+    }
+
+    private void UpdateCardsServer(int id, List<CardState> cards)
+    {
+        var dict = new Godot.Collections.Dictionary<string, bool>();
+        foreach (var card in cards)
+        {
+            dict.Add(card.guid, card.locked);
+            RpcId(id, MethodName.UpdateCards, dict);
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer,  CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void UpdateCards(Godot.Collections.Dictionary<string, bool> dict)
+    {
+        handCards.Clear();
+        foreach (var card in dict)
+        {
+            handCards.Add(new CardState{guid = card.Key, locked = card.Value});
+        }
+        
+        UpdateHandCardsEventHandler?.Invoke(this, new DrawCardEventArgs(handCards));
+    }
+    
+    private List<CardState> DrawCardsPlayer(int amount, PlayerCharacter player)
+    {
+        player.Deck.Cards.Keys.Where(c => c.ExhaustionCount > 0).ToList().ForEach(c => c.ExhaustionCount--);
 
         var rng = new Random();
         var cards = new List<Card>();
-        foreach (var deckCard in deck.Cards.Where(c => c.Key.ExhaustionCount == 0))
+        foreach (var deckCard in player.Deck.Cards.Where(c => c.Key.ExhaustionCount == 0))
         {
             for (var i = 0; i < deckCard.Value.Count; i++)
             {
@@ -31,10 +69,14 @@ public partial class CardSystem : Node
             }
         }
 
-        var handCards = new List<string>();
+        var handCards = new List<CardState>();
         if (lockedCards.TryGetValue(player, out var cardGuid))
         {
-            handCards.Add(cardGuid);
+            handCards.Add(new CardState
+            {
+                guid = cardGuid,
+                locked = true
+            });
             amount--;
             cards.RemoveAll(c => c.EffectGUID == cardGuid);
             lockedCards.Remove(player);
@@ -49,7 +91,11 @@ public partial class CardSystem : Node
 
             var number = rng.NextInt64(0, cards.Count - 1);
             var guid = cards[(int)number].EffectGUID;
-            handCards.Add(guid);
+            handCards.Add(new CardState
+            {
+                guid = guid,
+                locked = false
+            });
             cards.RemoveAll(c => c.EffectGUID == guid);
         }
 
@@ -63,20 +109,69 @@ public partial class CardSystem : Node
         Rpc(MethodName.lockCardServer, player.PlayerId, card.EffectGUID);
     }
     
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void lockCardServer(int playerId, string cardGuid)
     {
         if (!Multiplayer.IsServer()) return;
         
         var player = gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == playerId);
         if (player == null) return;
-
-        if (!gameManager.ScoreSystem.TryRemoveFromPlayerScore(player, gameManager.Settings.CardLockCosts))
+        
+        if (serverHandCards[playerId].FirstOrDefault(c => c.guid == cardGuid) is not { } state)
         {
-            
+            return;
+        }
+
+        // other card already locked
+        if (lockedCards.ContainsKey(player) && serverHandCards[playerId].FirstOrDefault(c => c.guid == cardGuid) is { } oldState)
+        {
+            oldState.locked = false;
+            lockedCards[player] = cardGuid;
+        }
+        else
+        {
+            if (!gameManager.ScoreSystem.TryRemoveFromPlayerScore(player, gameManager.Settings.CardLockCosts))
+            {
+                return;
+            }
+
+            lockedCards.TryAdd(player, cardGuid);
+        }
+
+        state.locked = true;
+
+        UpdateCardsServer(playerId, serverHandCards[playerId]);
+    }
+
+    public void UnlockCard(PlayerCharacter player, Card card)
+    {
+        if (card == null || player == null) return;
+        
+        Rpc(MethodName.unlockCardServer, player.PlayerId, card.EffectGUID);
+    }
+        
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void unlockCardServer(int playerId, string cardGuid)
+    {
+        if (!Multiplayer.IsServer()) return;
+        
+        var player = gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == playerId);
+        if (player == null) return;
+
+        if (serverHandCards[playerId].FirstOrDefault(c => c.guid == cardGuid) is not { } state)
+        {
+            return;
         }
         
-        lockedCards.TryAdd(player, cardGuid);
+        gameManager.ScoreSystem.AddToPlayerScore(player, gameManager.Settings.CardLockCosts);
+        lockedCards.Remove(player);
+        state.locked = false;
+        UpdateCardsServer(playerId, serverHandCards[playerId]);
+    }
+
+    private void NotifyCardUnlocked(string cardGuid)
+    {
+        EventBus.Instance.CardSystemEventBus.EmitCardUnlocked(new CardEventArgs(cardGuid));
     }
     
     public void ServerApplyCards(List<string> cardGuids, PlayerCharacter player)
@@ -107,5 +202,21 @@ public partial class CardSystem : Node
     private void applyItem(ItemCard item, PlayerCharacter player)
     {
         item.ApplyEffect(new PlayerContext() { player = player });
+    }
+}
+
+public sealed class CardState
+{
+    public string guid;
+    public bool locked;
+}
+
+public class DrawCardEventArgs : EventArgs
+{
+    public List<CardState> cards;
+    
+    public DrawCardEventArgs(List<CardState> cards)
+    {
+        this.cards = cards;
     }
 }

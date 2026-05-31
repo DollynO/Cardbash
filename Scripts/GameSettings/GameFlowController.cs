@@ -164,18 +164,15 @@ public partial class GameFlowController : Node
         drawRoundIndex++;
         foreach (var kvp in _ctx.Players)
         {
-            var cards = _ctx.CardSystem.DrawCards(kvp.Value.Deck, 5, kvp.Value);
-            var cardArray = new Array<string>(cards);
-            RpcId(kvp.Key, MethodName.OpenDrawOnClient, kvp.Key, cardArray);
+            _ctx.CardSystem.DrawCards(5);
+            RpcId(kvp.Key, MethodName.OpenDrawOnClient);
         }
     }
 
     [Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void OpenDrawOnClient(long id, Array<string> cardArray)
+    private void OpenDrawOnClient()
     {
-        var player = _ctx.Players[id];
-        var cards = cardArray.Select(cardGuid => player.Deck.Cards.FirstOrDefault(kvp => kvp.Key.EffectGUID == cardGuid).Key).ToList();
-        _ctx.GameManager.Hud.ShowDrawUi(true, cards);
+        _ctx.GameManager.Hud.ShowDrawUi(true);
     }
 
     private void ServerFinishDraw()
@@ -187,7 +184,7 @@ public partial class GameFlowController : Node
     [Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void CloseDrawOnClient()
     {
-        _ctx.GameManager.Hud.ShowDrawUi(false, null);
+        _ctx.GameManager.Hud.ShowDrawUi(false);
     }
 
     private void ServerApplyCards()

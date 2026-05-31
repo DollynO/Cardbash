@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 
 public partial class Hud : CanvasLayer
@@ -33,6 +34,44 @@ public partial class Hud : CanvasLayer
         _clear_card_box();
         _cardDrawTemplate = ResourceLoader.Load("res://Scenes/CardDrawTemplate.tscn") as PackedScene;
         _healthBar.AllowGreater = true;
+        _gameManager.CardSystem.UpdateHandCardsEventHandler += update_hand_cards;
+    }
+
+    private void update_hand_cards(object sender, DrawCardEventArgs args)
+    {
+        _clear_card_box();
+        cardTemplates.Clear();
+
+        foreach (var kvp in args.cards)
+        {
+            if (_cardDrawTemplate.Instantiate() is not CardDrawTemplate cardTemplate)
+            {
+                continue;
+            }
+
+            Card card = null;
+            if (GlobalCardManager.Instance.AbilityCards.ContainsKey(kvp.guid))
+            {
+                card = GlobalCardManager.Instance.AbilityCards[kvp.guid];
+            } else if (GlobalCardManager.Instance.ItemCards.ContainsKey(kvp.guid))
+            {
+                card = GlobalCardManager.Instance.ItemCards[kvp.guid];
+            }
+
+            if (card == null)
+            {
+                continue;
+            }
+            
+            cardTemplate.Name = card.EffectGUID;
+            cardTemplate.SetCard(card);
+            cardTemplate.SetLockState(kvp.locked);
+            cardTemplate.CardClicked += on_card_clicked;
+            cardTemplate.LockCardClicked += on_lock_clicked;
+            cardTemplate.UnLockCardClicked += on_unlock_clicked;
+            cardTemplates.Add(cardTemplate);
+            _cardBox.AddChild(cardTemplate);
+        }
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -52,14 +91,13 @@ public partial class Hud : CanvasLayer
         _roundLabel.Text = info;
     }
 
-    public void ShowDrawUi(bool visible, List<Card> cards)
+    public void ShowDrawUi(bool visible)
     {
         _drawUiContainer.Visible = visible;
         if (visible)
         {
             _lockButton.Disabled = false;
-            _clear_card_box();
-            _displayDrawnCards(cards, _cardBox);
+            _cardBox.Visible = true;
             ShowWaitLabel(false);
             _selectedCard = null;
         }
@@ -96,33 +134,19 @@ public partial class Hud : CanvasLayer
             child.QueueFree();
         }
     }
-
-    private void _displayDrawnCards(List<Card> cards, HBoxContainer container)
-    {
-        cardTemplates.Clear();
-        foreach (var card in cards)
-        {
-            if (_cardDrawTemplate.Instantiate() is not CardDrawTemplate cardTemplate)
-            {
-                continue;
-            }
-            
-            cardTemplate.Name = card.EffectGUID;
-            cardTemplate.SetCard(card);
-            cardTemplate.CardClicked += on_card_clicked;
-            cardTemplate.LockCardClicked += on_lock_clicked;
-            cardTemplates.Add(cardTemplate);
-            container.AddChild(cardTemplate);
-        }
-        _cardBox.Visible = true;
-    }
-
+    
     private void on_lock_clicked(Card card)
     {
         var player = _gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
         if (player == null) return;
         
         _gameManager.Context.CardSystem.LockCard(player, card);
+    }
+
+    private void on_unlock_clicked(Card card)
+    {
+        var player = _gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
+        _gameManager.Context.CardSystem.UnlockCard(player, card);
     }
 
     private void _on_card_lock_pressed()

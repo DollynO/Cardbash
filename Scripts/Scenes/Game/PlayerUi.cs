@@ -36,6 +36,12 @@ public partial class PlayerUi : Control
         }
 
         _abilityPopupMenu.Clicked += newAbilityIndexClicked;
+        EventBus.Instance.CardSystemEventBus.CardLockedEventHandler += card_locked;
+    }
+
+    private void card_locked(object sender, CardEventArgs args)
+    {
+        
     }
 
     private void createStatOverview()

@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=4 uid="uid://dshvuihnhyh7b"]
+[gd_scene load_steps=48 format=4 uid="uid://dshvuihnhyh7b"]
 
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/GameManager.cs" id="1_awesl"]
 [ext_resource type="PackedScene" uid="uid://hpbx14ma8p0v" path="res://Scenes/PlayerCharacter.tscn" id="2_dr7ob"]
@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://d20d1pbggem0u" path="res://Sprites/GameSprites/Tilesets/TX Tileset Stone Ground.png" id="5_fgcmq"]
 [ext_resource type="Texture2D" uid="uid://xuhxt6p0201i" path="res://Sprites/GameSprites/Tilesets/TX Tileset Wall.png" id="6_vi2nn"]
 [ext_resource type="Texture2D" uid="uid://2vtmcm302l2w" path="res://Sprites/GameSprites/Tilesets/RA_Ruins.png" id="7_5bwrg"]
+[ext_resource type="PackedScene" uid="uid://dwoe1kdo23vje" path="res://Scenes/notification.tscn" id="9_w727h"]
 [ext_resource type="Shader" path="res://Shaders/DarknessShader.gdshader" id="10_wx1yi"]
 [ext_resource type="PackedScene" uid="uid://h3vkd3vmb12d" path="res://Scenes/CardDrawTemplate.tscn" id="11_3iw8n"]
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/PlayerUi.cs" id="12_eaqiq"]
@@ -6476,6 +6477,14 @@ _lockButton = NodePath("DrawUi/VBoxContainer/CardLock")
 _itemContainer = NodePath("PlayerUi/HBoxContainer/Control/ScrollContainer/ItemContainer")
 _healthBar = NodePath("PlayerUi/HBoxContainer/Control/HealthBar")
 _gameManager = NodePath("..")
+
+[node name="Notification" parent="HUD" instance=ExtResource("9_w727h")]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -600.0
+offset_bottom = 50.0
+grow_horizontal = 0
 
 [node name="DarknessEffect" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_cerkr")

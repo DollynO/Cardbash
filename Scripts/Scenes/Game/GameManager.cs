@@ -39,6 +39,14 @@ public partial class GameManager : Node2D
     public override void _EnterTree()
     {
         _spawner.SpawnFunction = new Callable(this, MethodName.CustomSpawner);
+        this.TeamSystem = new TeamSystem(this, _currentCharacters);
+        this.AddChild(TeamSystem);
+        
+        this.ScoreSystem = new ScoreSystem();
+        this.AddChild(ScoreSystem);
+        
+        this.CardSystem = new CardSystem(this);
+        this.AddChild(CardSystem);
     }
 
     // Called when the node enters the scene tree for the first time.
@@ -46,9 +54,7 @@ public partial class GameManager : Node2D
     {
         _network = GetNode<NetworkManager>(NetworkManager.GetNetworkManagerPath());
 
-        this.TeamSystem = new TeamSystem(this, _currentCharacters);
-        this.ScoreSystem = new ScoreSystem();
-        this.CardSystem = new CardSystem(this);
+        
         Context = new GameContext(this, _currentCharacters, TeamSystem, CardSystem, ScoreSystem);
 
         _flowController = new GameFlowController(Context, Settings);
