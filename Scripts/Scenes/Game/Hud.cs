@@ -1,7 +1,9 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.GameSettings;
@@ -18,7 +20,11 @@ public partial class Hud : CanvasLayer
     [Export] private HBoxContainer _itemContainer;
     [Export] private HealthBar _healthBar;
     [Export] private GameManager _gameManager;
-
+    
+    [Export] private VBoxContainer _pointsContainer;
+    Dictionary<int, PointOverview> pointOverviews = new();
+    [Export] private PackedScene pointOverviewTemplate;
+    
     private PackedScene _cardDrawTemplate;
     private List<CardDrawTemplate> cardTemplates = new();
     private ItemManagerComponent _displayedItemManager;
@@ -35,8 +41,58 @@ public partial class Hud : CanvasLayer
         _cardDrawTemplate = ResourceLoader.Load("res://Scenes/CardDrawTemplate.tscn") as PackedScene;
         _healthBar.AllowGreater = true;
         _gameManager.CardSystem.UpdateHandCardsEventHandler += update_hand_cards;
+        _gameManager.EventBus.MatchEventBus.ScoreChangedEventHandler += score_changed;
+
+        _gameManager.EventBus.MatchEventBus.RoundStartEventHandler += on_round_start;
+    }
+    
+    private void on_round_start(object sender, MatchEventArgs args)
+    {
+        updatePointsTable();
+    }
+    
+    private void score_changed(object sender, ScoreEventArgs args)
+    {
+        updatePointsTable();
     }
 
+    private void updatePointsTable()
+    {
+        var grouped = _gameManager.ScoreSystem.TeamScores
+            .GroupBy(x => x.Value)
+            .OrderByDescending(g => g.Key)
+            .ToDictionary(x => x.Key, g => g.Select(x => x.Key).ToList());
+
+        var excludeValues = new HashSet<int>(grouped.Values.SelectMany(x => x));
+        var teamsList = _gameManager.TeamSystem.Teams.Values.Where(x => !excludeValues.Contains(x.TeamId)).ToList();
+        
+        var i = 0;
+        foreach (var kvp in grouped)
+        {
+            i++;
+            foreach (var team in kvp.Value)
+            {
+                if (!pointOverviews.ContainsKey(team)) {
+                    pointOverviews[team] = pointOverviewTemplate.Instantiate<PointOverview>();
+                    _pointsContainer.AddChild(pointOverviews[team]);
+                }
+
+                pointOverviews[team].Update(i, team, kvp.Key);
+            }
+        }
+
+        i++;
+        foreach (var teamId in teamsList.Select(team => team.TeamId))
+        {
+            if (!pointOverviews.ContainsKey(teamId)) {
+                pointOverviews[teamId] = pointOverviewTemplate.Instantiate<PointOverview>();
+                _pointsContainer.AddChild(pointOverviews[teamId]);
+            }
+
+            pointOverviews[teamId].Update(i, teamId, 0);
+        }
+    }
+    
     private void update_hand_cards(object sender, DrawCardEventArgs args)
     {
         _clear_card_box();

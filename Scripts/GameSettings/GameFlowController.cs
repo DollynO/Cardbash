@@ -130,8 +130,8 @@ public partial class GameFlowController : Node
     private void ServerEnterRoundSetup()
     {
         _roundIndex++;
-        updateGameInfo();
         _ctx.TeamSystem.UpdateTeams();
+        //updateGameInfo();
         _mode.ServerStartRound(_roundIndex);
 
         _phaseTime = 0;
@@ -236,9 +236,9 @@ public partial class GameFlowController : Node
     private void updateGameInfo()
     {
         var info = string.Empty;
-        foreach (var kvp in _ctx.ScoreSystem.PlayerScores)
+        foreach (var team in _ctx.TeamSystem.Teams.Values.OrderBy(t => t.TeamId))
         {
-            info += $"/n{kvp.Key.PlayerName}:{kvp.Value}";
+            info += $"\nTeam {team.TeamId}: {_ctx.ScoreSystem.GetTeamScore(team)}";
         }
         _ctx.GameManager.Hud.DisplayRoundInfo(info);
     }

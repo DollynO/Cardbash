@@ -42,7 +42,7 @@ public partial class GameManager : Node2D
         this.TeamSystem = new TeamSystem(this, _currentCharacters);
         this.AddChild(TeamSystem);
         
-        this.ScoreSystem = new ScoreSystem();
+        this.ScoreSystem = new ScoreSystem(this);
         this.AddChild(ScoreSystem);
         
         this.CardSystem = new CardSystem(this);

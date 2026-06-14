@@ -27,6 +27,13 @@ public class MatchEventBus
     {
         this.MatchEndEventHandler?.Invoke(this, args);
     }
+    
+    public event EventHandler<ScoreEventArgs> ScoreChangedEventHandler;
+
+    public void EmitScoreChanged(ScoreEventArgs args)
+    {
+        this.ScoreChangedEventHandler?.Invoke(this, args);
+    }
 }
 
 public class MatchEventArgs
@@ -36,5 +43,17 @@ public class MatchEventArgs
     public MatchEventArgs(int roundNumber)
     {
         RoundNumber = roundNumber;
+    }
+}
+
+public class ScoreEventArgs
+{
+    public int TeamId { get; init; }
+    public int Score { get; init; }
+    
+    public ScoreEventArgs(int teamId, int score)
+    {
+        TeamId = teamId;
+        Score = score;
     }
 }

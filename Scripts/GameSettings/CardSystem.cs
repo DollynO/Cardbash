@@ -69,7 +69,7 @@ public partial class CardSystem : Node
                 cards.Add(deckCard.Key);
             }
         }
-
+        
         var handCards = new List<CardState>();
         if (lockedCards.TryGetValue(player, out var cardGuid))
         {
@@ -124,14 +124,14 @@ public partial class CardSystem : Node
         }
 
         // other card already locked
-        if (lockedCards.ContainsKey(player) && serverHandCards[playerId].FirstOrDefault(c => c.guid == cardGuid) is { } oldState)
+        if (lockedCards.ContainsKey(player) && serverHandCards[playerId].FirstOrDefault(c => c.guid == lockedCards[player]) is { } oldState)
         {
             oldState.locked = false;
             lockedCards[player] = cardGuid;
         }
         else
         {
-            if (!gameManager.ScoreSystem.TryRemoveFromPlayerScore(player, gameManager.Settings.CardLockCosts))
+            if (!gameManager.ScoreSystem.TryRemoveFromTeamScore(player, gameManager.Settings.CardLockCosts))
             {
                 return;
             }
@@ -164,7 +164,7 @@ public partial class CardSystem : Node
             return;
         }
         
-        gameManager.ScoreSystem.AddToPlayerScore(player, gameManager.Settings.CardLockCosts);
+        gameManager.ScoreSystem.AddToTeamScore(player, gameManager.Settings.CardLockCosts);
         lockedCards.Remove(player);
         state.locked = false;
         UpdateCardsServer(playerId, serverHandCards[playerId]);

@@ -25,7 +25,7 @@ public sealed class LastTeamStandingMode : IGameMode
 
     private void onPlayerKilled(PlayerCharacter victimid, PlayerCharacter killerid)
     {
-        _ctx.ScoreSystem.AddToPlayerScore(killerid, Settings.PointsOnKill);
+        _ctx.ScoreSystem.AddToTeamScore(killerid, Settings.PointsOnKill);
     }
 
     public void ServerStartRound(int roundIndex)
@@ -54,9 +54,9 @@ public sealed class LastTeamStandingMode : IGameMode
 
         if (aliveTeams.Count <= 1)
         {
-            foreach (var player in aliveTeams.SelectMany(team => team.Players))
+            foreach (var team in aliveTeams)
             {
-                _ctx.ScoreSystem.AddToPlayerScore(player, Settings.PointsOnRoundEnd);
+                _ctx.ScoreSystem.AddToTeamScore(team, Settings.PointsOnRoundEnd);
             }
             result = RoundResult.TeamWin(aliveTeams.Count == 1 ? aliveTeams[0] : null);
 
@@ -77,7 +77,7 @@ public sealed class LastTeamStandingMode : IGameMode
         var dict = new Dictionary<Team, int>();
         foreach (var teams in _ctx.TeamSystem.Teams)
         {
-            var teamScore = _ctx.ScoreSystem.PlayerScores.Where(kvp => kvp.Key.TeamId == teams.Key).Sum(kvp => kvp.Value);
+            var teamScore = _ctx.ScoreSystem.GetTeamScore(teams.Key);
             dict.Add(teams.Value, teamScore);
         }
 
