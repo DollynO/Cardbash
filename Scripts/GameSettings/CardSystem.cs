@@ -76,7 +76,7 @@ public partial class CardSystem : Node
             handCards.Add(new CardState
             {
                 guid = cardGuid,
-                locked = true
+                locked = false
             });
             amount--;
             cards.RemoveAll(c => c.EffectGUID == cardGuid);
@@ -118,13 +118,14 @@ public partial class CardSystem : Node
         var player = gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == playerId);
         if (player == null) return;
         
-        if (serverHandCards[playerId].FirstOrDefault(c => c.guid == cardGuid) is not { } state)
+        if (!serverHandCards.TryGetValue(playerId, out var playerHand) ||
+            playerHand.FirstOrDefault(c => c.guid == cardGuid) is not { } state)
         {
             return;
         }
 
         // other card already locked
-        if (lockedCards.ContainsKey(player) && serverHandCards[playerId].FirstOrDefault(c => c.guid == lockedCards[player]) is { } oldState)
+        if (lockedCards.ContainsKey(player) && playerHand.FirstOrDefault(c => c.guid == lockedCards[player]) is { } oldState)
         {
             oldState.locked = false;
             lockedCards[player] = cardGuid;
@@ -159,7 +160,13 @@ public partial class CardSystem : Node
         var player = gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == playerId);
         if (player == null) return;
 
-        if (serverHandCards[playerId].FirstOrDefault(c => c.guid == cardGuid) is not { } state)
+        if (!lockedCards.TryGetValue(player, out var lockedCardGuid) || lockedCardGuid != cardGuid)
+        {
+            return;
+        }
+
+        if (!serverHandCards.TryGetValue(playerId, out var playerHand) ||
+            playerHand.FirstOrDefault(c => c.guid == cardGuid) is not { } state)
         {
             return;
         }
@@ -177,6 +184,11 @@ public partial class CardSystem : Node
     
     public void ServerApplyCards(List<string> cardGuids, PlayerCharacter player)
     {
+        if (lockedCards.TryGetValue(player, out var lockedCardGuid) && cardGuids.Contains(lockedCardGuid))
+        {
+            lockedCards.Remove(player);
+        }
+
         foreach (var cardGuid in cardGuids)
         {
             player.Deck.Cards.FirstOrDefault(c => c.Key.EffectGUID == cardGuid).Key.ExhaustionCount = 2;
