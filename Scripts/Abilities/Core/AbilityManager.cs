@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CardBase.Scripts.Abilities.AOE;
 using CardBase.Scripts.Abilities.Utility;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Abilities;
@@ -43,7 +44,14 @@ public static class AbilityManager
 
     public static BaseCardableObject Create(string GUID, PlayerCharacter creator)
     {
-        return Abilities.TryGetValue(GUID, out var constructor) ? constructor(creator) : null;
+        if (!Abilities.TryGetValue(GUID, out var constructor))
+        {
+            return null;
+        }
+
+        var ability = constructor(creator);
+        GameplayConfigManager.ApplyToAbility(ability as Ability);
+        return ability;
     }
 }
 

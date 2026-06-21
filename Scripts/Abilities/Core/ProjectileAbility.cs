@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
@@ -9,6 +10,7 @@ public abstract class ProjectileAbility : Ability
 {
     protected int SpawnCount;
     protected float SpawnDelay;
+    protected List<IProjectileBehavior> Behaviors =  new();
 
     protected ProjectileAbility(string guid, PlayerCharacter creator) : base(guid, creator)
     {
@@ -110,10 +112,13 @@ public abstract class ProjectileAbility : Ability
 
     protected ProjectileRuntime CreateProjectileRuntime(Action<IEntityComponent, Projectile> onHit = null, params IProjectileBehavior[] behaviors)
     {
+        var behaviorList = new List<IProjectileBehavior>(behaviors);
+        behaviorList.AddRange(Behaviors);
+        
         return new ProjectileRuntime
         {
             OnHit = onHit,
-            Behaviors = new System.Collections.Generic.List<IProjectileBehavior>(behaviors),
+            Behaviors = behaviorList,
         };
     }
 

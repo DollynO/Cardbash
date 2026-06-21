@@ -7,15 +7,13 @@ namespace CardBase.Scripts.Abilities.Utility;
 public class ShadowWalk : Ability
 {
     private Stealth stealth;
-    private FastMovement fastMovement;
+    private FastMovement fastMovement = null;
 
     public ShadowWalk(IEntityComponent creator) : base(AbilityIds.ShadowWalkGuid, creator)
     {
         this.Description = "Get invisible, get revealed if damage taken. Upgrade 1: increase movement speed. Upgrade 2: not revealed on damage taken";
         this.DisplayName = "Stealth walk";
         this.IconPath = "res://Sprites/SkillIcons/Dark/16_Shadow.png";
-        this.BaseCooldown = 15;
-        this.BaseType = DamageType.Darkness;
         
         if (creator != null)
         {
@@ -25,9 +23,8 @@ public class ShadowWalk : Ability
 
         stealth = new Stealth(creator, creator)
         {
-            Duration = 5
+            Duration = ConfigParam("stealthDuration", 5f)
         };
-        fastMovement = new FastMovement(creator, creator);
     }
 
     private void CreatorOnAbilityCasted(object sender, AbilityEventArgs e)
@@ -69,23 +66,26 @@ public class ShadowWalk : Ability
         if (Caller.TryGetComponent(out BuffManagerComponent bmc))
         {
             bmc.ApplyBuff(stealth);
-            if (UpdateCounter >= 1)
+            if (fastMovement != null)
             {
                 bmc.ApplyBuff(fastMovement);
             }
         }
     }
 
-    protected override void InternalUpdate()
+    
+    protected override void ApplyUpdate1()
     {
-        switch (UpdateCounter)
+        fastMovement = new FastMovement(Caller, Caller)
         {
-            case 1:
-                break;
-            case 2:
-                Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
-                break;
-        }
+            Duration = ConfigParam("movementDuration", 5f),
+            MovementIncrease = ConfigParam("movementIncrease", 0.25f),
+        };
+    }
+
+    protected override void ApplyUpdate2()
+    {
+        Caller.EventBus.CombatEventBus.DamageTakeEventHandler += CreatorOnDamageTaken;
     }
 
     private void removeBuff()

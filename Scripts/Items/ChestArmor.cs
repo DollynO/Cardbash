@@ -17,7 +17,7 @@ public partial class ChestArmor : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.Armor, StatOp.FlatAdd, StatIncrease));
+            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.Armor, StatOp.FlatAdd, ConfigParam("statIncrease", StatIncrease)));
         }
     }
 

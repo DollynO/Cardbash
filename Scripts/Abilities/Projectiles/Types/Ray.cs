@@ -247,7 +247,8 @@ public class RayStats
         return new Godot.Collections.Dictionary<string, Variant>()
         {
             { nameof(Range), Range },
-            { nameof(Caster), ((Node2D)Caster).GetPath() },
+            { nameof(Caster), Caster is Node2D casterNode ? casterNode.GetPath() : string.Empty },
+            { "CasterPlayerId", Caster is PlayerCharacter casterPlayer ? casterPlayer.PlayerId : 0 },
             { nameof(CollisionMask), CollisionMask },
             { nameof(AnimationResource), AnimationResource},
             { nameof(CenterLoopFolder), CenterLoopFolder},
@@ -261,7 +262,7 @@ public class RayStats
         return new RayStats()
         {
             Range = (float)dict[nameof(Range)],
-            Caster = (IEntityComponent)manager.GetNode((string)dict[nameof(Caster)]),
+            Caster = ResolveCaster(dict, manager),
             CollisionMask = (uint)(int)dict[nameof(CollisionMask)],
             CollisionTick = null,
             AnimationResource = (string)dict[nameof(AnimationResource)],
@@ -269,5 +270,22 @@ public class RayStats
             CenterLoopCount = (int)dict[nameof(CenterLoopCount)],
             PierceCount = (int)dict[nameof(PierceCount)],
         };
+    }
+
+    private static IEntityComponent ResolveCaster(Godot.Collections.Dictionary<string, Variant> dict, GameManager manager)
+    {
+        if (dict.TryGetValue("CasterPlayerId", out var casterPlayerIdVariant)
+            && (long)casterPlayerIdVariant != 0
+            && manager.GetPlayerCharacter((long)casterPlayerIdVariant) is { } casterPlayer)
+        {
+            return casterPlayer;
+        }
+
+        var casterPath = dict.TryGetValue(nameof(Caster), out var casterPathVariant)
+            ? (string)casterPathVariant
+            : string.Empty;
+        return string.IsNullOrEmpty(casterPath)
+            ? null
+            : manager.GetNodeOrNull<Node>(casterPath) as IEntityComponent;
     }
 }

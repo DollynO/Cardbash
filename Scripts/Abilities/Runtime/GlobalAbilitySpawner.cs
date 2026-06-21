@@ -1,4 +1,5 @@
 using System;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
 
@@ -205,19 +206,32 @@ public class SpriteStats
         {
             { nameof(TexturePath), TexturePath },
             { nameof(Scale), Scale },
-            { nameof(Parent), Parent.GetPath() },
+            { nameof(Parent), Parent?.GetPath() ?? string.Empty },
+            { "ParentPlayerId", Parent is PlayerCharacter parentPlayer ? parentPlayer.PlayerId : 0 },
         };
         return dict;
     }
 
     public static SpriteStats FromDict(Godot.Collections.Dictionary<string, Variant> dict, GameManager manager)
     {
-        var parentPath = (string)dict[nameof(Parent)];
+        Node2D parent = null;
+        if (dict.TryGetValue("ParentPlayerId", out var parentPlayerIdVariant)
+            && (long)parentPlayerIdVariant != 0
+            && manager.GetPlayerCharacter((long)parentPlayerIdVariant) is { } parentPlayer)
+        {
+            parent = parentPlayer;
+        }
+        else
+        {
+            var parentPath = (string)dict[nameof(Parent)];
+            parent = string.IsNullOrEmpty(parentPath) ? null : manager.GetNodeOrNull<Node2D>(parentPath);
+        }
+
         var stats = new SpriteStats
         {
             TexturePath = (string)dict[nameof(TexturePath)],
             Scale = (Vector2)dict[nameof(Scale)],
-            Parent = string.IsNullOrEmpty(parentPath) ? null : manager.GetNode(parentPath) as Node2D
+            Parent = parent
         };
         return stats;
     }

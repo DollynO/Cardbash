@@ -1,0 +1,522 @@
+{
+  "version": 1,
+  "abilities": {
+    "EE277E3F-A8D2-4AE8-9DE4-01B8158DD000": {
+      "displayName": "Fireball",
+      "description": "Fireball Description",
+      "iconPath": "res://Sprites/SkillIcons/Fire/7_Fireball.png",
+      "cooldown": 1,
+      "baseDamage": 20,
+      "damageType": 2,
+      "maxStack": 2,
+      "params": {
+        "projectileSpeed": 300,
+        "projectileLifetime": 10,
+        "movementMode": 1,
+        "bounceCount": 0,
+        "angleOffset": 0,
+        "pierceCount": 0,
+        "collisionMask": 0,
+        "projectileHealth": -1,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 1,
+        "projectileScaleY": 1,
+        "animationOffsetX": 0,
+        "animationOffsetY": 0
+      },
+      "baseAilmentChance": 0
+    },
+    "8E481FBF-DE0A-4673-BDF1-50EE9CC041D4": {
+      "displayName": "Ice Arrow",
+      "description": "Fires an ice arrow",
+      "iconPath": "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png",
+      "cooldown": 10,
+      "baseDamage": 5,
+      "damageType": 3,
+      "params": {
+        "projectileSpeed": 500,
+        "projectileLifetime": 4,
+        "movementMode": 1,
+        "bounceCount": 3,
+        "angleOffset": 0,
+        "pierceCount": 1,
+        "collisionMask": 0,
+        "projectileHealth": -1,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 1,
+        "projectileScaleY": 1,
+        "animationOffsetX": 0,
+        "animationOffsetY": 0
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "534F2A0B-3807-41F0-A05A-9955D5EF713B": {
+      "displayName": "Grappling Hook",
+      "description": "Fires a grappling hook that pulls the enemy to the caster.",
+      "iconPath": "res://Sprites/SkillIcons/Metal/17_Magnet.png",
+      "cooldown": 15,
+      "baseDamage": 1,
+      "damageType": 0,
+      "params": {
+        "projectileSpeed": 500,
+        "projectileLifetime": 4,
+        "movementMode": 1,
+        "bounceCount": 0,
+        "angleOffset": 0,
+        "pierceCount": 0,
+        "collisionMask": 0,
+        "projectileHealth": -1,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 1,
+        "projectileScaleY": 1,
+        "animationOffsetX": 0,
+        "animationOffsetY": 0
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "278888C7-D0EC-49B9-AD64-BFB69C1B8348": {
+      "displayName": "Corrupted Bolt",
+      "description": "Applies Corruption debuff.",
+      "iconPath": "res://Sprites/SkillIcons/Dark/17_The power_of_darkness.png",
+      "cooldown": 10,
+      "baseDamage": 1,
+      "damageType": 5,
+      "maxStack": 1,
+      "params": {
+        "projectileSpeed": 300,
+        "projectileLifetime": 4,
+        "movementMode": 1,
+        "bounceCount": 0,
+        "angleOffset": 0,
+        "pierceCount": 0,
+        "collisionMask": 0,
+        "projectileHealth": -1,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 1,
+        "projectileScaleY": 1,
+        "animationOffsetX": 0,
+        "animationOffsetY": 0
+      },
+      "baseAilmentChance": 0
+    },
+    "10633462-9097-41ED-9331-6454F0AEAF93": {
+      "displayName": "Orbiting Ice Shard",
+      "description": "",
+      "iconPath": "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png",
+      "cooldown": 2,
+      "baseDamage": 1,
+      "damageType": 3,
+      "maxStack": 1,
+      "baseAilmentChance": 1,
+      "params": {
+        "projectileSpeed": 0,
+        "projectileLifetime": -1,
+        "movementMode": 1,
+        "bounceCount": 0,
+        "angleOffset": 0,
+        "pierceCount": 0,
+        "collisionMask": 0,
+        "projectileHealth": -1,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 1,
+        "projectileScaleY": 1,
+        "animationOffsetX": 0,
+        "animationOffsetY": 0,
+        "maxProjectiles": 3,
+        "stunDuration": 5,
+        "ringRadius": 100,
+        "ringScale": 1
+      }
+    },
+    "F42A4786-A727-48B1-8CE7-9F26A222ED55": {
+      "displayName": "Ric-O-Spam",
+      "description": "SPAAAM",
+      "iconPath": "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png",
+      "cooldown": 5,
+      "baseDamage": 5,
+      "damageType": 0,
+      "params": {
+        "projectileSpeed": 500,
+        "projectileLifetime": 10,
+        "movementMode": 1,
+        "bounceCount": 2,
+        "angleOffset": 0,
+        "pierceCount": 0,
+        "collisionMask": 0,
+        "projectileHealth": -1,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 0.5,
+        "projectileScaleY": 0.5,
+        "animationOffsetX": 0,
+        "animationOffsetY": 0,
+        "spreadDegrees": 15,
+        "maxSplitProjectiles": 10,
+        "maxActiveCasts": 3
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "A40C5A0A-79D9-4B56-9897-87E61D23B902": {
+      "displayName": "Snowball",
+      "description": "Shoots a snowball",
+      "iconPath": "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png",
+      "cooldown": 1,
+      "baseDamage": 1,
+      "damageType": 3,
+      "params": {
+        "projectileSpeed": 100,
+        "projectileLifetime": -1,
+        "movementMode": 1,
+        "bounceCount": 0,
+        "angleOffset": 0,
+        "pierceCount": 0,
+        "collisionMask": 4,
+        "projectileHealth": 100,
+        "pullRadius": 0,
+        "pullStrength": 0,
+        "projectileScaleX": 1,
+        "projectileScaleY": 1,
+        "animationOffsetX": -8,
+        "animationOffsetY": 0,
+        "sizeIncreasePerSecond": 1,
+        "healthIncreasePerSecond": 10
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "1DD05202-6BE7-489E-9411-CC968BF5BCB5": {
+      "displayName": "Fire Slash",
+      "description": "Melee fire strike. ",
+      "iconPath": "res://Sprites/SkillIcons/Fire/10_Fire_Tongue.png",
+      "cooldown": 1,
+      "baseDamage": 50,
+      "damageType": 2,
+      "params": {
+        "radius": 80,
+        "angle": 120,
+        "angleOffset": 0,
+        "activationTime": 0.2,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "2970A4C5-0C86-4EB2-8CB3-067750622083": {
+      "displayName": "Lightning Strike",
+      "description": "Fast lightning strike",
+      "iconPath": "res://Sprites/SkillIcons/Lightning/3_Electric_Boom.png",
+      "cooldown": 10,
+      "baseDamage": 20,
+      "damageType": 4,
+      "params": {
+        "radius": 150,
+        "angle": 15,
+        "angleOffset": 0,
+        "activationTime": 0.3,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "C9BA2A80-C3D3-4EB7-B6E9-92D6020B62CE": {
+      "displayName": "Consecrated Slash",
+      "description": "Let the crusade begin",
+      "iconPath": "res://Sprites/SkillIcons/Holy/11_Holy_Wave.png",
+      "cooldown": 1,
+      "baseDamage": 50,
+      "damageType": 6,
+      "params": {
+        "radius": 60,
+        "angle": 45,
+        "angleOffset": 0,
+        "activationTime": 0.8,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "DC432A01-3394-4AF4-BE1B-9289A4E88268": {
+      "displayName": "Poison Jab",
+      "description": "Well poison jab",
+      "iconPath": "res://Sprites/SkillIcons/Poison/20_Poison_Bone.png",
+      "cooldown": 5,
+      "baseDamage": 10,
+      "damageType": 1,
+      "params": {
+        "radius": 40,
+        "angle": 120,
+        "angleOffset": 0,
+        "activationTime": 0.8,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "92DF5DEB-48D7-48A7-B884-9DF358573157": {
+      "displayName": "Dark Edge",
+      "description": "Consumes all darkness / active debuffs on the target and deals damage for each consumed.",
+      "iconPath": "res://Sprites/SkillIcons/Dark/10_Dark_Blade.png",
+      "cooldown": 1,
+      "baseDamage": 10,
+      "damageType": 5,
+      "params": {
+        "radius": 60,
+        "angle": 160,
+        "angleOffset": 0,
+        "activationTime": 0.8,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "61B5DDB4-A447-4942-87F9-BBF93C3E125A": {
+      "displayName": "Shatter Strike",
+      "description": "A brutal melee blow that consumes all stacks of Frost on the target, detonating the icy buildup. The chill explodes into shards, stunning the enemy briefly while dealing heavy cold-infused damage.",
+      "iconPath": "res://Sprites/SkillIcons/Snow/18_Ice_Sword.png",
+      "cooldown": 5,
+      "baseDamage": 10,
+      "damageType": 3,
+      "baseAilmentChance": 0.33,
+      "params": {
+        "radius": 150,
+        "angle": 45,
+        "angleOffset": 0,
+        "activationTime": 0.5,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1
+    },
+    "4355909D-53F8-42E5-8E03-3647FEC6E8B5": {
+      "displayName": "Plagueburst",
+      "description": "Bursts all corruption and agony buffs to cause damage.",
+      "iconPath": "res://Sprites/SkillIcons/Dark/15_Rod_of_Darkness.png",
+      "cooldown": 5,
+      "baseDamage": 10,
+      "damageType": 5,
+      "params": {
+        "radius": 100,
+        "angle": 90,
+        "angleOffset": 0,
+        "activationTime": 3,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "ECD03AF9-850B-457C-A799-2D9E99D29B7F": {
+      "displayName": "Blink",
+      "description": "Teleports to the target position.",
+      "iconPath": "res://Sprites/SkillIcons/Lightning/9_Lightning_Strike.png",
+      "cooldown": 1,
+      "baseDamage": 10,
+      "damageType": 4,
+      "params": {
+        "range": 400,
+        "repositionDelay": 0
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "B807C6E2-0061-4081-910B-1EB05891E500": {
+      "displayName": "Escape Jump",
+      "description": "Jump backwards.",
+      "iconPath": "res://Sprites/SkillIcons/Metal/17_Magnet.png",
+      "cooldown": 5,
+      "baseDamage": 0,
+      "damageType": 0,
+      "params": {
+        "strength": 1000,
+        "duration": 1
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "51741359-9A12-439B-99DA-5527407ACC71": {
+      "displayName": "Stealth walk",
+      "description": "Get invisible, get revealed if damage taken. Upgrade 1: increase movement speed. Upgrade 2: not revealed on damage taken",
+      "iconPath": "res://Sprites/SkillIcons/Dark/16_Shadow.png",
+      "cooldown": 15,
+      "baseDamage": 0,
+      "damageType": 5,
+      "params": {
+        "stealthDuration": 5,
+        "movementDuration": 5,
+        "movementIncrease": 0.25
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "C19D6DD4-E8D5-488B-A89C-58A20211BA26": {
+      "displayName": "Aegis",
+      "description": "AAAEEEGIIIS",
+      "iconPath": "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png",
+      "cooldown": 10,
+      "baseDamage": 0,
+      "damageType": 6,
+      "maxStack": 1,
+      "baseAilmentChance": 0,
+      "params": {
+        "ringRadius": 50,
+        "ringScale": 0.5,
+        "maxCharges": 3,
+        "activationTime": 0.1,
+        "duration": -1,
+        "shieldScale": 0.2
+      }
+    },
+    "F760C46C-28B3-4F34-929B-7F140EB9C683": {
+      "displayName": "Charging Beam",
+      "description": "Charging Beam",
+      "iconPath": "res://Sprites/SkillIcons/Snow/11_Ice_Ray.png",
+      "cooldown": 10,
+      "baseDamage": 0.5,
+      "damageType": 4,
+      "params": {
+        "rayRange": 400,
+        "rayCollisionMask": 5,
+        "rayCenterLoopCount": 8,
+        "rayPierceCount": 1,
+        "damageTickInterval": 0.5,
+        "shockAoeStackInterval": 5,
+        "shockAoeRadius": 100,
+        "shockAoeActivationTime": 0.5,
+        "shockAoeDuration": 0,
+        "shockAoeDamage": 20
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "CAE877D4-799B-46E7-9BAA-79A7635299C9": {
+      "displayName": "Meteor",
+      "description": "Meteor",
+      "iconPath": "res://Sprites/SkillIcons/Fire/1_Meteorite.png",
+      "cooldown": 5,
+      "baseDamage": 75,
+      "damageType": 2,
+      "params": {
+        "radius": 200,
+        "angle": 360,
+        "angleOffset": 0,
+        "activationTime": 2,
+        "duration": 0,
+        "tickInterval": 1,
+        "shapeUpdateInterval": 0.016,
+        "range": 600
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    }
+  },
+  "items": {
+    "798BBD60-2903-41B1-927F-06A27007B282": {
+      "displayName": "Chest Armor",
+      "description": "Increases the armor by 50",
+      "iconPath": "res://Sprites/Items/ArmorItem.png",
+      "params": {
+        "statIncrease": 50
+      }
+    },
+    "3DB74D75-0CDD-4B69-B38C-337ED4CD0A42": {
+      "displayName": "EnergyCore",
+      "description": "Increase Energy Shield by 20",
+      "iconPath": "res://Sprites/Items/EnergyCore.png",
+      "params": {
+        "statIncrease": 20
+      }
+    },
+    "166D1A7F-8322-420F-A0A8-EC8DBE9FFA54": {
+      "displayName": "Crit Dagger",
+      "description": "Increase global crit change by 2 %",
+      "iconPath": "res://Sprites/Items/CritDagger.png",
+      "params": {
+        "statIncrease": 2
+      }
+    },
+    "E852D4A6-1630-4548-A23F-8570F21E41704": {
+      "displayName": "Swift Boots",
+      "description": "Increase movement speed by 25 %",
+      "iconPath": "res://Sprites/Items/SwiftBoots.png",
+      "params": {
+        "statIncrease": 25
+      }
+    },
+    "8B005B38-934B-455F-BC82-404D7A8E4B95": {
+      "displayName": "Darkness Orb",
+      "description": "Increases the darkness damage by 20 %",
+      "iconPath": "res://Sprites/Items/darkness_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    },
+    "7C413FE5-8AA4-4BAE-B7DE-134EB160DFCB": {
+      "displayName": "Fire Orb",
+      "description": "Increases the fire damage by 20 %",
+      "iconPath": "res://Sprites/Items/fire_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    },
+    "24168D82-FCF4-4EBE-BB9E-CD6F377C2D95": {
+      "displayName": "Holy Orb",
+      "description": "Increases the holy damage by 20 %",
+      "iconPath": "res://Sprites/Items/holy_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    },
+    "794C949A-0F0D-4DB4-8FB4-EED63B388E5F": {
+      "displayName": "Ice Orb",
+      "description": "Increases the ice damage by 20 %",
+      "iconPath": "res://Sprites/Items/ice_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    },
+    "80EF0A7B-D41C-4E07-AFF9-97578ABB48B0": {
+      "displayName": "Lightning Orb",
+      "description": "Increases the Lightning damage by 20 %",
+      "iconPath": "res://Sprites/Items/lightning_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    },
+    "1E6D23C1-02C5-4F0C-B73A-1BF56986C72F": {
+      "displayName": "Physical Orb",
+      "description": "Increases the physical damage by 20 %",
+      "iconPath": "res://Sprites/Items/physical_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    },
+    "67868616-1BC8-4C53-A8DE-2C9BFA16E719": {
+      "displayName": "Poison Orb",
+      "description": "Increases the poison damage by 20 %",
+      "iconPath": "res://Sprites/Items/poison_orb.png",
+      "params": {
+        "damageModifier": 0.2
+      }
+    }
+  }
+}

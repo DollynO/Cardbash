@@ -18,17 +18,16 @@ public class OrbitingIceShard : Ability
         this.DisplayName = "Orbiting Ice Shard";
         this.Description = "";
         this.IconPath = "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png";
-        this.MaxStack = 1;
-        this.BaseCooldown = 2;
-        this.BaseDamage = 1;
-        this.BaseType = DamageType.Ice;
-        this.BaseAilmentChance = 1f;
         this.AutoCast = true;
 
         if (creator != null && creator.TryGetComponent(out AbilityComponent abilityComponent))
         {
             creator.EventBus.MatchEventBus.RoundStartEventHandler += CreatorOnNewRoundStarted;
-            ring = abilityComponent.RingContainer.AddRing(100, 1);
+            maxProjectiles = ConfigParam("maxProjectiles", maxProjectiles);
+            ring = abilityComponent.RingContainer.AddRing(
+                ConfigParam("ringRadius", 100f),
+                ConfigParam("ringScale", 1f),
+                maxProjectiles);
         }
     }
 
@@ -55,7 +54,7 @@ public class OrbitingIceShard : Ability
 
     protected override bool preventAutoCast()
     {
-        return ring.GetStackCount() >= maxProjectiles;
+        return ring.GetStackCount() >= ConfigParam("maxProjectiles", maxProjectiles);
     }
 
     public override void InternalUse()
@@ -79,6 +78,7 @@ public class OrbitingIceShard : Ability
                 ? aimComponent.GetProjectileStartPosition()
                 : ((Node2D)Caller).GetGlobalPosition()
         };
+        ApplyProjectileConfig(spawnRequest);
 
         var runtime = new ProjectileRuntime
         {
@@ -117,25 +117,21 @@ public class OrbitingIceShard : Ability
                     buffManagerComponent.ConsumeBuff(typeof(Frost));
                     if (hitObject.TryGetComponent<MoveComponent>(out var moveComponent))
                     {
-                        moveComponent.ApplyStun(baseStunDuration);
+                        moveComponent.ApplyStun(ConfigParam("stunDuration", baseStunDuration));
                     }
                 }
             }
         }
     }
 
-    protected override void InternalUpdate()
+
+    protected override void ApplyUpdate1()
     {
-        switch (UpdateCounter)
-        {
-            case 1:
-                this.BaseAilmentChance = 0.3f;
-                return;
-            case 2:
-                return;
-            default:
-                return;
-        }
+        this.BaseAilmentChance = 0.3f;
+    }
+
+    protected override void ApplyUpdate2()
+    {
     }
 
     private void ProjectileOnOnDestroyed(Vector2 position, Projectile projectile)

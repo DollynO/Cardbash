@@ -11,9 +11,6 @@ public class ConsecratedSlash : Ability
         this.DisplayName = "Consecrated Slash";
         this.Description = "Let the crusade begin";
         this.IconPath = "res://Sprites/SkillIcons/Holy/11_Holy_Wave.png";
-        this.BaseCooldown = 1;
-        this.BaseDamage = 50;
-        this.BaseType = DamageType.Holy;
     }
 
     public override void RoundReset()
@@ -24,53 +21,61 @@ public class ConsecratedSlash : Ability
     public override void InternalUse()
     {
         Caller.TryGetComponent(out AimComponent aimComponent);
+        var angle = ConfigParam("angle", 45f);
+        var activationTime = ConfigParam("activationTime", 0.8f);
+        var radius = ConfigParam("radius", 60f);
+        var angleOffset = ConfigParam("angleOffset", 0f);
 
         var stats = new AoeBaseStats()
         {
-            Angle = 45,
-            ActivationTime = 0.8f,
+            Angle = angle,
+            ActivationTime = activationTime,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
-            Radius = 60,
-            AngleOffset = 0,
+            Radius = radius,
+            AngleOffset = angleOffset,
             Owner = Caller,
             AbilityGUID = GUID,
         };
+        ApplyAoeConfig(stats, false);
         GlobalAbilitySpawner.SpawnAoe(stats);
 
         var stats1 = new AoeBaseStats()
         {
-            Angle = 45,
-            ActivationTime = 0.8f,
+            Angle = angle,
+            ActivationTime = activationTime,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
-            Radius = 60,
-            AngleOffset = 90,
+            Radius = radius,
+            AngleOffset = angleOffset + 90,
             Owner = Caller,
             AbilityGUID = GUID,
         };
+        ApplyAoeConfig(stats1, false);
         GlobalAbilitySpawner.SpawnAoe(stats1);
 
         var stats2 = new AoeBaseStats()
         {
-            Angle = 45,
-            ActivationTime = 0.8f,
+            Angle = angle,
+            ActivationTime = activationTime,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
-            Radius = 60,
-            AngleOffset = 180,
+            Radius = radius,
+            AngleOffset = angleOffset + 180,
             Owner = Caller,
             AbilityGUID = GUID,
         };
+        ApplyAoeConfig(stats2, false);
         GlobalAbilitySpawner.SpawnAoe(stats2);
 
         var stats3 = new AoeBaseStats()
         {
-            Angle = 45,
-            ActivationTime = 0.8f,
+            Angle = angle,
+            ActivationTime = activationTime,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
-            Radius = 60,
-            AngleOffset = 270,
+            Radius = radius,
+            AngleOffset = angleOffset + 270,
             Owner = Caller,
             AbilityGUID = GUID,
         };
+        ApplyAoeConfig(stats3, false);
         GlobalAbilitySpawner.SpawnAoe(stats3);
     }
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
@@ -103,8 +108,11 @@ public class ConsecratedSlash : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
     {
+    }
 
+    protected override void ApplyUpdate2()
+    {
     }
 }

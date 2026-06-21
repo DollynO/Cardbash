@@ -2,9 +2,8 @@ using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Abilities.Buffs;
 
-public class AegisDamageIncreaseBuff : Buff
+public class AegisDamageIncreaseBuff : DamageIncreaseBuff
 {
-    private StatModifier mod;
     public AegisDamageIncreaseBuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Guid = System.Guid.NewGuid().ToString("N");
@@ -15,25 +14,5 @@ public class AegisDamageIncreaseBuff : Buff
         this.IconPath = "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png";
         this.Duration = 3;
         this.BuffType = DamageType.Holy;
-    }
-
-    protected override void InternalOnActivate()
-    {
-        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
-        {
-            statBlock.AddModifiers(mod);
-        }
-    }
-
-    protected override void InternalOnTick(float delta)
-    {
-    }
-
-    protected override void InternalOnDeactivate()
-    {
-        if (Target.TryGetComponent<StatblockComponent>(out var statBlock))
-        {
-            statBlock.RemoveModifierSource(mod.SourceId);
-        }
     }
 }

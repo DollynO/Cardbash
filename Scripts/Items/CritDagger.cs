@@ -22,7 +22,7 @@ public partial class CritDagger : Item
                     InstanceGuid,
                     StatType.CritChance,
                     StatOp.FlatAdd,
-                    StatIncrease));
+                    ConfigParam("statIncrease", StatIncrease)));
         }
     }
 

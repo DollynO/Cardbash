@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.GameSettings;
 
 namespace CardBase.Scripts.Items;
 
@@ -23,7 +24,14 @@ public class ItemManager
 
     public static BaseCardableObject Create(string guid)
     {
-        return Items.TryGetValue(guid, out var constructor) ? constructor() : null;
+        if (!Items.TryGetValue(guid, out var constructor))
+        {
+            return null;
+        }
+
+        var item = constructor();
+        GameplayConfigManager.ApplyToItem(item as Item);
+        return item;
     }
 }
 

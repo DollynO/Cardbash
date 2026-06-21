@@ -12,10 +12,6 @@ public class ShatterStrike : Ability
         this.DisplayName = "Shatter Strike";
         this.Description = "A brutal melee blow that consumes all stacks of Frost on the target, detonating the icy buildup. The chill explodes into shards, stunning the enemy briefly while dealing heavy cold-infused damage.";
         this.IconPath = "res://Sprites/SkillIcons/Snow/18_Ice_Sword.png";
-        this.BaseCooldown = 5;
-        this.BaseDamage = 10;
-        this.BaseType = DamageType.Ice;
-        this.BaseAilmentChance = 0.33f;
 
         this._hitModifiers.Add(new FrostShatterHitModifier());
     }
@@ -29,17 +25,18 @@ public class ShatterStrike : Ability
     {
         var aoeStats = new AoeBaseStats()
         {
-            Angle = 45,
-            ActivationTime = 0.5f,
+            Angle = ConfigParam("angle", 45f),
+            ActivationTime = ConfigParam("activationTime", 0.5f),
             Callbacks = new AoeBaseCallbacks
             {
                 OnActivation = OnActivation,
             },
-            Radius = 150,
-            AngleOffset = 0,
+            Radius = ConfigParam("radius", 150f),
+            AngleOffset = ConfigParam("angleOffset", 0f),
             AbilityGUID = GUID,
             Owner = Caller
         };
+        ApplyAoeConfig(aoeStats);
         GlobalAbilitySpawner.SpawnAoe(aoeStats);
     }
 
@@ -73,7 +70,11 @@ public class ShatterStrike : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 }

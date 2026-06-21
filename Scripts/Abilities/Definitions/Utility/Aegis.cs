@@ -26,18 +26,16 @@ public class Aegis : Ability, IHitInterceptor
         DisplayName = "Aegis";
         Description = "AAAEEEGIIIS";
         IconPath = "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png";
-        MaxStack = 1;
-        BaseCooldown = 10;
-        BaseDamage = 0;
-        BaseType = DamageType.Holy;
-        BaseAilmentChance = 0;
         AutoCast = true;
 
         if (creator != null
             && creator.TryGetComponent(out AbilityComponent abilityComponent)
             && creator.TryGetComponent(out DamageAbleComponent dac))
         {
-            ring = abilityComponent.RingContainer.AddRing(ringRadius, 0.5f, 3);
+            ringRadius = ConfigParam("ringRadius", ringRadius);
+            var ringScale = ConfigParam("ringScale", 0.5f);
+            var maxCharges = ConfigParam("maxCharges", 3);
+            ring = abilityComponent.RingContainer.AddRing(ringRadius, ringScale, maxCharges);
             dac._HitInterceptors.Add(this);
             buff = new AegisDamageIncreaseBuff(creator, creator);
         }
@@ -49,9 +47,9 @@ public class Aegis : Ability, IHitInterceptor
         {
             var stats = new AoeBaseStats()
             {
-                Radius = ringRadius,
-                ActivationTime = 0.1f,
-                Duration = -1,
+                Radius = ConfigParam("ringRadius", ringRadius),
+                ActivationTime = ConfigParam("activationTime", 0.1f),
+                Duration = ConfigParam("duration", -1f),
                 Callbacks = new AoeBaseCallbacks
                 {
                     OnActivation = OnActivation,
@@ -65,7 +63,8 @@ public class Aegis : Ability, IHitInterceptor
             detectRing = GlobalAbilitySpawner.SpawnAoe(stats);
         }
 
-        ring.AddTextureNode(shieldPath, spriteScale);
+        var scale = ConfigParam("shieldScale", spriteScale.X);
+        ring.AddTextureNode(shieldPath, new Vector2(scale, scale));
     }
 
     private void OnPlayerExit(IEntityComponent arg1, AoeBase arg2)
@@ -114,9 +113,13 @@ public class Aegis : Ability, IHitInterceptor
         return ring.GetStackCount() == ring.MaxStacks || isCharInRange;
     }
 
-    protected override void InternalUpdate()
-    {
 
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
+    {
     }
 
     public bool TryBlock(in Hit hit)

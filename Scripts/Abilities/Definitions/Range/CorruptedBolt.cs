@@ -13,10 +13,6 @@ public class CorruptedBolt : ProjectileAbility
         this.DisplayName = "Corrupted Bolt";
         this.Description = "Applies Corruption debuff.";
         this.IconPath = "res://Sprites/SkillIcons/Dark/17_The power_of_darkness.png";
-        this.MaxStack = 1;
-        this.BaseCooldown = 10;
-        this.BaseDamage = 1;
-        this.BaseType = DamageType.Darkness;
 
         corruption = new Corruption(Caller, null);
 
@@ -27,7 +23,12 @@ public class CorruptedBolt : ProjectileAbility
         return;
     }
 
-    protected override void InternalUpdate()
+
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 
@@ -46,6 +47,11 @@ public class CorruptedBolt : ProjectileAbility
 
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        return AimedProjectile("res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres", 300, 4);
+        var request = AimedProjectile(
+            "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
+            ConfigParam("projectileSpeed", 300f),
+            ConfigParam("projectileLifetime", 4f));
+        ApplyProjectileConfig(request);
+        return request;
     }
 }

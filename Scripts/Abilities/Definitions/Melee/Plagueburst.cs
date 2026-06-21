@@ -13,9 +13,6 @@ public class Plagueburst : Ability
         DisplayName = "Plagueburst";
         Description = "Bursts all corruption and agony buffs to cause damage.";
         IconPath = "res://Sprites/SkillIcons/Dark/15_Rod_of_Darkness.png";
-        BaseCooldown = 5;
-        BaseDamage = 10;
-        BaseType = DamageType.Darkness;
         _hitModifiers.Add(new ConsumeBuffHitModifier(onBuffConsumed, typeof(Corruption), true));
         _hitModifiers.Add(new ConsumeBuffHitModifier(onBuffConsumed, typeof(Agony), true));
     }
@@ -32,16 +29,18 @@ public class Plagueburst : Ability
 
     public override void InternalUse()
     {
-        GlobalAbilitySpawner.SpawnAoe(new AoeBaseStats()
+        var stats = new AoeBaseStats()
         {
-            ActivationTime = 3f,
-            Radius = 100,
-            Duration = 0,
+            ActivationTime = ConfigParam("activationTime", 3f),
+            Radius = ConfigParam("radius", 100f),
+            Duration = ConfigParam("duration", 0f),
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
             Owner = Caller,
             AbilityGUID = GUID,
-            Angle = 90,
-        });
+            Angle = ConfigParam("angle", 90f),
+        };
+        ApplyAoeConfig(stats);
+        GlobalAbilitySpawner.SpawnAoe(stats);
     }
 
     private void OnActivation(List<IEntityComponent> playersHit, AoeBase source)
@@ -73,8 +72,11 @@ public class Plagueburst : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
     {
+    }
 
+    protected override void ApplyUpdate2()
+    {
     }
 }

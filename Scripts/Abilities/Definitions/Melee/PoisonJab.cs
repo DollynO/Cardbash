@@ -11,9 +11,6 @@ public class PoisonJab : Ability
         this.DisplayName = "Poison Jab";
         this.Description = "Well poison jab";
         this.IconPath = "res://Sprites/SkillIcons/Poison/20_Poison_Bone.png";
-        this.BaseCooldown = 5;
-        this.BaseDamage = 10;
-        this.BaseType = DamageType.Poison;
     }
 
     public override void RoundReset()
@@ -25,14 +22,15 @@ public class PoisonJab : Ability
     {
         var stats = new AoeBaseStats()
         {
-            Angle = 120,
-            ActivationTime = 0.8f,
-            Radius = 40,
-            AngleOffset = 0,
+            Angle = ConfigParam("angle", 120f),
+            ActivationTime = ConfigParam("activationTime", 0.8f),
+            Radius = ConfigParam("radius", 40f),
+            AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
             AbilityGUID = GUID,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
+        ApplyAoeConfig(stats);
         GlobalAbilitySpawner.SpawnAoe(stats);
     }
 
@@ -66,7 +64,11 @@ public class PoisonJab : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 }

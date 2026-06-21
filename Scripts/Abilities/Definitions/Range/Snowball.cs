@@ -13,9 +13,6 @@ public class Snowball : ProjectileAbility
         this.DisplayName = "Snowball";
         this.Description = "Shoots a snowball";
         this.IconPath = "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png";
-        this.BaseCooldown = 1;
-        this.BaseDamage = 1;
-        this.BaseType = DamageType.Ice;
     }
 
     public override void RoundReset()
@@ -23,23 +20,36 @@ public class Snowball : ProjectileAbility
         return;
     }
 
-    protected override void InternalUpdate()
-    {
 
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
+    {
     }
 
     protected override ProjectileRuntime GetProjectileRuntime()
     {
-        return CreateProjectileRuntime(onHit, new SizeIncreaseBehavior(1f, 10.0f));
+        return CreateProjectileRuntime(
+            onHit,
+            new SizeIncreaseBehavior(
+                ConfigParam("sizeIncreasePerSecond", 1f),
+                ConfigParam("healthIncreasePerSecond", 10.0f)));
     }
 
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        var request = AimedProjectile("res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres", 100, -1);
-        request.Health.Life = 100;
-        request.Collision.CollisionMask = 1 << 2;
-        request.Visual.AnimationOffset = new Vector2(-8, 0);
-        request.Visual.Scale = new Vector2(1.0f, 1.0f);
+        var request = AimedProjectile(
+            "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
+            ConfigParam("projectileSpeed", 100f),
+            ConfigParam("projectileLifetime", -1f));
+        request.Health.Life = ConfigParam("projectileHealth", 100f);
+        request.Collision.CollisionMask = (uint)ConfigParam("collisionMask", 1 << 2);
+        request.Visual.AnimationOffset = new Vector2(ConfigParam("animationOffsetX", -8f), ConfigParam("animationOffsetY", 0f));
+        var scale = ConfigParam("projectileScale", 1.0f);
+        request.Visual.Scale = new Vector2(scale, scale);
+        ApplyProjectileConfig(request);
         return request;
     }
 

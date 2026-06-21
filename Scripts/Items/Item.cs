@@ -1,5 +1,6 @@
 ﻿using System;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
@@ -18,6 +19,28 @@ public abstract partial class Item : BaseCardableObject
 
     public abstract void ApplyItem(IEntityComponent targetEntity);
     public abstract void RemoveItem(IEntityComponent targetEntity);
+
+    public virtual void ApplyGameplayConfig(GameplayConfigEntry config)
+    {
+        if (config == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.DisplayName)) DisplayName = config.DisplayName;
+        if (!string.IsNullOrWhiteSpace(config.Description)) Description = config.Description;
+        if (!string.IsNullOrWhiteSpace(config.IconPath)) IconPath = config.IconPath;
+    }
+
+    protected float ConfigParam(string paramName, float fallback)
+    {
+        return GameplayConfigManager.GetItemParam(GUID, paramName, fallback);
+    }
+
+    protected int ConfigParam(string paramName, int fallback)
+    {
+        return GameplayConfigManager.GetItemParam(GUID, paramName, fallback);
+    }
 
     public void DisableItem(IEntityComponent targetEntity)
     {

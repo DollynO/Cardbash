@@ -18,7 +18,7 @@ public partial class SwiftBoots : Item
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
             statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.MovementSpeed,
-                StatOp.PercentAdd, StatIncrease / 100f));
+                StatOp.PercentAdd, ConfigParam("statIncrease", StatIncrease) / 100f));
         }
     }
 

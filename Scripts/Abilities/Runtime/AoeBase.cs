@@ -43,9 +43,11 @@ public class AoeBaseStats
             ["Duration"] = Duration,
             ["IsStationary"] = IsStationary,
             ["StationaryPosition"] = StationaryPosition,
-            ["OwnerId"] = ((Node2D)Owner).GetPath(),
+            ["OwnerPath"] = Owner is Node2D ownerNode ? ownerNode.GetPath() : string.Empty,
+            ["OwnerPlayerId"] = Owner is PlayerCharacter ownerPlayer ? ownerPlayer.PlayerId : 0,
             ["AbilityGUID"] = AbilityGUID,
             ["TickInterval"] = TickInterval,
+            ["ShapeUpdateInterval"] = ShapeUpdateInterval,
         };
 
         return dict;
@@ -64,8 +66,25 @@ public class AoeBaseStats
             StationaryPosition = (Vector2)dict["StationaryPosition"],
             AbilityGUID = (string)dict["AbilityGUID"],
             TickInterval = (float)dict["TickInterval"],
-            Owner = (IEntityComponent)gameManager.GetNode((string)dict["OwnerId"]),
+            ShapeUpdateInterval = (float)dict["ShapeUpdateInterval"],
         };
+        if (dict.TryGetValue("OwnerPlayerId", out var ownerPlayerIdVariant)
+            && (long)ownerPlayerIdVariant != 0
+            && gameManager.GetPlayerCharacter((long)ownerPlayerIdVariant) is { } ownerPlayer)
+        {
+            stats.Owner = ownerPlayer;
+        }
+        else
+        {
+            var ownerPath = dict.TryGetValue("OwnerPath", out var ownerPathVariant)
+                ? (string)ownerPathVariant
+                : dict.TryGetValue("OwnerId", out var legacyOwnerPathVariant)
+                    ? (string)legacyOwnerPathVariant
+                    : string.Empty;
+            stats.Owner = string.IsNullOrEmpty(ownerPath)
+                ? null
+                : gameManager.GetNodeOrNull<Node>(ownerPath) as IEntityComponent;
+        }
 
         return stats;
     }

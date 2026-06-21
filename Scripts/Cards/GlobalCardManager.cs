@@ -1,5 +1,6 @@
 ﻿using System;
 using CardBase.Scripts.Abilities;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.Items;
 using Godot;
 using Godot.Collections;
@@ -25,12 +26,13 @@ public partial class GlobalCardManager : Node
         foreach (var entry in AbilityManager.Abilities)
         {
             var item = entry.Value(null);
+            var config = GameplayConfigManager.GetEntry(GameplayConfigKind.Ability, item.GUID);
 
             var card = new AbilityCard()
             {
-                Description = item.Description,
-                DisplayName = item.DisplayName,
-                IconPath = item.IconPath,
+                Description = ConfigText(config?.Description, item.Description),
+                DisplayName = ConfigText(config?.DisplayName, item.DisplayName),
+                IconPath = ConfigText(config?.IconPath, item.IconPath),
                 EffectGUID = item.GUID,
                 CardType = CardType.Ability,
             };
@@ -49,21 +51,28 @@ public partial class GlobalCardManager : Node
     private void create_cards<[MustBeVariant] T>(Dictionary<string, T> target, CardType type, SGeneric.Dictionary<string, Func<BaseCardableObject>> dict) where T : Card, new()
     {
         target.Clear();
+        var kind = type == CardType.Ability ? GameplayConfigKind.Ability : GameplayConfigKind.Item;
         foreach (var entry in dict)
         {
             var item = entry.Value();
+            var config = GameplayConfigManager.GetEntry(kind, item.GUID);
 
             var card = new T()
             {
-                Description = item.Description,
-                DisplayName = item.DisplayName,
-                IconPath = item.IconPath,
+                Description = ConfigText(config?.Description, item.Description),
+                DisplayName = ConfigText(config?.DisplayName, item.DisplayName),
+                IconPath = ConfigText(config?.IconPath, item.IconPath),
                 EffectGUID = item.GUID,
                 CardType = type,
             };
 
             target.Add(card.EffectGUID, card);
         }
+    }
+
+    private static string ConfigText(string value, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
     public void SaveDecks()

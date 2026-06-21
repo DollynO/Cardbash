@@ -24,8 +24,9 @@ public class PoisonOrb : Item
                 TargetDamageType = DamageType.Poison,
                 OutputDamageType = DamageType.Poison,
                 Type = DamageModifierType.Modifier,
-                Value = StatIncrease,
+                Value = ConfigParam("damageModifier", StatIncrease),
             };
+            _damageModifier.Value = ConfigParam("damageModifier", StatIncrease);
 
             statblock.DamageModifier.Add(_damageModifier);
         }

@@ -17,9 +17,6 @@ public class RicOSpam : ProjectileAbility
         this.DisplayName = "Ric-O-Spam";
         this.Description = "SPAAAM";
         this.IconPath = "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png";
-        this.BaseCooldown = 5;
-        this.BaseDamage = 5;
-        this.BaseType = DamageType.Physical;
         this.SpawnDelay = 0.5f;
     }
 
@@ -30,12 +27,15 @@ public class RicOSpam : ProjectileAbility
 
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        var offset = rnd.NextInt64(-15, 15);
-        var request = AimedProjectile("res://AnimationRes/Projectile/RicOSpam/P_RicOSpam.tres", 500, 10);
+        var spreadDegrees = Math.Max(1, ConfigParam("spreadDegrees", 15));
+        var offset = rnd.NextInt64(-spreadDegrees, spreadDegrees);
+        var request = AimedProjectile(
+            "res://AnimationRes/Projectile/RicOSpam/P_RicOSpam.tres",
+            ConfigParam("projectileSpeed", 500f),
+            ConfigParam("projectileLifetime", 10f));
+        ApplyProjectileConfig(request);
         request.CastGuid = currentCastGuid;
-        request.Movement.AngleOffset = offset * Mathf.Pi / 180;
-        request.Movement.BounceCount = 2;
-        request.Visual.Scale = new Vector2(0.5f, 0.5f);
+        request.Movement.AngleOffset = ConfigParam("angleOffset", 0f) + offset * Mathf.Pi / 180;
         return request;
     }
 
@@ -69,21 +69,26 @@ public class RicOSpam : ProjectileAbility
         return;
     }
 
-    protected override void InternalUpdate()
-    {
 
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
+    {
     }
 
     protected override void _onProjectileCollided(Vector2 position, Projectile projectile)
     {
         if (projectileLists.TryGetValue(projectile.SpawnRequest.CastGuid, out var _projectiles))
         {
-            if (_projectiles.Count <= 10)
+            if (_projectiles.Count <= ConfigParam("maxSplitProjectiles", 10))
             {
                 var request = GetProjectileSpawnRequest();
                 request.CastGuid = projectile.SpawnRequest.CastGuid;
                 request.StartPosition = position;
-                var offset = rnd.NextInt64(-15, 15);
+                var spreadDegrees = Math.Max(1, ConfigParam("spreadDegrees", 15));
+                var offset = rnd.NextInt64(-spreadDegrees, spreadDegrees);
                 request.Movement.Direction = projectile.SpawnRequest.Movement.Direction.Rotated(Mathf.DegToRad(offset));
                 request.Movement.AngleOffset = 0;
                 request.Caller = Caller;
@@ -123,7 +128,7 @@ public class RicOSpam : ProjectileAbility
 
     protected override bool PreSpawnProjectile()
     {
-        while (projectileLists.Count > 3)
+        while (projectileLists.Count > ConfigParam("maxActiveCasts", 3))
         {
             var kvp = projectileLists.First();
             deleteProjectileList(kvp.Value);

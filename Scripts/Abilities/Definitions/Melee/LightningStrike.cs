@@ -12,9 +12,6 @@ public class LightningStrike : Ability
         this.DisplayName = "Lightning Strike";
         this.Description = "Fast lightning strike";
         this.IconPath = "res://Sprites/SkillIcons/Lightning/3_Electric_Boom.png";
-        this.BaseCooldown = 10;
-        this.BaseDamage = 20;
-        this.BaseType = DamageType.Lightning;
     }
 
     public override void RoundReset()
@@ -26,13 +23,14 @@ public class LightningStrike : Ability
     {
         var stats = new AoeBaseStats()
         {
-            Angle = 15,
-            ActivationTime = 0.3f,
-            Radius = 150,
+            Angle = ConfigParam("angle", 15f),
+            ActivationTime = ConfigParam("activationTime", 0.3f),
+            Radius = ConfigParam("radius", 150f),
             Owner = Caller,
             AbilityGUID = GUID,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
+        ApplyAoeConfig(stats);
         GlobalAbilitySpawner.SpawnAoe(stats);
     }
 
@@ -66,16 +64,14 @@ public class LightningStrike : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    
+    protected override void ApplyUpdate1()
     {
-        if (UpdateCounter == 1)
-        {
-            this._hitModifiers.Add(new ResetCooldownHitModifier());
-        }
+        this._hitModifiers.Add(new ResetCooldownHitModifier());
+    }
 
-        if (UpdateCounter == 2)
-        {
-            this.BaseCooldown = 5;
-        }
+    protected override void ApplyUpdate2()
+    {
+        this.BaseCooldown = 5;
     }
 }

@@ -40,12 +40,15 @@ public partial class GameManager : Node2D
     {
         _spawner.SpawnFunction = new Callable(this, MethodName.CustomSpawner);
         this.TeamSystem = new TeamSystem(this, _currentCharacters);
+        this.TeamSystem.Name = "TeamSystem";
         this.AddChild(TeamSystem);
         
         this.ScoreSystem = new ScoreSystem(this);
+        this.ScoreSystem.Name = "ScoreSystem";
         this.AddChild(ScoreSystem);
         
         this.CardSystem = new CardSystem(this);
+        this.CardSystem.Name = "CardSystem";
         this.AddChild(CardSystem);
     }
 

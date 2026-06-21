@@ -10,9 +10,6 @@ public class Blink : Ability
         this.DisplayName = "Blink";
         this.Description = "Teleports to the target position.";
         this.IconPath = "res://Sprites/SkillIcons/Lightning/9_Lightning_Strike.png";
-        this.BaseCooldown = 1;
-        this.BaseDamage = 10;
-        this.BaseType = DamageType.Lightning;
     }
 
     public override void RoundReset()
@@ -24,15 +21,20 @@ public class Blink : Ability
     {
         if (Caller.TryGetComponent(out AimComponent aimComponent))
         {
-            var mousePosition = aimComponent.GetPlayerMouesPosition(400);
+            var mousePosition = aimComponent.GetPlayerMouesPosition(ConfigParam("range", 400f));
             if (Caller.TryGetComponent(out MoveComponent moveComponent))
             {
-                moveComponent.RequestReposition(mousePosition, 0);
+                moveComponent.RequestReposition(mousePosition, ConfigParam("repositionDelay", 0f));
             }
         }
     }
 
-    protected override void InternalUpdate()
+
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 }

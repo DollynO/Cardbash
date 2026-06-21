@@ -1,3 +1,4 @@
+using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -5,14 +6,12 @@ namespace CardBase.Scripts.Abilities.Utility;
 
 public class EscapeJump : Ability
 {
+    private CounterLeap dmgIncreaseBuff;
     public EscapeJump(PlayerCharacter creator) : base(AbilityIds.EscapeJumpGuid, creator)
     {
         this.DisplayName = "Escape Jump";
         this.Description = "Jump backwards.";
         this.IconPath = "res://Sprites/SkillIcons/Metal/17_Magnet.png";
-        this.BaseCooldown = 5;
-        this.BaseDamage = 0;
-        this.BaseType = DamageType.Physical;
     }
 
     public override void RoundReset()
@@ -26,13 +25,18 @@ public class EscapeJump : Ability
         {
             moveComponent.Knockback(
                 aimComponent.GetProjectileStartPosition(),
-                1000f,
-                1.0f);
+                ConfigParam("strength", 1000f),
+                ConfigParam("duration", 1.0f));
         }
     }
 
-    protected override void InternalUpdate()
+
+    protected override void ApplyUpdate1()
     {
-        return;
+    }
+
+    protected override void ApplyUpdate2()
+    {
+        dmgIncreaseBuff = new CounterLeap(this.Caller, this.Caller);
     }
 }

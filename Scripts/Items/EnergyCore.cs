@@ -18,7 +18,7 @@ public partial class EnergyCore : Item
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
             statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.EnergyShield, StatOp.FlatAdd,
-                StatIncrease));
+                ConfigParam("statIncrease", StatIncrease)));
         }
     }
 

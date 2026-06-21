@@ -10,12 +10,14 @@ public class Meteor : Ability
         this.DisplayName = "Meteor";
         this.Description = "Meteor";
         this.IconPath = "res://Sprites/SkillIcons/Fire/1_Meteorite.png";
-        this.BaseCooldown = 5;
-        this.BaseDamage = 75;
-        this.BaseType = DamageType.Fire;
     }
 
-    protected override void InternalUpdate()
+
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 
@@ -28,17 +30,19 @@ public class Meteor : Ability
     {
         Caller.TryGetComponent(out AimComponent aimComponent);
 
-        var aoe = GlobalAbilitySpawner.SpawnAoe(new AoeBaseStats()
+        var stats = new AoeBaseStats()
         {
-            ActivationTime = 2f,
-            Radius = 200,
-            Duration = 0,
+            ActivationTime = ConfigParam("activationTime", 2f),
+            Radius = ConfigParam("radius", 200f),
+            Duration = ConfigParam("duration", 0f),
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
             Owner = Caller,
             AbilityGUID = GUID,
-            StationaryPosition = aimComponent.GetPlayerMouesPosition(600),
+            StationaryPosition = aimComponent.GetPlayerMouesPosition(ConfigParam("range", 600f)),
             IsStationary = true,
-        });
+        };
+        ApplyAoeConfig(stats);
+        var aoe = GlobalAbilitySpawner.SpawnAoe(stats);
 
     }
 

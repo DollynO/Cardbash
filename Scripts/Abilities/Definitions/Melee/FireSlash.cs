@@ -12,9 +12,6 @@ public class FireSlash : Ability
         this.DisplayName = "Fire Slash";
         this.Description = "Melee fire strike. ";
         this.IconPath = "res://Sprites/SkillIcons/Fire/10_Fire_Tongue.png";
-        this.BaseCooldown = 1;
-        this.BaseDamage = 50;
-        this.BaseType = DamageType.Fire;
     }
 
     public override void RoundReset()
@@ -26,13 +23,14 @@ public class FireSlash : Ability
     {
         var stats = new AoeBaseStats()
         {
-            Angle = 120,
-            ActivationTime = 0.2f,
-            Radius = 80,
-            AngleOffset = 0,
+            Angle = ConfigParam("angle", 120f),
+            ActivationTime = ConfigParam("activationTime", 0.2f),
+            Radius = ConfigParam("radius", 80f),
+            AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
+        ApplyAoeConfig(stats);
         GlobalAbilitySpawner.SpawnAoe(stats);
     }
 
@@ -66,7 +64,11 @@ public class FireSlash : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 }

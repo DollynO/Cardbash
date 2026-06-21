@@ -13,9 +13,6 @@ public class DarkEdge : Ability
         this.DisplayName = "Dark Edge";
         this.Description = "Consumes all darkness / active debuffs on the target and deals damage for each consumed.";
         this.IconPath = "res://Sprites/SkillIcons/Dark/10_Dark_Blade.png";
-        this.BaseCooldown = 1;
-        this.BaseDamage = 10;
-        this.BaseType = DamageType.Darkness;
         this._hitModifiers.Add(new ConsumeBuffTypeHitModifier(onBuffConsumed, DamageType.Darkness));
     }
 
@@ -33,13 +30,14 @@ public class DarkEdge : Ability
     {
         var stats = new AoeBaseStats()
         {
-            Angle = 160,
-            ActivationTime = 0.8f,
-            Radius = 60,
-            AngleOffset = 0,
+            Angle = ConfigParam("angle", 160f),
+            ActivationTime = ConfigParam("activationTime", 0.8f),
+            Radius = ConfigParam("radius", 60f),
+            AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
+        ApplyAoeConfig(stats);
         GlobalAbilitySpawner.SpawnAoe(stats);
 
     }
@@ -73,8 +71,11 @@ public class DarkEdge : Ability
         }
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
     {
+    }
 
+    protected override void ApplyUpdate2()
+    {
     }
 }

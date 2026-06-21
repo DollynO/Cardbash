@@ -10,14 +10,14 @@ public class GrapplingHookAbility : ProjectileAbility
     {
         this.Description = "Fires a grappling hook that pulls the enemy to the caster.";
         this.IconPath = "res://Sprites/SkillIcons/Metal/17_Magnet.png";
-        this.BaseCooldown = 15;
-        this.BaseDamage = 1;
-        this.BaseType = DamageType.Physical;
-        this.SpawnCount = 1;
-        this.SpawnDelay = 0;
     }
 
-    protected override void InternalUpdate()
+
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 
@@ -47,9 +47,13 @@ public class GrapplingHookAbility : ProjectileAbility
 
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        var request = AimedProjectile("res://Sprites/Projectiles/fireBallProjectile.png", 500, 4);
+        var request = AimedProjectile(
+            "res://Sprites/Projectiles/fireBallProjectile.png",
+            ConfigParam("projectileSpeed", 500f),
+            ConfigParam("projectileLifetime", 4f));
         request.Movement.Direction = Vector2.Zero;
         request.Visual.ScenePath = "res://Scenes/Projectiles/GrapplingProjectile.tscn";
+        ApplyProjectileConfig(request);
         return request;
     }
 }

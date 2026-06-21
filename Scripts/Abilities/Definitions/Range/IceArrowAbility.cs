@@ -11,11 +11,6 @@ public class IceArrowAbility : ProjectileAbility
         this.DisplayName = "Ice Arrow";
         this.Description = "Fires an ice arrow";
         this.IconPath = "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png";
-        this.BaseCooldown = 10;
-        this.BaseDamage = 5;
-        this.BaseType = DamageType.Ice;
-        this.SpawnCount = 2;
-        this.SpawnDelay = 0.5f;
     }
 
     protected override ProjectileRuntime GetProjectileRuntime()
@@ -25,9 +20,13 @@ public class IceArrowAbility : ProjectileAbility
 
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        var request = AimedProjectile("res://AnimationRes/Projectile/Ice/I_LargeBlue.tres", 500, 4);
-        request.Movement.BounceCount = 3;
-        request.Collision.PierceCount = 1;
+        var request = AimedProjectile(
+            "res://AnimationRes/Projectile/Ice/I_LargeBlue.tres",
+            ConfigParam("projectileSpeed", 500f),
+            ConfigParam("projectileLifetime", 4f));
+        request.Movement.BounceCount = ConfigParam("bounceCount", 3);
+        request.Collision.PierceCount = ConfigParam("pierceCount", 1);
+        ApplyProjectileConfig(request);
         return request;
     }
 
@@ -42,8 +41,12 @@ public class IceArrowAbility : ProjectileAbility
         return;
     }
 
-    protected override void InternalUpdate()
-    {
 
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
+    {
     }
 }

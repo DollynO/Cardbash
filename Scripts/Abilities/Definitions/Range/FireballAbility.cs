@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CardBase.Scripts.Abilities.HitMods;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -11,10 +12,6 @@ public class FireballAbility : ProjectileAbility
         this.DisplayName = "Fireball";
         this.Description = "Fireball Description";
         this.IconPath = "res://Sprites/SkillIcons/Fire/7_Fireball.png";
-        this.MaxStack = 2;
-        this.BaseCooldown = 1;
-        this.BaseDamage = 20;
-        this.BaseType = DamageType.Fire;
     }
 
     public override void RoundReset()
@@ -22,9 +19,16 @@ public class FireballAbility : ProjectileAbility
         return;
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
     {
+        // increase max stack
+        this.MaxStack += 1;
+    }
 
+    ExplodeStats explodeStats =  new();
+    protected override void ApplyUpdate2()
+    {
+        this._hitModifiers.Add(new ExplodeOnHitModifier(explodeStats, Caller, GUID));
     }
 
     protected override ProjectileRuntime GetProjectileRuntime()
@@ -34,7 +38,12 @@ public class FireballAbility : ProjectileAbility
 
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
-        return AimedProjectile("res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres", 300, 10);
+        var request = AimedProjectile(
+            "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
+            ConfigParam("projectileSpeed", 300f),
+            ConfigParam("projectileLifetime", 10f));
+        ApplyProjectileConfig(request);
+        return request;
     }
 
     private void OnHit(IEntityComponent arg1, Projectile arg2)

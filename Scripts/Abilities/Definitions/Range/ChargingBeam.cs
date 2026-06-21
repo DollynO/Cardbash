@@ -19,9 +19,6 @@ public class ChargingBeam : Ability
         this.DisplayName = "Charging Beam";
         this.Description = "Charging Beam";
         this.IconPath = "res://Sprites/SkillIcons/Snow/11_Ice_Ray.png";
-        this.BaseCooldown = 10;
-        this.BaseDamage = 0.5f;
-        this.BaseType = DamageType.Lightning;
     }
 
     public override void RoundReset()
@@ -31,19 +28,22 @@ public class ChargingBeam : Ability
 
     public override void InternalUse()
     {
+        var rayStats = new RayStats()
+        {
+            Caster = Caller,
+            Range = ConfigParam("rayRange", 400f),
+            CollisionTick = onHit,
+            AnimationResource = "res://AnimationRes/OrangeBeam.tres",
+            CenterLoopCount = ConfigParam("rayCenterLoopCount", 8),
+            CenterLoopFolder = "res://Sprites/Projectiles/laser_beam_A_large_orange/center_loop",
+            PierceCount = ConfigParam("rayPierceCount", 1),
+        };
+        ApplyRayConfig(rayStats);
+
         var spawnData = new SpawnData()
         {
             SpawnType = SpawnType.RAY,
-            SpawnObjectData = new RayStats()
-            {
-                Caster = Caller,
-                Range = 400,
-                CollisionTick = onHit,
-                AnimationResource = "res://AnimationRes/OrangeBeam.tres",
-                CenterLoopCount = 8,
-                CenterLoopFolder = "res://Sprites/Projectiles/laser_beam_A_large_orange/center_loop",
-                PierceCount = 1,
-            }.ToDict()
+            SpawnObjectData = rayStats.ToDict()
         };
 
         _ray = (Ray)GlobalAbilitySpawner.Spawn(spawnData);
@@ -55,7 +55,7 @@ public class ChargingBeam : Ability
         if (entityComponent.TryGetComponent<BuffManagerComponent>(out var buffManagerComponent) && entityComponent.TryGetComponent(out DamageAbleComponent dac))
         {
             this.deltaSum += delta;
-            if (deltaSum >= 0.5f)
+            if (deltaSum >= ConfigParam("damageTickInterval", 0.5f))
             {
                 var shockBuffCount = Mathf.Max(buffManagerComponent.CountBuff(typeof(ShockDebuff)), 1);
                 var dmg = new Damage() { AilmentChance = this.BaseAilmentChance, DamageNumber = (float)this.BaseDamage * shockBuffCount * deltaSum, Type = this.BaseType };
@@ -80,13 +80,13 @@ public class ChargingBeam : Ability
                 shockDebuff = new ShockDebuff(ctx.Source, ctx.Target);
                 buffManagerComponent.ApplyBuff(shockDebuff);
 
-                if (shockBuffCount % 5 == 0)
+                if (shockBuffCount % Mathf.Max(1, ConfigParam("shockAoeStackInterval", 5)) == 0)
                 {
                     var aoeStats = new AoeBaseStats
                     {
-                        Radius = 100,
-                        ActivationTime = 0.5f,
-                        Duration = 0,
+                        Radius = ConfigParam("shockAoeRadius", 100f),
+                        ActivationTime = ConfigParam("shockAoeActivationTime", 0.5f),
+                        Duration = ConfigParam("shockAoeDuration", 0f),
                         IsStationary = true,
                         StationaryPosition = ((Node2D)ctx.Target).GlobalPosition,
                         Callbacks = new AoeBaseCallbacks
@@ -111,7 +111,7 @@ public class ChargingBeam : Ability
         {
             AilmentChance = BaseAilmentChance,
             Type = BaseType,
-            DamageNumber = aoeBaseDamage,
+            DamageNumber = ConfigParam("shockAoeDamage", aoeBaseDamage),
         };
         dict.Add(BaseType, damage);
 
@@ -147,7 +147,11 @@ public class ChargingBeam : Ability
         _ray = null;
     }
 
-    protected override void InternalUpdate()
+    protected override void ApplyUpdate1()
+    {
+    }
+
+    protected override void ApplyUpdate2()
     {
     }
 }

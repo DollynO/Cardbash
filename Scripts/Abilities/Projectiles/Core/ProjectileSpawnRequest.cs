@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
@@ -22,7 +23,8 @@ public class ProjectileSpawnRequest
         return new Godot.Collections.Dictionary<string, Variant>
         {
             { nameof(CastGuid), CastGuid },
-            { nameof(Caller), ((Node2D)Caller).GetPath() },
+            { nameof(Caller), Caller is Node2D callerNode ? callerNode.GetPath() : string.Empty },
+            { "CallerPlayerId", Caller is PlayerCharacter callerPlayer ? callerPlayer.PlayerId : 0 },
             { nameof(StartPosition), StartPosition },
             { nameof(Visual), Visual.ToDict() },
             { nameof(Movement), Movement.ToDict() },
@@ -38,7 +40,7 @@ public class ProjectileSpawnRequest
         return new ProjectileSpawnRequest
         {
             CastGuid = (string)dict[nameof(CastGuid)],
-            Caller = (IEntityComponent)manager.GetNode((string)dict[nameof(Caller)]),
+            Caller = ResolveCaller(dict, manager),
             StartPosition = (Vector2)dict[nameof(StartPosition)],
             Visual = ProjectileVisualConfig.FromDict(dict[nameof(Visual)].AsGodotDictionary<string, Variant>()),
             Movement = ProjectileMovementConfig.FromDict(dict[nameof(Movement)].AsGodotDictionary<string, Variant>()),
@@ -47,6 +49,23 @@ public class ProjectileSpawnRequest
             Pull = ProjectilePullConfig.FromDict(dict[nameof(Pull)].AsGodotDictionary<string, Variant>()),
             Health = ProjectileHealthConfig.FromDict(dict[nameof(Health)].AsGodotDictionary<string, Variant>()),
         };
+    }
+
+    private static IEntityComponent ResolveCaller(Godot.Collections.Dictionary<string, Variant> dict, GameManager manager)
+    {
+        if (dict.TryGetValue("CallerPlayerId", out var callerPlayerIdVariant)
+            && (long)callerPlayerIdVariant != 0
+            && manager.GetPlayerCharacter((long)callerPlayerIdVariant) is { } callerPlayer)
+        {
+            return callerPlayer;
+        }
+
+        var callerPath = dict.TryGetValue(nameof(Caller), out var callerPathVariant)
+            ? (string)callerPathVariant
+            : string.Empty;
+        return string.IsNullOrEmpty(callerPath)
+            ? null
+            : manager.GetNodeOrNull<Node>(callerPath) as IEntityComponent;
     }
 }
 

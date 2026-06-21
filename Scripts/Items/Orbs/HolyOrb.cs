@@ -25,8 +25,9 @@ public class HolyOrb : Item
                 TargetDamageType = damageType,
                 OutputDamageType = damageType,
                 Type = DamageModifierType.Modifier,
-                Value = StatIncrease,
+                Value = ConfigParam("damageModifier", StatIncrease),
             };
+            _damageModifier.Value = ConfigParam("damageModifier", StatIncrease);
 
             statblock.DamageModifier.Add(_damageModifier);
         }

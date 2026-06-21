@@ -1,7 +1,10 @@
 using Godot;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CardBase.Scripts;
 using CardBase.Scripts.Cards;
+using CardBase.Scripts.GameSettings;
 using Godot.Collections;
 
 public partial class LobbyManager : ColorRect
@@ -23,6 +26,10 @@ public partial class LobbyManager : ColorRect
     private bool _subscribedToPlayerJoined;
 
     private Player currentPlayer;
+    private GameplayConfigEditor _configEditor;
+    private readonly HashSet<long> _configSyncAcks = new();
+    private string _configSyncHash = string.Empty;
+    private bool _isStartingGame;
 
     // Called when the node enters the scene tree for the first time.
     public override void _EnterTree()
@@ -33,12 +40,14 @@ public partial class LobbyManager : ColorRect
     {
         _sceneManager = GetNode<SceneManager>("/root/Main");
         _network = GetNode<NetworkManager>(NetworkManager.GetNetworkManagerPath());
+        GameplayConfigManager.LoadHostConfig();
         _network.OnServerDisconnected += open_main_menu;
         _subscribedToServerDisconnected = true;
         if (Multiplayer.IsServer())
         {
             _network.OnPlayerJoined += on_player_joined;
             _subscribedToPlayerJoined = true;
+            AddGameplayConfigEditor();
         }
 
         while (_teamSelect.ItemCount > 0)
@@ -79,7 +88,7 @@ public partial class LobbyManager : ColorRect
 
     public void update_ui()
     {
-        startButton.Disabled = !(Multiplayer.IsServer() && _network.CurrentPlayers.Values.All(p => p.IsReady));
+        startButton.Disabled = _isStartingGame || !(Multiplayer.IsServer() && _network.CurrentPlayers.Values.All(p => p.IsReady));
         var playerCount = _network.CurrentPlayers.Count;
         var playerList = _network.CurrentPlayers.Values.ToList();
 
@@ -157,11 +166,31 @@ public partial class LobbyManager : ColorRect
 
     private void _on_start_pressed()
     {
+        StartGame();
+    }
+
+    private async void StartGame()
+    {
+        if (!Multiplayer.IsServer() || _isStartingGame)
+        {
+            return;
+        }
+
+        _isStartingGame = true;
+        update_ui();
+
         var settings = new GameModeSettings();
         settings.CardsPerRound = int.TryParse(gameSettingFields[0].Text, out var value) ? value : 3;
         settings.PointsToWin = int.TryParse(gameSettingFields[1].Text, out value) ? value : 100;
         settings.PointsOnRoundEnd = int.TryParse(gameSettingFields[2].Text, out value) ? value : 15;
         settings.PointsOnKill = int.TryParse(gameSettingFields[3].Text, out value) ? value : 10;
+
+        if (!await SyncGameplayConfigBeforeGameStart())
+        {
+            _isStartingGame = false;
+            update_ui();
+            return;
+        }
 
         _sceneManager.LoadGameScene(settings);
     }
@@ -186,6 +215,62 @@ public partial class LobbyManager : ColorRect
     private void on_player_joined(long id)
     {
         Rpc(MethodName._allUnready);
+    }
+
+    private void AddGameplayConfigEditor()
+    {
+        var footer = startButton.GetParent<Control>();
+        var configButton = new Button
+        {
+            Text = "Card Config",
+            MouseFilter = Control.MouseFilterEnum.Stop,
+            ZIndex = 10,
+            AnchorLeft = 0,
+            AnchorTop = 0.5f,
+            AnchorRight = 0,
+            AnchorBottom = 0.5f,
+            OffsetLeft = 0,
+            OffsetTop = -20,
+            OffsetRight = 190,
+            OffsetBottom = 20,
+        };
+        configButton.Pressed += () => _configEditor?.Open();
+        footer.AddChild(configButton);
+
+        _configEditor = new GameplayConfigEditor();
+        _configEditor.ZIndex = 100;
+        _configEditor.ConfigSaved += OnGameplayConfigSaved;
+        GetNode<CanvasLayer>("CanvasLayer").AddChild(_configEditor);
+    }
+
+    private void OnGameplayConfigSaved()
+    {
+        Rpc(MethodName._allUnready);
+    }
+
+    private async Task<bool> SyncGameplayConfigBeforeGameStart()
+    {
+        GameplayConfigManager.LoadHostConfig();
+        var json = GameplayConfigManager.GetMergedJson();
+        _configSyncHash = GameplayConfigManager.ComputeHash(json);
+        _configSyncAcks.Clear();
+
+        Rpc(MethodName._syncGameplayConfig, json, _configSyncHash);
+
+        var deadline = Time.GetTicksMsec() + 3000;
+        while (Time.GetTicksMsec() < deadline)
+        {
+            var expectedAcks = Multiplayer.GetPeers().Length + 1;
+            if (_configSyncAcks.Count >= expectedAcks)
+            {
+                return true;
+            }
+
+            await ToSignal(GetTree().CreateTimer(0.05), Timer.SignalName.Timeout);
+        }
+
+        GD.PrintErr("Timed out while syncing gameplay config to clients.");
+        return false;
     }
 
     private void _on_team_selected(int index)
@@ -216,5 +301,34 @@ public partial class LobbyManager : ColorRect
         {
             player.IsReady = false;
         }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void _syncGameplayConfig(string json, string hash)
+    {
+        if (!GameplayConfigManager.LoadSyncedConfig(json, hash, out var error))
+        {
+            GD.PrintErr(error);
+            return;
+        }
+
+        if (Multiplayer.IsServer())
+        {
+            _configSyncAcks.Add(Multiplayer.GetUniqueId());
+            return;
+        }
+
+        RpcId(1, MethodName._ackGameplayConfig, Multiplayer.GetUniqueId(), hash);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void _ackGameplayConfig(long playerId, string hash)
+    {
+        if (!Multiplayer.IsServer() || hash != _configSyncHash)
+        {
+            return;
+        }
+
+        _configSyncAcks.Add(playerId);
     }
 }

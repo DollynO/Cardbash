@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CardBase.Scripts.Abilities.TriggerStrategy;
+using CardBase.Scripts.GameSettings;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -218,6 +219,101 @@ public abstract class Ability : BaseCardableObject
 
     }
 
+    public virtual void ApplyGameplayConfig(GameplayConfigEntry config)
+    {
+        if (config == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.DisplayName)) DisplayName = config.DisplayName;
+        if (!string.IsNullOrWhiteSpace(config.Description)) Description = config.Description;
+        if (!string.IsNullOrWhiteSpace(config.IconPath)) IconPath = config.IconPath;
+        if (config.Cooldown.HasValue) BaseCooldown = config.Cooldown.Value;
+        if (config.BaseDamage.HasValue) BaseDamage = config.BaseDamage.Value;
+        if (config.MaxStack.HasValue) MaxStack = config.MaxStack.Value;
+        if (config.BaseAilmentChance.HasValue) BaseAilmentChance = (float)config.BaseAilmentChance.Value;
+        if (config.DamageType.HasValue
+            && System.Enum.IsDefined(typeof(DamageType), config.DamageType.Value))
+        {
+            BaseType = (DamageType)config.DamageType.Value;
+        }
+    }
+
+    protected float ConfigParam(string paramName, float fallback)
+    {
+        return GameplayConfigManager.GetAbilityParam(GUID, paramName, fallback);
+    }
+
+    protected int ConfigParam(string paramName, int fallback)
+    {
+        return GameplayConfigManager.GetAbilityParam(GUID, paramName, fallback);
+    }
+
+    protected void ApplyProjectileConfig(ProjectileSpawnRequest request)
+    {
+        if (request == null)
+        {
+            return;
+        }
+
+        request.Movement.Speed = ConfigParam("projectileSpeed", request.Movement.Speed);
+        var movementMode = ConfigParam("movementMode", (int)request.Movement.Mode);
+        if (System.Enum.IsDefined(typeof(MovementMode), movementMode))
+        {
+            request.Movement.Mode = (MovementMode)movementMode;
+        }
+
+        request.Movement.BounceCount = ConfigParam("bounceCount", request.Movement.BounceCount);
+        request.Movement.AngleOffset = ConfigParam("angleOffset", request.Movement.AngleOffset);
+        request.Collision.PierceCount = ConfigParam("pierceCount", request.Collision.PierceCount);
+        request.Collision.CollisionMask = (uint)ConfigParam("collisionMask", (int)request.Collision.CollisionMask);
+        request.Lifetime.Seconds = ConfigParam("projectileLifetime", request.Lifetime.Seconds);
+        request.Pull.Radius = ConfigParam("pullRadius", request.Pull.Radius);
+        request.Pull.Strength = ConfigParam("pullStrength", request.Pull.Strength);
+        request.Health.Life = ConfigParam("projectileHealth", request.Health.Life);
+
+        var uniformScale = ConfigParam("projectileScale", request.Visual.Scale.X);
+        request.Visual.Scale = new Vector2(
+            ConfigParam("projectileScaleX", uniformScale),
+            ConfigParam("projectileScaleY", uniformScale));
+        request.Visual.AnimationOffset = new Vector2(
+            ConfigParam("animationOffsetX", request.Visual.AnimationOffset.X),
+            ConfigParam("animationOffsetY", request.Visual.AnimationOffset.Y));
+    }
+
+    protected void ApplyAoeConfig(AoeBaseStats stats, bool applyAngleOffset = true)
+    {
+        if (stats == null)
+        {
+            return;
+        }
+
+        stats.Radius = ConfigParam("radius", stats.Radius);
+        stats.Angle = ConfigParam("angle", stats.Angle);
+        if (applyAngleOffset)
+        {
+            stats.AngleOffset = ConfigParam("angleOffset", stats.AngleOffset);
+        }
+        stats.ActivationTime = ConfigParam("activationTime", stats.ActivationTime);
+        stats.Duration = ConfigParam("duration", stats.Duration);
+        stats.TickInterval = ConfigParam("tickInterval", stats.TickInterval);
+        stats.ShapeUpdateInterval = ConfigParam("shapeUpdateInterval", stats.ShapeUpdateInterval);
+    }
+
+    protected void ApplyRayConfig(RayStats stats)
+    {
+        if (stats == null)
+        {
+            return;
+        }
+
+        stats.Range = ConfigParam("rayRange", stats.Range);
+        stats.CollisionMask = (uint)ConfigParam("rayCollisionMask", (int)stats.CollisionMask);
+        stats.CenterLoopCount = ConfigParam("rayCenterLoopCount", stats.CenterLoopCount);
+        stats.PierceCount = ConfigParam("rayPierceCount", stats.PierceCount);
+    }
+
     public void HandleInput(AbilityKeyState state, double delta)
     {
         switch (state)
@@ -247,16 +343,22 @@ public abstract class Ability : BaseCardableObject
 
     public void ApplyUpdate()
     {
-        if (UpdateCounter > 2)
+        switch (UpdateCounter)
         {
-            return;
+            case 0:
+                ApplyUpdate1();
+                break;
+            case 1:
+                ApplyUpdate2();
+                break;
+            default:
+                return;
         }
-
         UpdateCounter++;
-        InternalUpdate();
     }
 
-    protected abstract void InternalUpdate();
+    protected abstract void ApplyUpdate1();
+    protected abstract void ApplyUpdate2();
 
     public void CancelAbility()
     {
