@@ -107,6 +107,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         AddComponent(StatBlock);
 
         AddComponent(new MoveComponent());
+        AddComponent(new MovementPredictionComponent());
 
         var aimComponent = new AimComponent(_characterCenterPoint, _lookAtDirectionPoint, _lookAtDirectionCorrection);
         AddComponent(aimComponent);
@@ -168,14 +169,6 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.CooldownReduction, 1, 0.2f, 1.8f); // max +-80% cooldown 
-    }
-
-    public override void _PhysicsProcess(double delta)
-    {
-        if (TryGetComponent(out MoveComponent moveComponent))
-        {
-            moveComponent.ProcessMovement(delta, new Vector2(_playerInput.XDirection, _playerInput.YDirection));
-        }
     }
 
     public override void _Process(double delta)

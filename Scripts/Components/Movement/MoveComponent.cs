@@ -52,9 +52,14 @@ public partial class MoveComponent : Node2D, IComponent
         IsMovementDisabled = false;
     }
 
+    public void ProcessMovement(double delta, PlayerMoveInput input)
+    {
+        ProcessMovement(delta, input.Direction);
+    }
+
     public void ProcessMovement(double delta, Vector2 direction)
     {
-        if (!Multiplayer.IsServer())
+        if (!CanSimulateMovement())
         {
             return;
         }
@@ -107,6 +112,74 @@ public partial class MoveComponent : Node2D, IComponent
         {
             ((PlayerCharacter)Parent).Velocity = Vector2.Zero;
         }
+    }
+
+    public MovementSnapshot CreateSnapshot(int tick)
+    {
+        var character = (PlayerCharacter)Parent;
+
+        return new MovementSnapshot(
+            tick,
+            character.GlobalPosition,
+            character.Velocity,
+            Stun,
+            StunTime,
+            MaxStunTime,
+            hitstun,
+            rooted,
+            IsMovementDisabled,
+            _impulsVector,
+            _forceVector,
+            _forceDecayTime,
+            _repositionPosition,
+            repositionBlock);
+    }
+
+    public List<MovementSnapshot> ReconcileFromSnapshot(
+        MovementSnapshot snapshot,
+        IReadOnlyList<PlayerMoveInput> replayInputs,
+        double delta)
+    {
+        ApplySnapshot(snapshot);
+
+        var replayedSnapshots = new List<MovementSnapshot>();
+        foreach (var input in replayInputs)
+        {
+            ProcessMovement(delta, input);
+            replayedSnapshots.Add(CreateSnapshot(input.Tick));
+        }
+
+        return replayedSnapshots;
+    }
+
+    private void ApplySnapshot(MovementSnapshot snapshot)
+    {
+        var character = (PlayerCharacter)Parent;
+
+        character.GlobalPosition = snapshot.Position;
+        character.Velocity = snapshot.Velocity;
+        Stun = snapshot.Stun;
+        StunTime = snapshot.StunTime;
+        MaxStunTime = snapshot.MaxStunTime;
+        hitstun = snapshot.Hitstun;
+        rooted = snapshot.Rooted;
+        IsMovementDisabled = snapshot.MovementDisabled;
+        _impulsVector = snapshot.ImpulseVector;
+        _forceVector = snapshot.ForceVector;
+        _forceDecayTime = snapshot.ForceDecayTime;
+        _repositionPosition = snapshot.RepositionPosition;
+        repositionBlock = snapshot.RepositionBlock;
+    }
+
+    private bool CanSimulateMovement()
+    {
+        if (Multiplayer.IsServer())
+        {
+            return true;
+        }
+
+        return Parent is PlayerCharacter character
+               && character.PlayerId == Multiplayer.GetUniqueId();
     }
 
     public async void RequestReposition(Vector2 globalPosition, float travelTime)
