@@ -153,16 +153,13 @@ public abstract class Ability : BaseCardableObject
             if (CurrentCooldown <= 0)
             {
                 CurrentStack++;
-                if (CurrentStack >= MaxStack)
+                if (Caller.TryGetComponent(out StatblockComponent statblock))
                 {
-                    if (Caller.TryGetComponent(out StatblockComponent statblock))
-                    {
-                        CurrentCooldown = BaseCooldown * statblock.GetStat(StatType.CooldownReduction);
-                    }
-                    else
-                    {
-                        CurrentCooldown = BaseCooldown;
-                    }
+                    CurrentCooldown = BaseCooldown * statblock.GetStat(StatType.CooldownReduction);
+                }
+                else
+                {
+                    CurrentCooldown = BaseCooldown;
                 }
             }
         }

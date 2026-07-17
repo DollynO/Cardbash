@@ -36,6 +36,8 @@ public enum StatType
 
     AddPullRadius,
     AddPullStrength,
+    
+    IncreasedAOERange,
 }
 
 public sealed class StatBlock

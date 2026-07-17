@@ -42,9 +42,10 @@ public partial class BuffManagerComponent : Node2D, IComponent
         buffRow.Position = new Vector2(0, -40);
 
         spawner = new MultiplayerSpawner();
-        spawner.SetMultiplayerAuthority(1);
         AddChild(spawner);
-        spawner.SpawnPath = buffRow.GetPath();
+        spawner.Name = "BuffIconSpawner";
+        spawner.SetMultiplayerAuthority(1);
+        spawner.SpawnPath = spawner.GetPathTo(buffRow);
         spawner.SpawnFunction = new Callable(this, MethodName.CustomSpawner);
         spawner.Spawned += OnIconSpawned;
     }

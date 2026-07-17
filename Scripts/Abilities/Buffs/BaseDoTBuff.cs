@@ -24,7 +24,14 @@ public class BaseDoTBuff : Buff
             return;
         }
 
-        var damage = new Damage { DamageNumber = BaseDamage * StackCount * delta, AilmentChance = 0, Type = BaseDamageType };
+        var factor = 1.0f;
+        if (Caller.TryGetComponent(out StatblockComponent statblock))
+        {
+            
+        }
+        var damagePoint = (BaseDamage / Duration) * StackCount * delta;
+        
+        var damage = new Damage { DamageNumber = damagePoint, AilmentChance = 0, Type = BaseDamageType };
         var ctx = new HitContext
         {
             Source = Caller,

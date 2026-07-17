@@ -18,7 +18,7 @@ public class HitResolver
         }
 
         var hitMods = new List<IHitModifier>();
-        if (ctx.Source.TryGetComponent<AbilityComponent>(out var component))
+        if (ctx.Source.TryGetComponent<AbilityComponent>(out var component) && !string.IsNullOrEmpty(ctx.AbilityGuid))
         {
             var abilityHitMods = component.Abilities.FirstOrDefault(a => a.Value.GUID == ctx.AbilityGuid).Value.GetHitModifiers();
             if (abilityHitMods != null)

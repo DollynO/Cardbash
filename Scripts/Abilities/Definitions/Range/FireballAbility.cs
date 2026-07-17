@@ -7,6 +7,8 @@ namespace CardBase.Scripts.Abilities;
 
 public class FireballAbility : ProjectileAbility
 {
+    private ExplodeOnHitModifier explodeOnHitModifier;
+
     public FireballAbility(PlayerCharacter creator) : base(AbilityIds.FireballGuid, creator)
     {
         this.DisplayName = "Fireball";
@@ -16,7 +18,12 @@ public class FireballAbility : ProjectileAbility
 
     public override void RoundReset()
     {
-        return;
+        CancelAbility();
+    }
+
+    public override void ClearAbility()
+    {
+        explodeOnHitModifier?.CancelActiveAoes();
     }
 
     protected override void ApplyUpdate1()
@@ -25,10 +32,15 @@ public class FireballAbility : ProjectileAbility
         this.MaxStack += 1;
     }
 
-    ExplodeStats explodeStats =  new();
     protected override void ApplyUpdate2()
     {
-        this._hitModifiers.Add(new ExplodeOnHitModifier(explodeStats, Caller, GUID));
+        explodeOnHitModifier = new ExplodeOnHitModifier(Caller, GUID);
+        this._hitModifiers.Add(explodeOnHitModifier);
+    }
+
+    protected override void InternalCancel()
+    {
+        explodeOnHitModifier?.CancelActiveAoes();
     }
 
     protected override ProjectileRuntime GetProjectileRuntime()

@@ -135,6 +135,16 @@ public partial class AoeBase : Node2D
         this.callbacks = pCallbacks;
     }
 
+    public void Cancel()
+    {
+        if (IsQueuedForDeletion())
+        {
+            return;
+        }
+
+        QueueFree();
+    }
+
     public override void _Ready()
     {
         if (stats == null)
@@ -489,7 +499,17 @@ public partial class AoeBase : Node2D
             collisionPoints.Add(Vector2.Zero);
         }
 
-        collisionPolygon.Polygon = collisionPoints.ToArray();
+        UpdateCollisionPolygon();
+    }
+
+    private void UpdateCollisionPolygon()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        collisionPolygon.SetDeferred(CollisionPolygon2D.PropertyName.Polygon, collisionPoints.ToArray());
     }
 
     private void UpdateDisplayPolygon()

@@ -1,19 +1,23 @@
 using System.Collections.Generic;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities.HitMods;
 
 public class ExplodeOnHitModifier : IHitModifier
 {
+    const float EXPLODE_BASE_RANGE = 50;
+    const float  EXPLODE_BASE_DAMAGE = 50;
     private ExplodeStats _explodeStats;
     private IEntityComponent _caller;
     private string _guid;
+    private readonly List<AoeBase> activeAoes = new();
     
-    public ExplodeOnHitModifier(ExplodeStats stats, IEntityComponent caller, string guid)
+    public ExplodeOnHitModifier(IEntityComponent caller, string guid)
     {
-        this._explodeStats = stats;
+        this._explodeStats = new ExplodeStats();
         this._caller = caller;
-        this._guid = guid;
+        this._guid = string.Empty; //guid;
     }
     
     public void ApplyBefore(HitContext ctx)
@@ -22,11 +26,12 @@ public class ExplodeOnHitModifier : IHitModifier
 
     public void ApplyAfter(HitContext ctx)
     {
+        update_explode_stats();
         if (ctx.Source is Node2D sourceNode)
         {
             var spawner = sourceNode.GetTree().Root
                 .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
-            spawner.SpawnAoe(new AoeBaseStats()
+            var aoe = spawner.SpawnAoe(new AoeBaseStats()
             {
                 AbilityGUID = ctx.AbilityGuid,
                 ActivationTime = 3,
@@ -39,7 +44,38 @@ public class ExplodeOnHitModifier : IHitModifier
                     OnActivation = OnActivation,
                 }
             });
+
+            if (aoe != null)
+            {
+                activeAoes.Add(aoe);
+            }
         }
+    }
+
+    public void CancelActiveAoes()
+    {
+        foreach (var aoe in activeAoes)
+        {
+            if (GodotObject.IsInstanceValid(aoe))
+            {
+                aoe.Cancel();
+            }
+        }
+
+        activeAoes.Clear();
+    }
+
+    void update_explode_stats()
+    {        
+        
+        _explodeStats.Damage = EXPLODE_BASE_DAMAGE;
+        _explodeStats.Range = EXPLODE_BASE_RANGE;
+        
+        if (_caller.TryGetComponent(out StatblockComponent sbc))
+        {
+            _explodeStats.Range *= (1 + sbc.GetStat(StatType.IncreasedAOERange));
+        }
+
     }
 
     private void OnActivation(List<IEntityComponent> obj, AoeBase aoeBase)

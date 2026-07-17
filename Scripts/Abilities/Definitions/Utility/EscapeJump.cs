@@ -27,6 +27,11 @@ public class EscapeJump : Ability
                 aimComponent.GetProjectileStartPosition(),
                 ConfigParam("strength", 1000f),
                 ConfigParam("duration", 1.0f));
+
+            if (dmgIncreaseBuff != null && Caller.TryGetComponent(out BuffManagerComponent bmc))
+            {
+                bmc.ApplyBuff(dmgIncreaseBuff);
+            }
         }
     }
 
@@ -37,6 +42,6 @@ public class EscapeJump : Ability
 
     protected override void ApplyUpdate2()
     {
-        dmgIncreaseBuff = new CounterLeap(this.Caller, this.Caller);
+        dmgIncreaseBuff = new CounterLeap(Caller, Caller);
     }
 }
