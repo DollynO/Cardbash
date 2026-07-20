@@ -56,46 +56,97 @@ public partial class PlayerUi : Control
         
         if (currentPlayer.TryGetComponent(out StatblockComponent component))
         {
-            var element = statOverviewScene.Instantiate<StatOverviewElement>();
-            var data = new StatOverviewElementData(
+            AddStatOverviewElement(
+                StatType.CritChance,
                 "res://Sprites/StatOverview/crit.png",
                 "Crit",
                 "Crit change doubles damage",
                 component.GetStat(StatType.CritChance).ToString("0.00"));
-            statOverviewContainer.AddChild(element);
-            element.Init(data);   
-            _statOverviewElements.Add(StatType.CritChance, element);
-            
-            element =  statOverviewScene.Instantiate<StatOverviewElement>();
-            data = new StatOverviewElementData(
+
+            AddStatOverviewElement(
+                StatType.EnergyShield,
                 "res://Sprites/StatOverview/energy_shield_icon.png",
                 "Energy Shield",
                 "Shields for magic damage",
                 component.GetStat(StatType.EnergyShield).ToString("0.00"));
-            statOverviewContainer.AddChild(element);
-            element.Init(data);
-            _statOverviewElements.Add(StatType.EnergyShield, element);
-            
-            element =  statOverviewScene.Instantiate<StatOverviewElement>();
-            data = new StatOverviewElementData(
+
+            AddStatOverviewElement(
+                StatType.Armor,
                 "res://Sprites/StatOverview/amor_icon.png",
                 "Armor",
                 "Defends the player from physical damage",
                 component.GetStat(StatType.Armor).ToString("0.00"));
-            statOverviewContainer.AddChild(element);
-            element.Init(data);
-            _statOverviewElements.Add(StatType.Armor, element);
-            
-            element =  statOverviewScene.Instantiate<StatOverviewElement>();
-            data = new StatOverviewElementData(
+
+            AddStatOverviewElement(
+                StatType.MovementSpeed,
                 "res://Sprites/StatOverview/movement.png",
                 "Movement speed",
                 "Movement speed of the player",
                 component.GetStat(StatType.MovementSpeed).ToString("0"));
-            statOverviewContainer.AddChild(element);
-            element.Init(data);
-            _statOverviewElements.Add(StatType.MovementSpeed, element);
+
+            AddStatOverviewElement(
+                StatType.DmgFireBonus,
+                "res://Sprites/Items/fire_orb.png",
+                "Fire damage",
+                "Increased fire damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgFireBonus)));
+
+            AddStatOverviewElement(
+                StatType.DmgIceBonus,
+                "res://Sprites/Items/ice_orb.png",
+                "Ice damage",
+                "Increased ice damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgIceBonus)));
+
+            AddStatOverviewElement(
+                StatType.DmgLightningBonus,
+                "res://Sprites/Items/lightning_orb.png",
+                "Lightning damage",
+                "Increased lightning damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgLightningBonus)));
+
+            AddStatOverviewElement(
+                StatType.DmgPoisonBonus,
+                "res://Sprites/Items/poison_orb.png",
+                "Poison damage",
+                "Increased poison damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgPoisonBonus)));
+
+            AddStatOverviewElement(
+                StatType.DmgPhysicalBonus,
+                "res://Sprites/Items/physical_orb.png",
+                "Physical damage",
+                "Increased physical damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgPhysicalBonus)));
+
+            AddStatOverviewElement(
+                StatType.DmgHolyBonus,
+                "res://Sprites/Items/holy_orb.png",
+                "Holy damage",
+                "Increased holy damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgHolyBonus)));
+
+            AddStatOverviewElement(
+                StatType.DmgDarknessBonus,
+                "res://Sprites/Items/darkness_orb.png",
+                "Darkness damage",
+                "Increased darkness damage",
+                FormatPercentBonus(component.GetStat(StatType.DmgDarknessBonus)));
         }
+    }
+
+    private void AddStatOverviewElement(
+        StatType statType,
+        string iconPath,
+        string name,
+        string description,
+        string value)
+    {
+        var element = statOverviewScene.Instantiate<StatOverviewElement>();
+        var data = new StatOverviewElementData(iconPath, name, description, value);
+        statOverviewContainer.AddChild(element);
+        element.Init(data);
+        _statOverviewElements[statType] = element;
     }
 
     private void updateStatOverview()
@@ -120,6 +171,13 @@ public partial class PlayerUi : Control
         updateStatValue(StatType.EnergyShield, component.GetStat(StatType.EnergyShield).ToString("0.00"));
         updateStatValue(StatType.Armor, component.GetStat(StatType.Armor).ToString("0.00"));
         updateStatValue(StatType.MovementSpeed, component.GetStat(StatType.MovementSpeed).ToString("0"));
+        updateStatValue(StatType.DmgFireBonus, FormatPercentBonus(component.GetStat(StatType.DmgFireBonus)));
+        updateStatValue(StatType.DmgIceBonus, FormatPercentBonus(component.GetStat(StatType.DmgIceBonus)));
+        updateStatValue(StatType.DmgLightningBonus, FormatPercentBonus(component.GetStat(StatType.DmgLightningBonus)));
+        updateStatValue(StatType.DmgPoisonBonus, FormatPercentBonus(component.GetStat(StatType.DmgPoisonBonus)));
+        updateStatValue(StatType.DmgPhysicalBonus, FormatPercentBonus(component.GetStat(StatType.DmgPhysicalBonus)));
+        updateStatValue(StatType.DmgHolyBonus, FormatPercentBonus(component.GetStat(StatType.DmgHolyBonus)));
+        updateStatValue(StatType.DmgDarknessBonus, FormatPercentBonus(component.GetStat(StatType.DmgDarknessBonus)));
     }
 
     private void updateStatValue(StatType statType, string value)
@@ -128,6 +186,12 @@ public partial class PlayerUi : Control
         {
             element.UpdateValue(value);
         }
+    }
+
+    private static string FormatPercentBonus(float value)
+    {
+        var percent = value * 100f;
+        return percent > 0 ? $"+{percent:0}%" : $"{percent:0}%";
     }
     
     private void newAbilityIndexClicked(int index)

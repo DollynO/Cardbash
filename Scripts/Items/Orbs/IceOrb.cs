@@ -1,5 +1,4 @@
 using System;
-using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
@@ -7,7 +6,6 @@ namespace CardBase.Scripts.Items;
 public class IceOrb : Item
 {
     private float StatIncrease = 0.2f;
-    private DamageModifier _damageModifier;
     public IceOrb() : base(ItemIds.IceOrbGuid)
     {
         this.DisplayName = "Ice Orb";
@@ -19,17 +17,12 @@ public class IceOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            const DamageType damageType = DamageType.Ice;
-            _damageModifier ??= new DamageModifier()
-            {
-                TargetDamageType = damageType,
-                OutputDamageType = damageType,
-                Type = DamageModifierType.Modifier,
-                Value = ConfigParam("damageModifier", StatIncrease),
-            };
-            _damageModifier.Value = ConfigParam("damageModifier", StatIncrease);
-
-            statblock.DamageModifier.Add(_damageModifier);
+            statblock.RemoveModifierSource(InstanceGuid);
+            statblock.AddModifiers(new StatModifier(
+                InstanceGuid,
+                StatType.DmgIceBonus,
+                StatOp.FlatAdd,
+                ConfigParam("damageModifier", StatIncrease)));
         }
     }
 
@@ -37,7 +30,7 @@ public class IceOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.DamageModifier.Remove(_damageModifier);
+            statblock.RemoveModifierSource(InstanceGuid);
         }
     }
 }

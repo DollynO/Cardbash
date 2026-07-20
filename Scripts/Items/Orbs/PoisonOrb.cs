@@ -1,5 +1,4 @@
 using System;
-using CardBase.Scripts.Abilities;
 using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
@@ -7,7 +6,6 @@ namespace CardBase.Scripts.Items;
 public class PoisonOrb : Item
 {
     private float StatIncrease = 0.2f;
-    private DamageModifier _damageModifier;
     public PoisonOrb() : base(ItemIds.PoisonOrbGuid)
     {
         this.DisplayName = "Poison Orb";
@@ -19,16 +17,12 @@ public class PoisonOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            _damageModifier ??= new DamageModifier()
-            {
-                TargetDamageType = DamageType.Poison,
-                OutputDamageType = DamageType.Poison,
-                Type = DamageModifierType.Modifier,
-                Value = ConfigParam("damageModifier", StatIncrease),
-            };
-            _damageModifier.Value = ConfigParam("damageModifier", StatIncrease);
-
-            statblock.DamageModifier.Add(_damageModifier);
+            statblock.RemoveModifierSource(InstanceGuid);
+            statblock.AddModifiers(new StatModifier(
+                InstanceGuid,
+                StatType.DmgPoisonBonus,
+                StatOp.FlatAdd,
+                ConfigParam("damageModifier", StatIncrease)));
         }
     }
 
@@ -36,7 +30,7 @@ public class PoisonOrb : Item
     {
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.DamageModifier.Remove(_damageModifier);
+            statblock.RemoveModifierSource(InstanceGuid);
         }
     }
 }

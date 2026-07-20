@@ -7,7 +7,7 @@ public class CounterLeap : DamageIncreaseBuff
     public CounterLeap(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Guid = System.Guid.NewGuid().ToString("N");
-        mod = new StatModifier(this.Guid, StatType.DmgBonus, StatOp.PercentAdd, 0.20f);
+        AddAllDamageTypeModifiers(0.20f);
         this.IsRefreshable = true;
         this.Description = "Boosts the damage of the next damage ability by 20%";
         this.DisplayName = "CounterLeap";

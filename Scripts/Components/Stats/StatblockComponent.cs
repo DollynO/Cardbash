@@ -18,15 +18,47 @@ public partial class StatblockComponent : Node2D, IComponent
     }
 
     public Dictionary ReplicatedCurrent = new();
-    public Dictionary DamageModsReplicated = new();
 
     private readonly StatBlock _stats = new();
 
+    public static readonly IReadOnlyDictionary<DamageType, StatType> DamageBonusStats =
+        new System.Collections.Generic.Dictionary<DamageType, StatType>
+        {
+            [DamageType.Physical] = StatType.DmgPhysicalBonus,
+            [DamageType.Poison] = StatType.DmgPoisonBonus,
+            [DamageType.Fire] = StatType.DmgFireBonus,
+            [DamageType.Ice] = StatType.DmgIceBonus,
+            [DamageType.Lightning] = StatType.DmgLightningBonus,
+            [DamageType.Darkness] = StatType.DmgDarknessBonus,
+            [DamageType.Holy] = StatType.DmgHolyBonus,
+        };
 
-    public readonly List<DamageModifier> DamageModifier = new();
-    public void AddDamageModifier(DamageModifier modifier)
+    public List<DamageModifier> GetDamageModifiers()
     {
-        DamageModifier.Add(modifier);
+        var modifiers = new List<DamageModifier>();
+
+        foreach (var (damageType, statType) in DamageBonusStats)
+        {
+            AddDamageModifier(modifiers, damageType, GetStat(statType));
+        }
+
+        return modifiers;
+    }
+
+    private static void AddDamageModifier(List<DamageModifier> modifiers, DamageType damageType, float value)
+    {
+        if (Math.Abs(value) < 0.0001f)
+        {
+            return;
+        }
+
+        modifiers.Add(new DamageModifier
+        {
+            TargetDamageType = damageType,
+            OutputDamageType = damageType,
+            Type = DamageModifierType.Modifier,
+            Value = value,
+        });
     }
 
     public override void _Ready()
@@ -55,13 +87,27 @@ public partial class StatblockComponent : Node2D, IComponent
 
     public void AddModifiers(StatModifier modifier)
     {
+        AddModifiers(new[] { modifier });
+    }
+
+    public void AddModifiers(IEnumerable<StatModifier> modifiers)
+    {
         if (!Multiplayer.IsServer()) return;
 
-        var affectedKeys = _stats.AddSourceMods(
-            modifier.SourceId,
-            modifier.Stat,
-            new[] { (modifier.Op, modifier.Value) });
-        var dict = new Godot.Collections.Dictionary<int, float>(affectedKeys.ToDictionary(kvp => (int)kvp.Key, kvp => kvp.Value));
+        var dict = new Godot.Collections.Dictionary<int, float>();
+        foreach (var modifier in modifiers)
+        {
+            var affectedKeys = _stats.AddSourceMods(
+                modifier.SourceId,
+                modifier.Stat,
+                new[] { (modifier.Op, modifier.Value) });
+
+            foreach (var (statType, value) in affectedKeys)
+            {
+                dict[(int)statType] = value;
+            }
+        }
+
         Rpc(MethodName.updateStat, dict);
     }
 

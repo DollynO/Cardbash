@@ -165,6 +165,13 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.CritChance, 0, 0, 100);
         StatBlock.Define(StatType.Darkness, 0, 0, 20);
         StatBlock.Define(StatType.Blinding, 0, 0, 20);
+        StatBlock.Define(StatType.DmgLightningBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgIceBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgFireBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgHolyBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgDarknessBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgPhysicalBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgPoisonBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
 
         StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);

@@ -24,7 +24,6 @@ public enum StatType
     Blinding,
     CooldownReduction,
 
-    DmgBonus,
     // typed damage bonus
     DmgLightningBonus,
     DmgIceBonus,

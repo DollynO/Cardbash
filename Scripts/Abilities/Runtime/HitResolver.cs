@@ -35,7 +35,7 @@ public class HitResolver
         var damageMods = new List<DamageModifier>();
         if (ctx.Source.TryGetComponent<StatblockComponent>(out var srcStatblock))
         {
-            damageMods.AddRange(srcStatblock.DamageModifier);
+            damageMods.AddRange(srcStatblock.GetDamageModifiers());
         }
         DamageCalculator.CalculateTotalDamage(ctx.Damages, damageMods);
 
