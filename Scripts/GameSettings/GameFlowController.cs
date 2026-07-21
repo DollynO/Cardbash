@@ -17,6 +17,7 @@ public partial class GameFlowController : Node
     private readonly List<(long id, string guid)> pickedCards = new();
     private int drawRoundIndex;
     private bool allCardsDrawn;
+    private bool gameStarted;
 
     public GameFlowController(GameContext ctx, GameModeSettings settings)
     {
@@ -63,6 +64,12 @@ public partial class GameFlowController : Node
 
     public void Start()
     {
+        if (Multiplayer.IsServer() && !gameStarted)
+        {
+            _mode?.ServerStartGame();
+            gameStarted = true;
+        }
+
         _phase = MatchPhase.RoundSetup;
     }
 
