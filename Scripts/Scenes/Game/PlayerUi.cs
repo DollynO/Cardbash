@@ -16,6 +16,8 @@ public partial class PlayerUi : Control
     
     [Export] private GridContainer statOverviewContainer;
     [Export] private PackedScene statOverviewScene;
+
+    [Export] private GridContainer extendedStatOverviewContainer;
     
     private System.Collections.Generic.Dictionary<StatType, StatOverviewElement> _statOverviewElements = new();
     private PlayerCharacter _statOverviewPlayer;
@@ -37,6 +39,15 @@ public partial class PlayerUi : Control
 
         _abilityPopupMenu.Clicked += newAbilityIndexClicked;
         EventBus.Instance.CardSystemEventBus.CardLockedEventHandler += card_locked;
+        
+        foreach (var child in statOverviewContainer.GetChildren())
+        {
+            child.QueueFree();
+        }
+        foreach (var child in extendedStatOverviewContainer.GetChildren())
+        {
+            child.QueueFree();
+        }
     }
 
     private void card_locked(object sender, CardEventArgs args)
@@ -57,11 +68,11 @@ public partial class PlayerUi : Control
         if (currentPlayer.TryGetComponent(out StatblockComponent component))
         {
             AddStatOverviewElement(
-                StatType.CritChance,
-                "res://Sprites/StatOverview/crit.png",
-                "Crit",
-                "Crit change doubles damage",
-                component.GetStat(StatType.CritChance).ToString("0.00"));
+                StatType.Armor,
+                "res://Sprites/StatOverview/amor_icon.png",
+                "Armor",
+                "Defends the player from physical damage",
+                component.GetStat(StatType.Armor).ToString("0.00"));
 
             AddStatOverviewElement(
                 StatType.EnergyShield,
@@ -69,13 +80,13 @@ public partial class PlayerUi : Control
                 "Energy Shield",
                 "Shields for magic damage",
                 component.GetStat(StatType.EnergyShield).ToString("0.00"));
-
+            
             AddStatOverviewElement(
-                StatType.Armor,
-                "res://Sprites/StatOverview/amor_icon.png",
-                "Armor",
-                "Defends the player from physical damage",
-                component.GetStat(StatType.Armor).ToString("0.00"));
+                StatType.CritChance,
+                "res://Sprites/StatOverview/crit.png",
+                "Crit",
+                "Crit change doubles damage",
+                component.GetStat(StatType.CritChance).ToString("0.00"));
 
             AddStatOverviewElement(
                 StatType.MovementSpeed,
@@ -84,55 +95,68 @@ public partial class PlayerUi : Control
                 "Movement speed of the player",
                 component.GetStat(StatType.MovementSpeed).ToString("0"));
 
+            
+            // extended stat overview
             AddStatOverviewElement(
                 StatType.DmgFireBonus,
                 "res://Sprites/Items/fire_orb.png",
                 "Fire damage",
                 "Increased fire damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgFireBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgFireBonus)),
+                extendedStatOverviewContainer);
 
             AddStatOverviewElement(
                 StatType.DmgIceBonus,
                 "res://Sprites/Items/ice_orb.png",
                 "Ice damage",
                 "Increased ice damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgIceBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgIceBonus)),
+                extendedStatOverviewContainer);
 
             AddStatOverviewElement(
                 StatType.DmgLightningBonus,
                 "res://Sprites/Items/lightning_orb.png",
                 "Lightning damage",
                 "Increased lightning damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgLightningBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgLightningBonus)),
+                extendedStatOverviewContainer);
 
             AddStatOverviewElement(
                 StatType.DmgPoisonBonus,
                 "res://Sprites/Items/poison_orb.png",
                 "Poison damage",
                 "Increased poison damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgPoisonBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgPoisonBonus)),
+                extendedStatOverviewContainer);
 
             AddStatOverviewElement(
                 StatType.DmgPhysicalBonus,
                 "res://Sprites/Items/physical_orb.png",
                 "Physical damage",
                 "Increased physical damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgPhysicalBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgPhysicalBonus)),
+                extendedStatOverviewContainer);
 
             AddStatOverviewElement(
                 StatType.DmgHolyBonus,
                 "res://Sprites/Items/holy_orb.png",
                 "Holy damage",
                 "Increased holy damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgHolyBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgHolyBonus)),
+                extendedStatOverviewContainer);
 
             AddStatOverviewElement(
                 StatType.DmgDarknessBonus,
                 "res://Sprites/Items/darkness_orb.png",
                 "Darkness damage",
                 "Increased darkness damage",
-                FormatPercentBonus(component.GetStat(StatType.DmgDarknessBonus)));
+                FormatPercentBonus(component.GetStat(StatType.DmgDarknessBonus)),
+                extendedStatOverviewContainer);
+            
+            
         }
+        
+        
     }
 
     private void AddStatOverviewElement(
@@ -140,11 +164,12 @@ public partial class PlayerUi : Control
         string iconPath,
         string name,
         string description,
-        string value)
+        string value,
+        GridContainer container = null)
     {
         var element = statOverviewScene.Instantiate<StatOverviewElement>();
         var data = new StatOverviewElementData(iconPath, name, description, value);
-        statOverviewContainer.AddChild(element);
+        (container ?? statOverviewContainer).AddChild(element);
         element.Init(data);
         _statOverviewElements[statType] = element;
     }

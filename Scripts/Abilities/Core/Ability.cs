@@ -48,7 +48,7 @@ public abstract class Ability : BaseCardableObject
     /**
      * @brief Internal update counter. tracks the current state.
      */
-    protected int UpdateCounter { get; set; }
+    public int UpdateCounter { get; protected set; }
 
     /**
      * @brief Strategy how the ability is triggered. Can be changed.

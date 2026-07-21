@@ -12,6 +12,8 @@ public class NetAbility
     public Vector2 Stacks { get; set; }
     public Vector2 Cooldowns { get; set; }
     public Texture2D Icon { get; private set; }
+    
+    public int SkillLevel { get; set; }
 
     public string IconPath
     {
@@ -35,7 +37,8 @@ public class NetAbility
             IconPath = ability.IconPath,
             Index = index,
             Cooldowns = new Vector2((float)ability.CurrentCooldown, (float)ability.BaseCooldown),
-            Stacks = new Vector2(ability.CurrentStack, ability.MaxStack)
+            Stacks = new Vector2(ability.CurrentStack, ability.MaxStack),
+            SkillLevel = ability.UpdateCounter,
         };
     }
 
@@ -45,7 +48,8 @@ public class NetAbility
         {
             { nameof(IconPath), IconPath },
             { nameof(GUID), GUID },
-            { nameof(Index), Index }
+            { nameof(Index), Index },
+            {nameof(SkillLevel), SkillLevel },
         };
     }
 
@@ -56,6 +60,7 @@ public class NetAbility
             GUID = (string)dict[nameof(GUID)],
             IconPath = (string)dict[nameof(IconPath)],
             Index = (int)dict[nameof(Index)],
+            SkillLevel = (int)dict[nameof(SkillLevel)],
         };
     }
 }

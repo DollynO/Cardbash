@@ -6555,7 +6555,7 @@ size_flags_horizontal = 4
 text = "Round 1 / 0"
 label_settings = SubResource("LabelSettings_pcaqj")
 
-[node name="PlayerUi" type="Control" parent="HUD" node_paths=PackedStringArray("PlayerOverviewPanel", "PlayerOverview", "_abilityFrames", "_abilityPopupMenu", "statOverviewContainer")]
+[node name="PlayerUi" type="Control" parent="HUD" node_paths=PackedStringArray("PlayerOverviewPanel", "PlayerOverview", "_abilityFrames", "_abilityPopupMenu", "statOverviewContainer", "extendedStatOverviewContainer")]
 z_index = 2
 layout_mode = 3
 anchors_preset = 15
@@ -6572,8 +6572,9 @@ PlayerOverview = NodePath("PlayerOverview/ScrollContainer/VBoxContainer")
 PlayerOverviewScene = ExtResource("13_bqj63")
 _abilityFrames = [NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame2"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame3"), NodePath("HBoxContainer/Control/HBoxContainer/AbilityFrame4")]
 _abilityPopupMenu = NodePath("AbilityPopupMenu")
-statOverviewContainer = NodePath("HBoxContainer/PanelContainer/GridContainer")
+statOverviewContainer = NodePath("HBoxContainer/DefaultStatOverview/GridContainer")
 statOverviewScene = ExtResource("14_7mrme")
+extendedStatOverviewContainer = NodePath("HBoxContainer/ExtendedStatOverview/GridContainer")
 
 [node name="PlayerOverview" type="Panel" parent="HUD/PlayerUi"]
 visible = false
@@ -6618,21 +6619,35 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -198.0
-offset_top = -131.0
-offset_right = 198.0
+offset_left = -366.0
+offset_top = -161.0
+offset_right = 366.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="PanelContainer" type="PanelContainer" parent="HUD/PlayerUi/HBoxContainer"]
+[node name="DefaultStatOverview" type="PanelContainer" parent="HUD/PlayerUi/HBoxContainer"]
 layout_mode = 2
 
-[node name="GridContainer" type="GridContainer" parent="HUD/PlayerUi/HBoxContainer/PanelContainer"]
+[node name="GridContainer" type="GridContainer" parent="HUD/PlayerUi/HBoxContainer/DefaultStatOverview"]
 layout_mode = 2
 columns = 2
 
+[node name="StatOverviewElement" parent="HUD/PlayerUi/HBoxContainer/DefaultStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
+[node name="StatOverviewElement2" parent="HUD/PlayerUi/HBoxContainer/DefaultStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
+[node name="StatOverviewElement3" parent="HUD/PlayerUi/HBoxContainer/DefaultStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
+[node name="StatOverviewElement4" parent="HUD/PlayerUi/HBoxContainer/DefaultStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
 [node name="Control" type="VBoxContainer" parent="HUD/PlayerUi/HBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
 
 [node name="ScrollContainer" type="ScrollContainer" parent="HUD/PlayerUi/HBoxContainer/Control"]
 custom_minimum_size = Vector2(0, 30)
@@ -6676,6 +6691,25 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="AbilityFrame4" parent="HUD/PlayerUi/HBoxContainer/Control/HBoxContainer" instance=ExtResource("4_2154d")]
+layout_mode = 2
+
+[node name="ExtendedStatOverview" type="PanelContainer" parent="HUD/PlayerUi/HBoxContainer"]
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="HUD/PlayerUi/HBoxContainer/ExtendedStatOverview"]
+layout_mode = 2
+columns = 2
+
+[node name="StatOverviewElement" parent="HUD/PlayerUi/HBoxContainer/ExtendedStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
+[node name="StatOverviewElement2" parent="HUD/PlayerUi/HBoxContainer/ExtendedStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
+[node name="StatOverviewElement3" parent="HUD/PlayerUi/HBoxContainer/ExtendedStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
+layout_mode = 2
+
+[node name="StatOverviewElement4" parent="HUD/PlayerUi/HBoxContainer/ExtendedStatOverview/GridContainer" instance=ExtResource("14_7mrme")]
 layout_mode = 2
 
 [node name="AbilityPopupMenu" parent="HUD/PlayerUi" instance=ExtResource("18_xl0mr")]

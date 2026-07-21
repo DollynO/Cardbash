@@ -214,7 +214,7 @@ public class ProjectilePullConfig
 
 public class ProjectileHealthConfig
 {
-    public float Life = -1;
+    public float Life = 1;
 
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {

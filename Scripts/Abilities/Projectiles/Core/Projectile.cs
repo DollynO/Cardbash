@@ -128,10 +128,15 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             hc.Reset(SpawnRequest.Health.Life);
             AddComponent(hc);
             EventBus.CombatEventBus.KilledEventHandler += onProjectileDeath;
-            var oui = new OverHeadUiComponent();
-            AddComponent(oui);
+
             var dac = new DamageAbleComponent();
             AddComponent(dac);
+
+            if (SpawnRequest.Health.Life > 1)
+            {
+                var oui = new OverHeadUiComponent();
+                AddComponent(oui);
+            }
         }
     }
 
