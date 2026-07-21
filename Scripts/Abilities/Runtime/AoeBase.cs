@@ -236,6 +236,20 @@ public partial class AoeBase : Node2D
         return CombatTargeting.ShouldAbilityAffect(stats.Owner, entity);
     }
 
+    private void RemoveUnaffectablePlayers()
+    {
+        foreach (var player in playersInArea.ToList())
+        {
+            if (ShouldAffectPlayer(player))
+            {
+                continue;
+            }
+
+            playersInArea.Remove(player);
+            callbacks.OnEntityExit?.Invoke(player, this);
+        }
+    }
+
     private void OnActivation()
     {
         if (!Multiplayer.IsServer()) return;
@@ -297,6 +311,7 @@ public partial class AoeBase : Node2D
     {
         if (Multiplayer.IsServer())
         {
+            RemoveUnaffectablePlayers();
             var affectedPlayers = playersInArea.ToList();
             callbacks.OnDeactivation?.Invoke(affectedPlayers, this);
         }
@@ -307,6 +322,11 @@ public partial class AoeBase : Node2D
 
     public override void _PhysicsProcess(double delta)
     {
+        if (Multiplayer.IsServer())
+        {
+            RemoveUnaffectablePlayers();
+        }
+
         // Follow owner if not stationary
         if (!stats.IsStationary && stats.Owner != null)
         {

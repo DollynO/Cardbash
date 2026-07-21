@@ -12,6 +12,8 @@ namespace CardBase.Scripts.PlayerScripts;
 
 public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffiliation
 {
+    private static readonly Vector2 EliminatedPosition = Vector2.One * -20000;
+
     [Export] private MultiplayerSynchronizer _inputSync;
     [Export] private AnimatedSprite2D _playerAnimation;
     public PlayerInput PlayerInput => _playerInput;
@@ -57,11 +59,20 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
+    public bool IsTargetable => !_isEliminated && HealthComponent is { IsDead: false };
 
     private bool _statsInitialized;
+    private bool _isEliminated;
+    private bool _isSpectating;
+    private uint _defaultCollisionLayer;
+    private uint _defaultCollisionMask;
+    private PlayerCharacter _spectateTarget;
 
     public override void _EnterTree()
     {
+        _defaultCollisionLayer = CollisionLayer;
+        _defaultCollisionMask = CollisionMask;
+
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
 
@@ -130,6 +141,29 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         AddComponent(overhead);
     }
 
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (!IsLocalPlayer() || !_isSpectating)
+        {
+            return;
+        }
+
+        if (@event is not InputEventKey { Pressed: true, Echo: false } keyEvent)
+        {
+            return;
+        }
+
+        var isSpectateSwitch = keyEvent.Keycode is Key.Tab or Key.Backtab
+                               || keyEvent.PhysicalKeycode == Key.Tab;
+        if (!isSpectateSwitch)
+        {
+            return;
+        }
+
+        SpectateRelative(keyEvent.ShiftPressed || keyEvent.Keycode == Key.Backtab ? -1 : 1);
+        GetViewport().SetInputAsHandled();
+    }
+
     public override async void _Ready()
     {
         if (!Multiplayer.IsServer() && PlayerId == Multiplayer.GetUniqueId())
@@ -182,6 +216,8 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     {
         visualComponent?.UpdateAnimation(_playerInput);
         ((PlayerAnimation)_playerAnimation).UpdateAnimation();
+        UpdateSpectatorCamera();
+
         if (Multiplayer.IsServer())
         {
             if (TryGetComponent(out AbilityComponent abilityComponent))
@@ -195,6 +231,8 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
     public void RoundReset(int roundIndex)
     {
+        _isEliminated = false;
+        Rpc(MethodName.syncEliminatedState, false);
         BuffManagerComponent.ClearAllBuffs();
         StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
         if (TryGetComponent(out HealthComponent healthComponent))
@@ -260,6 +298,9 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
 
     public void Cleanup()
     {
+        BuffManagerComponent.ClearAllBuffs();
+        StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
+
         if (TryGetComponent(out MoveComponent moveComponent))
         {
             moveComponent.IsMovementDisabled = true;
@@ -271,7 +312,130 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             abilityComponent.Disable();
         }
 
-        GlobalPosition = Vector2.One * -20000;
+        _isEliminated = true;
+        GlobalPosition = EliminatedPosition;
+        Rpc(MethodName.syncEliminatedState, true);
+    }
+
+    public PlayerCharacter GetCameraTarget()
+    {
+        return _isSpectating && _spectateTarget != null ? _spectateTarget : this;
+    }
+
+    private bool IsLocalPlayer()
+    {
+        return PlayerId == Multiplayer.GetUniqueId();
+    }
+
+    private void SetTargetable(bool targetable)
+    {
+        CollisionLayer = targetable ? _defaultCollisionLayer : 0;
+        CollisionMask = targetable ? _defaultCollisionMask : 0;
+    }
+
+    private void StartSpectating()
+    {
+        if (!IsLocalPlayer())
+        {
+            return;
+        }
+
+        _isSpectating = true;
+        _camera.Enabled = true;
+        _camera.SetAsTopLevel(true);
+        SpectateRelative(1);
+    }
+
+    private void StopSpectating()
+    {
+        if (!IsLocalPlayer())
+        {
+            return;
+        }
+
+        _isSpectating = false;
+        _spectateTarget = null;
+        _camera.SetAsTopLevel(false);
+        _camera.Position = Vector2.Zero;
+        _camera.Rotation = 0;
+        _camera.Enabled = true;
+    }
+
+    private void SpectateRelative(int direction)
+    {
+        var targets = GetSpectateTargets();
+        if (targets.Count == 0)
+        {
+            _spectateTarget = null;
+            _camera.GlobalPosition = _mapBounds.Position + _mapBounds.Size / 2;
+            return;
+        }
+
+        var currentIndex = targets.IndexOf(_spectateTarget);
+        if (currentIndex < 0)
+        {
+            currentIndex = direction > 0 ? -1 : 0;
+        }
+
+        var nextIndex = PosMod(currentIndex + direction, targets.Count);
+        _spectateTarget = targets[nextIndex];
+        _camera.GlobalPosition = _spectateTarget.GlobalPosition;
+    }
+
+    private List<PlayerCharacter> GetSpectateTargets()
+    {
+        return _gameManager.GetPlayers()
+            .Where(player => player != this && player.IsTargetable)
+            .OrderBy(player => player.PlayerId)
+            .ToList();
+    }
+
+    private void UpdateSpectatorCamera()
+    {
+        if (!_isSpectating || !IsLocalPlayer())
+        {
+            return;
+        }
+
+        if (_spectateTarget == null || !_spectateTarget.IsTargetable)
+        {
+            SpectateRelative(1);
+            return;
+        }
+
+        _camera.GlobalPosition = _spectateTarget.GlobalPosition;
+    }
+
+    private static int PosMod(int value, int modulo)
+    {
+        return (value % modulo + modulo) % modulo;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void syncEliminatedState(bool eliminated)
+    {
+        _isEliminated = eliminated;
+        SetTargetable(!eliminated);
+
+        if (eliminated)
+        {
+            if (TryGetComponent(out MoveComponent moveComponent))
+            {
+                moveComponent.IsMovementDisabled = true;
+            }
+
+            if (TryGetComponent(out AbilityComponent abilityComponent))
+            {
+                abilityComponent.Disable();
+            }
+
+            GlobalPosition = EliminatedPosition;
+            StartSpectating();
+        }
+        else
+        {
+            StopSpectating();
+        }
     }
 
 }

@@ -1,4 +1,5 @@
 using Godot;
+using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Abilities;
 
@@ -6,7 +7,17 @@ public static class CombatTargeting
 {
     public static bool ShouldAbilityAffect(IEntityComponent source, IEntityComponent target)
     {
-        if (source == null || target == null || IsFriendlyFireEnabled(source))
+        if (target == null)
+        {
+            return false;
+        }
+
+        if (target is PlayerCharacter player && !player.IsTargetable)
+        {
+            return false;
+        }
+
+        if (source == null || IsFriendlyFireEnabled(source))
         {
             return true;
         }

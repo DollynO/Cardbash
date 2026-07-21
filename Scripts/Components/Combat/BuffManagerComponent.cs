@@ -84,6 +84,11 @@ public partial class BuffManagerComponent : Node2D, IComponent
 
     public void ApplyBuff(Buff buff)
     {
+        if (Parent is PlayerCharacter player && !player.IsTargetable)
+        {
+            return;
+        }
+
         var existing = activeBuffs
             .FirstOrDefault(b => b.GetType() == buff.GetType() && b.Caller == buff.Caller);
 

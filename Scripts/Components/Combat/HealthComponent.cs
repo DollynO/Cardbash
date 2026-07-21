@@ -37,15 +37,20 @@ public partial class HealthComponent : Node2D, IComponent
 
     public void ApplyDamage(Damage damage, IEntityComponent component)
     {
+        if (IsDead)
+        {
+            return;
+        }
+
         var damageValue = damage.DamageNumber;
         damageValue = Mathf.Abs(damageValue);
-        CurrentHealth -= damageValue;
-        Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+        CurrentHealth = Mathf.Clamp(CurrentHealth - damageValue, 0, MaxHealth);
 
-        if (CurrentHealth == 0)
+        if (IsDead)
         {
-            if (Parent is PlayerCharacter victimPlayer && component is PlayerCharacter killerPlayer)
+            if (Parent is PlayerCharacter victimPlayer)
             {
+                var killerPlayer = component as PlayerCharacter;
                 gameManager?.NotifyPlayerDeath(victimPlayer, killerPlayer);
             }
             Parent.EventBus.CombatEventBus.EmitKilled(new KilledEventArgs(component, Parent));
@@ -59,8 +64,7 @@ public partial class HealthComponent : Node2D, IComponent
     public void ApplyHeal(float heal)
     {
         heal = Mathf.Abs(heal);
-        CurrentHealth += heal;
-        Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+        CurrentHealth = Mathf.Clamp(CurrentHealth + heal, 0, MaxHealth);
     }
 
     public void ApplyMod(StatModifier mod)

@@ -81,7 +81,7 @@ public partial class GameManager : Node2D
 
     public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter killer)
     {
-        EmitSignal(SignalName.OnPlayerKilled, victim.PlayerId, killer.PlayerId);
+        EmitSignal(SignalName.OnPlayerKilled, victim, killer);
         victim.Cleanup();
 
     }
@@ -107,7 +107,8 @@ public partial class GameManager : Node2D
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta)
     {
-        Hud.UpdatePlayerHud(GetPlayerCharacter(Multiplayer.GetUniqueId()));
+        var player = GetPlayerCharacter(Multiplayer.GetUniqueId());
+        Hud.UpdatePlayerHud(player?.GetCameraTarget() ?? player);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
@@ -220,7 +221,13 @@ public partial class GameManager : Node2D
 
     private void onKillReported(long victimId, long killerId)
     {
-        EmitSignal(SignalName.OnPlayerKilled, victimId, killerId);
+        var victim = GetPlayerCharacter(victimId);
+        if (victim == null)
+        {
+            return;
+        }
+
+        EmitSignal(SignalName.OnPlayerKilled, victim, GetPlayerCharacter(killerId));
     }
 
     [Rpc]
