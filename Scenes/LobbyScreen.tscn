@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="2_7rmyw"]
 [ext_resource type="PackedScene" uid="uid://gi8i5cvds6au" path="res://Scenes/PlayerSlot.tscn" id="3_p6nru"]
 
-[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("readyButton", "notReadyButton", "startButton", "_teamSelect", "_deckSelect", "_playerListContainer", "gameSettingFields")]
+[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("readyButton", "notReadyButton", "startButton", "_teamSelect", "_deckSelect", "_playerListContainer", "gameSettingFields", "friendlyFireToggle")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -20,6 +20,7 @@ _teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer
 _deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
 _playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer")
 gameSettingFields = [NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/CardsPerRoundInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsToWinInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnRoundEndInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnKillInput")]
+friendlyFireToggle = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/FriendlyFireToggle")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -201,6 +202,13 @@ text = "Points on kill"
 layout_mode = 2
 text = "10"
 virtual_keyboard_type = 2
+
+[node name="FriendlyFire" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Friendly fire"
+
+[node name="FriendlyFireToggle" type="CheckBox" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
 
 [node name="Footer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2"]
 custom_minimum_size = Vector2(0, 100)

@@ -91,25 +91,17 @@ public class ExplodeOnHitModifier : IHitModifier
 
         foreach (var entity in obj)
         {
-            if (_caller is not ITeamAffiliation callerTeam || entity is not ITeamAffiliation targetTeam)
+            var hitContext = new HitContext
             {
-                continue;
-            }
-
-            if (targetTeam.TeamId != callerTeam.TeamId)
+                Source = _caller,
+                Target = entity,
+                AbilityGuid = _guid,
+                Damages = dict
+            };
+            var hit = new Hit(aoeBase, hitContext);
+            if (entity.TryGetComponent(out DamageAbleComponent dac))
             {
-                var hitContext = new HitContext
-                {
-                    Source = _caller,
-                    Target = entity,
-                    AbilityGuid = _guid,
-                    Damages = dict
-                };
-                var hit = new Hit(aoeBase, hitContext);
-                if (entity.TryGetComponent(out DamageAbleComponent dac))
-                {
-                    dac.ReceiveHit(hit);
-                }
+                dac.ReceiveHit(hit);
             }
         }
     }

@@ -29,6 +29,7 @@ public class AoeBaseStats
     public string AbilityGUID { get; set; }
     public float TickInterval { get; set; } = 1f; // How often OnTick is called
     public float ShapeUpdateInterval { get; set; } = 0.016f; // How often to recalculate collision shape
+    public bool CanAffectOwner { get; set; } = true;
 
     public AoeBaseCallbacks Callbacks { get; set; }
 
@@ -48,6 +49,7 @@ public class AoeBaseStats
             ["AbilityGUID"] = AbilityGUID,
             ["TickInterval"] = TickInterval,
             ["ShapeUpdateInterval"] = ShapeUpdateInterval,
+            ["CanAffectOwner"] = CanAffectOwner,
         };
 
         return dict;
@@ -67,6 +69,8 @@ public class AoeBaseStats
             AbilityGUID = (string)dict["AbilityGUID"],
             TickInterval = (float)dict["TickInterval"],
             ShapeUpdateInterval = (float)dict["ShapeUpdateInterval"],
+            CanAffectOwner = !dict.TryGetValue("CanAffectOwner", out var canAffectOwnerVariant)
+                             || (bool)canAffectOwnerVariant,
         };
         if (dict.TryGetValue("OwnerPlayerId", out var ownerPlayerIdVariant)
             && (long)ownerPlayerIdVariant != 0
@@ -224,12 +228,12 @@ public partial class AoeBase : Node2D
 
     private bool ShouldAffectPlayer(IEntityComponent entity)
     {
-        if (entity is PlayerCharacter player)
+        if (!stats.CanAffectOwner && entity == stats.Owner)
         {
-            return player != stats.Owner;
+            return false;
         }
 
-        return true;
+        return CombatTargeting.ShouldAbilityAffect(stats.Owner, entity);
     }
 
     private void OnActivation()

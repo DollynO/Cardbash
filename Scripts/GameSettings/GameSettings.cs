@@ -11,6 +11,7 @@ public partial class GameModeSettings : Resource
     public int PointsOnKill { get; set; } = 0;
     public int PointsOnRoundEnd { get; set; } = 0;
     [Export] public int CardsPerRound { get; set; } = 2;
+    [Export] public bool FriendlyFire { get; set; }
     
     public int CardLockCosts { get; set; } = 10;
 
@@ -20,6 +21,7 @@ public partial class GameModeSettings : Resource
         PointsOnKill = gameSettings.PointsOnKill;
         PointsOnRoundEnd = gameSettings.PointsOnRoundEnd;
         CardsPerRound = gameSettings.CardsPerRound;
+        FriendlyFire = gameSettings.FriendlyFire;
         CardLockCosts = gameSettings.CardLockCosts;
     }
 }

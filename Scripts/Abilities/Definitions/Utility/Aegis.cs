@@ -58,6 +58,7 @@ public class Aegis : Ability, IHitInterceptor
                 },
                 AbilityGUID = GUID,
                 IsStationary = false,
+                CanAffectOwner = false,
                 Owner = Caller,
             };
             detectRing = GlobalAbilitySpawner.SpawnAoe(stats);

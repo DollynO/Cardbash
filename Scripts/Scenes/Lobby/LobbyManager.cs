@@ -18,6 +18,7 @@ public partial class LobbyManager : ColorRect
 
     [Export] private VBoxContainer _playerListContainer;
     [Export] private Array<LineEdit> gameSettingFields;
+    [Export] private CheckBox friendlyFireToggle;
     private Array<PlayerSlot> _playerSlots = new();
 
     private SceneManager _sceneManager;
@@ -184,6 +185,7 @@ public partial class LobbyManager : ColorRect
         settings.PointsToWin = int.TryParse(gameSettingFields[1].Text, out value) ? value : 100;
         settings.PointsOnRoundEnd = int.TryParse(gameSettingFields[2].Text, out value) ? value : 15;
         settings.PointsOnKill = int.TryParse(gameSettingFields[3].Text, out value) ? value : 10;
+        settings.FriendlyFire = friendlyFireToggle?.ButtonPressed ?? false;
 
         if (!await SyncGameplayConfigBeforeGameStart())
         {

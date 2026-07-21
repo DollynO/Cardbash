@@ -155,12 +155,20 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void OnBodyEntered(Node2D body)
     {
-        if (body == this || body is Projectile proj && IsSameTeam(proj))
+        if (body == this)
         {
             return;
         }
 
-        if (body is IEntityComponent hitObject && hitObject != SpawnRequest.Caller)
+        if (!CombatTargeting.IsFriendlyFireEnabled(SpawnRequest.Caller)
+            && body is Projectile proj
+            && IsSameTeam(proj))
+        {
+            return;
+        }
+
+        if (body is IEntityComponent hitObject
+            && CombatTargeting.ShouldAbilityAffect(SpawnRequest.Caller, hitObject))
         {
             HitableObjectCollided(hitObject);
         }
@@ -168,19 +176,22 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyEntered(Node2D body)
     {
-        if (body == this || body is Projectile proj && IsSameTeam(proj))
+        if (body == this)
+        {
+            return;
+        }
+
+        if (!CombatTargeting.IsFriendlyFireEnabled(SpawnRequest.Caller)
+            && body is Projectile proj
+            && IsSameTeam(proj))
         {
             return;
         }
 
         if (body is IEntityComponent ec)
         {
-            if (SpawnRequest.Caller is not ITeamAffiliation callerTeam || ec is not ITeamAffiliation targetTeam)
-            {
-                return;
-            }
-
-            if (targetTeam.TeamId == callerTeam.TeamId && !entityInPullArea.Contains(ec))
+            if (CombatTargeting.ShouldAbilityAffect(SpawnRequest.Caller, ec)
+                && !entityInPullArea.Contains(ec))
             {
                 entityInPullArea.Add(ec);
             }
@@ -189,7 +200,14 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void PullAreaOnBodyExit(Node2D body)
     {
-        if (body == this || body is Projectile proj && IsSameTeam(proj))
+        if (body == this)
+        {
+            return;
+        }
+
+        if (!CombatTargeting.IsFriendlyFireEnabled(SpawnRequest.Caller)
+            && body is Projectile proj
+            && IsSameTeam(proj))
         {
             return;
         }

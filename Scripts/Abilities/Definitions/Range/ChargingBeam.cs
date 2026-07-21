@@ -117,25 +117,17 @@ public class ChargingBeam : Ability
 
         foreach (var entity in obj)
         {
-            if (Caller is not ITeamAffiliation callerTeam || entity is not ITeamAffiliation targetTeam)
+            var hitContext = new HitContext
             {
-                continue;
-            }
-
-            if (targetTeam.TeamId != callerTeam.TeamId)
+                Source = Caller,
+                Target = entity,
+                AbilityGuid = GUID,
+                Damages = dict
+            };
+            var hit = new Hit(aoeBase, hitContext);
+            if (entity.TryGetComponent(out DamageAbleComponent dac))
             {
-                var hitContext = new HitContext
-                {
-                    Source = Caller,
-                    Target = entity,
-                    AbilityGuid = GUID,
-                    Damages = dict
-                };
-                var hit = new Hit(aoeBase, hitContext);
-                if (entity.TryGetComponent(out DamageAbleComponent dac))
-                {
-                    dac.ReceiveHit(hit);
-                }
+                dac.ReceiveHit(hit);
             }
         }
     }

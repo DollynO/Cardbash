@@ -15,6 +15,11 @@ public partial class DamageAbleComponent : Component
 
     public bool ReceiveHit(in Hit hit)
     {
+        if (!CombatTargeting.ShouldAbilityAffect(hit.Context.Source, hit.Context.Target))
+        {
+            return false;
+        }
+
         foreach (var interceptor in _HitInterceptors)
         {
             if (interceptor.TryBlock(hit))

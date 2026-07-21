@@ -78,7 +78,8 @@ public partial class Ray : Node2D
         _shapeCast2D.Shape = rectShape;
 
         _shapeCast2D.CollisionMask = _rayStats.CollisionMask;
-        if (_rayStats.Caster is CharacterbodyEntityComponent cec)
+        if (!CombatTargeting.IsFriendlyFireEnabled(_rayStats.Caster)
+            && _rayStats.Caster is CharacterbodyEntityComponent cec)
         {
             _shapeCast2D.AddExceptionRid(cec.GetRid());
         }
@@ -157,9 +158,12 @@ public partial class Ray : Node2D
 
                         if (hitObject is IEntityComponent hitableObject)
                         {
-                            hittedObjects.Add(hitableObject);
                             _shapeCast2D.AddExceptionRid(_shapeCast2D.GetColliderRid(i));
-                            pierceCount--;
+                            if (CombatTargeting.ShouldAbilityAffect(_rayStats.Caster, hitableObject))
+                            {
+                                hittedObjects.Add(hitableObject);
+                                pierceCount--;
+                            }
                         }
                         else
                         {
@@ -198,7 +202,8 @@ public partial class Ray : Node2D
         Rpc(MethodName.syncClient, dict);
 
         _shapeCast2D.ClearExceptions();
-        if (_rayStats.Caster is CharacterbodyEntityComponent cec)
+        if (!CombatTargeting.IsFriendlyFireEnabled(_rayStats.Caster)
+            && _rayStats.Caster is CharacterbodyEntityComponent cec)
         {
             _shapeCast2D.AddExceptionRid(cec.GetRid());
         }
