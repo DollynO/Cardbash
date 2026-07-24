@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -7,7 +6,6 @@ namespace CardBase.Scripts.Abilities;
 public partial class GrapplingHook : Projectile
 {
     [Export] private Line2D _line;
-    private readonly List<Vector2> _points = new() { new Vector2(0, 0) };
     private float _updateTime = 0.1f;
     private float _currentUpdateTime;
 

@@ -19,7 +19,6 @@ public partial class BuffManagerComponent : Node2D, IComponent
     private Dictionary<Buff, BuffIconTemplate> buffIcons = new();
     private BuffRow2D buffRow;
     private MultiplayerSpawner spawner;
-    private bool processRunning;
 
     public override void _EnterTree()
     {

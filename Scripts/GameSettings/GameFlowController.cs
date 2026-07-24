@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
-using Godot.Collections;
 
 [GlobalClass]
 public partial class GameFlowController : Node
@@ -12,7 +11,6 @@ public partial class GameFlowController : Node
 
     private MatchPhase _phase = MatchPhase.None;
     private int _roundIndex;
-    private double _phaseTime;
 
     private readonly List<(long id, string guid)> pickedCards = new();
     private int drawRoundIndex;
@@ -77,8 +75,6 @@ public partial class GameFlowController : Node
     {
         if (!Multiplayer.IsServer()) return;
 
-        _phaseTime += delta;
-
         switch (_phase)
         {
             case MatchPhase.RoundSetup:
@@ -138,10 +134,8 @@ public partial class GameFlowController : Node
     {
         _roundIndex++;
         _ctx.TeamSystem.UpdateTeams();
-        //updateGameInfo();
         _mode.ServerStartRound(_roundIndex);
 
-        _phaseTime = 0;
         Rpc(nameof(ClientRoundSetup), _roundIndex);
 
         ServerAdvance(MatchPhase.CardDraw);
@@ -155,7 +149,6 @@ public partial class GameFlowController : Node
     private void ServerAdvance(MatchPhase next)
     {
         _phase = next;
-        _phaseTime = 0;
 
         Rpc(nameof(ClientPhaseChanged), (int)_phase);
 
@@ -211,7 +204,6 @@ public partial class GameFlowController : Node
     {
         _mode.RoundResults.Add(rr);
         _phase = MatchPhase.RoundEnd;
-        _phaseTime = 0;
     }
 
     [Rpc] private void ClientPhaseChanged(int phase) { /* update HUD */ }
@@ -219,34 +211,8 @@ public partial class GameFlowController : Node
     [Rpc]
     private void ClientRoundSetup(int roundIndex) { /* show */ }
 
-    [Rpc]
-    private void ClientCardsApplied(Variant dto) { /* show */ }
-
-    [Rpc]
-    private void ClientRoundEnded(Variant dto) { /* scoreboard */ }
-
-    private void ServerForceRoundEnd_Time()
-    {
-        // e.g., decide by points, or “most alive”, or “flag progress”, depending on mode
-        ServerEndRound(_mode.ServerIsRoundOver(out var rr)
-            ? rr
-            : RoundResult.DrawByTimeout(_ctx.TeamSystem.GetTeamsWithAlivePlayers()));
-    }
-
     private void ServerEndGame(GameResult gr)
     {
         _phase = MatchPhase.GameEnd;
-    }
-
-    [Rpc] private void ClientGameEnded(Variant dto) { /* end screen */ }
-
-    private void updateGameInfo()
-    {
-        var info = string.Empty;
-        foreach (var team in _ctx.TeamSystem.Teams.Values.OrderBy(t => t.TeamId))
-        {
-            info += $"\nTeam {team.TeamId}: {_ctx.ScoreSystem.GetTeamScore(team)}";
-        }
-        _ctx.GameManager.Hud.DisplayRoundInfo(info);
     }
 }

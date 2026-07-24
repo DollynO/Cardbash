@@ -11,9 +11,6 @@ public sealed class LastTeamStandingMode : IGameMode
     public List<RoundResult> RoundResults { get; } = new();
     private GameContext _ctx;
 
-
-    private Dictionary<int, List<Team>> roundWins = new();
-
     public LastTeamStandingMode(GameModeSettings settings) => Settings = settings;
 
     public void ServerInitialize(GameContext ctx) => _ctx = ctx;

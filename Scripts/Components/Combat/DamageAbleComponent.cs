@@ -5,7 +5,6 @@ namespace CardBase.Scripts;
 
 public partial class DamageAbleComponent : Component
 {
-    private HealthComponent _health;
     public List<IHitInterceptor> _HitInterceptors = new();
 
     public DamageAbleComponent()

@@ -10,7 +10,6 @@ public class ChargingBeam : Ability
 {
     private Ray _ray;
     private float deltaSum = 0;
-    private ShockDebuff shockDebuff;
     private float aoeBaseDamage = 20;
 
     public ChargingBeam(IEntityComponent creator) : base(AbilityIds.ChargingBeamGuid, creator)
@@ -77,8 +76,7 @@ public class ChargingBeam : Ability
 
 
                 dac.ReceiveHit(hit);
-                shockDebuff = new ShockDebuff(ctx.Source, ctx.Target);
-                buffManagerComponent.ApplyBuff(shockDebuff);
+                buffManagerComponent.ApplyBuff(new ShockDebuff(ctx.Source, ctx.Target));
 
                 if (shockBuffCount % Mathf.Max(1, ConfigParam("shockAoeStackInterval", 5)) == 0)
                 {

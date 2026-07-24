@@ -29,12 +29,9 @@ public partial class MoveComponent : Node2D, IComponent
 
     private bool rooted;
     private bool disableMove => Stun || hitstun || rooted;
-    private bool isStunned => Stun || hitstun;
 
     private Tween _impulsTween;
     private Vector2 _impulsVector;
-    private float _impulsStrength;
-    private float _impulsDecayTime;
 
     private Vector2 _forceVector;
     private float _forceStrength;
@@ -223,12 +220,11 @@ public partial class MoveComponent : Node2D, IComponent
         if (Multiplayer.IsServer() && _impulsTween == null)
         {
             hitstun = true;
-            _impulsStrength = force;
             var pos = Parent.TryGetComponent(out AimComponent aimComponent) ? aimComponent.GetCharacterCenterPosition() : ((Node2D)Parent).GlobalPosition;
             var dir = isKnockback
                 ? (pos - sgp).Normalized()
                 : (sgp - pos).Normalized();
-            _impulsVector = dir * _impulsStrength;
+            _impulsVector = dir * force;
 
             _impulsTween = CreateTween();
             _impulsTween.TweenProperty(this, "_impulsVector", Vector2.Zero, decayTime)

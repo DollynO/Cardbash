@@ -12,7 +12,6 @@ public partial class GameManager : Node2D
 {
     public GameContext Context { get; private set; }
     private int _playersInGame;
-    private int _playersReady;
     private readonly HashSet<long> _readyPeers = new();
     private bool _playersInitialized;
 
@@ -217,17 +216,6 @@ public partial class GameManager : Node2D
             (float)Math.Sin(angle) * offset);
 
         return _spawnPoint.GlobalPosition + randomSpawn;
-    }
-
-    private void onKillReported(long victimId, long killerId)
-    {
-        var victim = GetPlayerCharacter(victimId);
-        if (victim == null)
-        {
-            return;
-        }
-
-        EmitSignal(SignalName.OnPlayerKilled, victim, GetPlayerCharacter(killerId));
     }
 
     [Rpc]

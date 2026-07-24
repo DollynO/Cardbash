@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities.ProjectileBehavior;
 using CardBase.Scripts.PlayerScripts;
@@ -24,7 +23,6 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     [Export] private Area2D detectArea;
     [Export] private CollisionShape2D pullAreaShape;
     private Color pullAreaColor = new(0.5f, 0.5f, 0.5f, 0.1f);
-    private uint collisionMask = 4;
 
     private List<IEntityComponent> entityInPullArea = new();
 
@@ -35,8 +33,6 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     [Signal]
     public delegate void OnCollisionEventHandler(Vector2 position, Projectile projectile);
 
-    private const float UpdateTime = 0.05f;
-    private float syncTime = UpdateTime;
     private StatblockComponent statBlock;
 
 
@@ -327,14 +323,5 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     private void destroyClientProjectile()
     {
         QueueFree();
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.UnreliableOrdered)]
-    private void clientSyncStats(Variant data)
-    {
-        var dict = data.AsGodotDictionary<string, Variant>();
-
-        this.GlobalPosition = (Vector2)dict["global_position"];
-        this.GlobalRotation = (float)dict["global_rotation"];
     }
 }
