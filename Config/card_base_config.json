@@ -178,7 +178,7 @@
         "bounceCount": 0,
         "angleOffset": 0,
         "pierceCount": 0,
-        "collisionMask": 4,
+        "collisionMask": 20,
         "projectileHealth": 100,
         "pullRadius": 0,
         "pullStrength": 0,
@@ -213,7 +213,7 @@
     },
     "2970A4C5-0C86-4EB2-8CB3-067750622083": {
       "displayName": "Lightning Strike",
-      "description": "Fast lightning strike",
+      "description": "Fast lightning strike. Upgrade 2: lightning jumps to a nearby enemy after hitting.",
       "iconPath": "res://Sprites/SkillIcons/Lightning/3_Electric_Boom.png",
       "cooldown": 10,
       "baseDamage": 20,
@@ -225,7 +225,12 @@
         "activationTime": 0.3,
         "duration": 0,
         "tickInterval": 1,
-        "shapeUpdateInterval": 0.016
+        "shapeUpdateInterval": 0.016,
+        "chainRange": 180,
+        "chainJumps": 1,
+        "chainDamageMultiplier": 0.5,
+        "chainArcDuration": 0.18,
+        "chainArcWidth": 5
       },
       "maxStack": 1,
       "baseAilmentChance": 0
@@ -251,7 +256,7 @@
     },
     "DC432A01-3394-4AF4-BE1B-9289A4E88268": {
       "displayName": "Poison Jab",
-      "description": "Well poison jab",
+      "description": "Well poison jab. Upgrade 1: poisoned targets take increased poison damage briefly. Upgrade 2: lunge before the jab.",
       "iconPath": "res://Sprites/SkillIcons/Poison/20_Poison_Bone.png",
       "cooldown": 5,
       "baseDamage": 10,
@@ -263,7 +268,11 @@
         "activationTime": 0.8,
         "duration": 0,
         "tickInterval": 1,
-        "shapeUpdateInterval": 0.016
+        "shapeUpdateInterval": 0.016,
+        "toxicWoundPoisonDamageIncrease": 0.25,
+        "toxicWoundDuration": 4,
+        "venomDashStrength": 650,
+        "venomDashDuration": 0.15
       },
       "maxStack": 1,
       "baseAilmentChance": 0
@@ -308,7 +317,7 @@
     },
     "4355909D-53F8-42E5-8E03-3647FEC6E8B5": {
       "displayName": "Plagueburst",
-      "description": "Bursts all corruption and agony buffs to cause damage.",
+      "description": "Bursts all corruption and agony buffs to cause damage. Upgrade 1: consumed debuffs spread to nearby enemies.",
       "iconPath": "res://Sprites/SkillIcons/Dark/15_Rod_of_Darkness.png",
       "cooldown": 5,
       "baseDamage": 10,
@@ -320,35 +329,49 @@
         "activationTime": 3,
         "duration": 0,
         "tickInterval": 1,
-        "shapeUpdateInterval": 0.016
+        "shapeUpdateInterval": 0.016,
+        "contagionRadius": 90,
+        "contagionActivationTime": 0.05,
+        "contagionAgonyStacks": 2
       },
       "maxStack": 1,
       "baseAilmentChance": 0
     },
     "ECD03AF9-850B-457C-A799-2D9E99D29B7F": {
       "displayName": "Blink",
-      "description": "Teleports to the target position.",
+      "description": "Teleports to the target position. Upgrade 1: leaves a targetable afterimage minion at the start position. Upgrade 2: arrival creates a small shock AoE.",
       "iconPath": "res://Sprites/SkillIcons/Lightning/9_Lightning_Strike.png",
       "cooldown": 1,
       "baseDamage": 10,
       "damageType": 4,
       "params": {
         "range": 400,
-        "repositionDelay": 0
+        "repositionDelay": 0,
+        "afterimageDuration": 0.6,
+        "afterimageLife": 20,
+        "afterimageAlpha": 0.45,
+        "afterimageScale": 1,
+        "afterimageCollisionRadius": 12,
+        "afterimageAnimationOffsetX": 0,
+        "afterimageAnimationOffsetY": 0
       },
       "maxStack": 1,
       "baseAilmentChance": 0
     },
     "B807C6E2-0061-4081-910B-1EB05891E500": {
       "displayName": "Escape Jump",
-      "description": "Jump backwards.",
+      "description": "Jump backwards. Upgrade 1: leave smoke that slows enemies. Upgrade 2: boost your next attack.",
       "iconPath": "res://Sprites/SkillIcons/Metal/17_Magnet.png",
       "cooldown": 5,
       "baseDamage": 0,
       "damageType": 0,
       "params": {
         "strength": 1000,
-        "duration": 1
+        "duration": 1,
+        "smokeRadius": 120,
+        "smokeDuration": 3,
+        "smokeActivationTime": 0.05,
+        "smokeSlow": 0.35
       },
       "maxStack": 1,
       "baseAilmentChance": 0
@@ -395,7 +418,7 @@
       "damageType": 4,
       "params": {
         "rayRange": 400,
-        "rayCollisionMask": 5,
+        "rayCollisionMask": 21,
         "rayCenterLoopCount": 8,
         "rayPierceCount": 1,
         "damageTickInterval": 0.5,

@@ -177,7 +177,7 @@ public partial class AoeBase : Node2D
         if (Multiplayer.IsServer())
         {
             AddChild(detectArea);
-            detectArea.CollisionMask = 4;
+            detectArea.CollisionMask = CombatCollisionLayers.TargetableEntities;
             detectArea.AddChild(collisionPolygon);
 
             // Connect area signals
@@ -206,23 +206,23 @@ public partial class AoeBase : Node2D
 
     private void OnBodyEntered(Node2D body)
     {
-        if (body is PlayerCharacter player)
+        if (body is IEntityComponent entity)
         {
             // Check team (only damage enemies or support allies based on ability type)
-            if (ShouldAffectPlayer(player))
+            if (ShouldAffectPlayer(entity))
             {
-                playersInArea.Add(player);
-                callbacks.OnEntityEnter?.Invoke(player, this);
+                playersInArea.Add(entity);
+                callbacks.OnEntityEnter?.Invoke(entity, this);
             }
         }
     }
 
     private void OnBodyExited(Node2D body)
     {
-        if (body is PlayerCharacter player && playersInArea.Contains(player))
+        if (body is IEntityComponent entity && playersInArea.Contains(entity))
         {
-            playersInArea.Remove(player);
-            callbacks.OnEntityExit?.Invoke(player, this);
+            playersInArea.Remove(entity);
+            callbacks.OnEntityExit?.Invoke(entity, this);
         }
     }
 
@@ -255,6 +255,10 @@ public partial class AoeBase : Node2D
         if (!Multiplayer.IsServer()) return;
 
         var affectedPlayers = GetAffectedPlayers();
+        foreach (var player in affectedPlayers)
+        {
+            playersInArea.Add(player);
+        }
 
         callbacks.OnActivation?.Invoke(affectedPlayers, this);
 

@@ -119,9 +119,10 @@ public partial class BuffManagerComponent : Node2D, IComponent
         }
 
         var buffCounts = this.activeBuffs.Where(b => b.GetType() == consumeType).ToList();
-        var count = buffCounts.Count;
+        var count = 0;
         foreach (var buff in buffCounts)
         {
+            count += buff.StackCount;
             buff.RemainingDuration = 0;
         }
 
@@ -150,6 +151,11 @@ public partial class BuffManagerComponent : Node2D, IComponent
         var buffs = this.activeBuffs.Where(b => b.GetType() == consumeType).ToList();
         var count = buffs.Sum(buff => buff.StackCount);
         return count;
+    }
+
+    public List<T> GetActiveBuffs<T>() where T : class
+    {
+        return activeBuffs.OfType<T>().ToList();
     }
 
     private Node CustomSpawner(Variant data)

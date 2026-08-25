@@ -4,7 +4,7 @@ namespace CardBase.Scripts.Abilities.Buffs.DoTs;
 
 public class Agony : BaseDoTBuff
 {
-    public Agony(PlayerCharacter caller, PlayerCharacter target) : base(caller, target)
+    public Agony(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = "Stackable debuff.";
         this.DisplayName = "Agony";
@@ -16,5 +16,10 @@ public class Agony : BaseDoTBuff
         this.IsStackable = true;
         this.IsRefreshable = true;
         this.MaxStacks = 10;
+    }
+
+    public void SetStartingStacks(int amount)
+    {
+        this.StackCount = 4;
     }
 }

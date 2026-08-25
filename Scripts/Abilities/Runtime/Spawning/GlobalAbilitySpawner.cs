@@ -12,6 +12,8 @@ public enum SpawnType
     AURA,
     PROJECTILE,
     RING_TEXTURE_NODE,
+    VISUAL_CONNECTION,
+    MINION,
 }
 
 public class SpawnData
@@ -75,6 +77,12 @@ public partial class GlobalAbilitySpawner : Node2D
             case SpawnType.RING_TEXTURE_NODE:
                 var spriteStats = SpriteStats.FromDict(spawnData, GameManager);
                 return SpawnRingTextureNode(spriteStats, name);
+            case SpawnType.VISUAL_CONNECTION:
+                var connectionStats = VisualConnectionStats.FromDict(spawnData, GameManager);
+                return SpawnVisualConnection(connectionStats, name);
+            case SpawnType.MINION:
+                var minionStats = MinionSpawnStats.FromDict(spawnData, GameManager);
+                return SpawnMinion(minionStats, name);
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -185,12 +193,60 @@ public partial class GlobalAbilitySpawner : Node2D
         return textureNode;
     }
 
+    public VisualConnection SpawnVisualConnection(VisualConnectionStats stats)
+    {
+        if (!Multiplayer.IsServer()) return null;
+
+        var node = Spawn(new SpawnData
+        {
+            SpawnType = SpawnType.VISUAL_CONNECTION,
+            SpawnObjectData = stats.ToDict(),
+        });
+        return node as VisualConnection;
+    }
+
+    private VisualConnection SpawnVisualConnection(VisualConnectionStats stats, string name)
+    {
+        var connection = new VisualConnection();
+        connection.Initialize(stats);
+        connection.Name = name;
+        return connection;
+    }
+
+    public Minion SpawnMinion(MinionSpawnStats stats)
+    {
+        if (!Multiplayer.IsServer()) return null;
+
+        var node = Spawn(new SpawnData
+        {
+            SpawnType = SpawnType.MINION,
+            SpawnObjectData = stats.ToDict(),
+        });
+        return node as Minion;
+    }
+
+    private Minion SpawnMinion(MinionSpawnStats stats, string name)
+    {
+        var minion = CreateMinion(stats.Kind);
+        minion.Initialize(stats, this, GameManager);
+        minion.Name = name;
+        return minion;
+    }
+
+    private static Minion CreateMinion(MinionKind kind)
+    {
+        return kind switch
+        {
+            MinionKind.Afterimage => new AfterimageMinion(),
+            MinionKind.StationaryTower => new StationaryTowerMinion(),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown minion kind"),
+        };
+    }
+
     public static string GenerateSpawnName(SpawnType type)
     {
         return $"{type}_{Guid.NewGuid()}";
     }
-
-
 
 }
 

@@ -20,7 +20,7 @@ public abstract class Buff : IBuff
     protected bool IsStackable { get; set; }
     protected int MaxStacks { get; set; } = 0;
     protected bool StackedDeactivation { get; set; }
-    public int StackCount { get; private set; }
+    public int StackCount { get; protected set; }
 
     protected bool IsRefreshable { get; set; }
 

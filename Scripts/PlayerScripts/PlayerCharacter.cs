@@ -10,7 +10,7 @@ using Godot.Collections;
 
 namespace CardBase.Scripts.PlayerScripts;
 
-public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffiliation
+public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffiliation, ITargetableEntity
 {
     private static readonly Vector2 EliminatedPosition = Vector2.One * -20000;
 
@@ -210,6 +210,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.CooldownReduction, 1, 0.2f, 1.8f); // max +-80% cooldown 
+        StatBlock.Define(StatType.IncreasedMinionLife, 0, float.NegativeInfinity, float.PositiveInfinity);
     }
 
     public override void _Process(double delta)

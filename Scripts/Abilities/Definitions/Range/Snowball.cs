@@ -8,6 +8,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class Snowball : ProjectileAbility
 {
+    private float UpdateSizeIncrease = 1f;
     public Snowball(PlayerCharacter creator) : base(AbilityIds.SnowballGuid, creator)
     {
         this.DisplayName = "Snowball";
@@ -23,10 +24,12 @@ public class Snowball : ProjectileAbility
 
     protected override void ApplyUpdate1()
     {
+        UpdateSizeIncrease = 1.2f;
     }
 
     protected override void ApplyUpdate2()
     {
+        
     }
 
     protected override ProjectileRuntime GetProjectileRuntime()
@@ -34,7 +37,7 @@ public class Snowball : ProjectileAbility
         return CreateProjectileRuntime(
             onHit,
             new SizeIncreaseBehavior(
-                ConfigParam("sizeIncreasePerSecond", 1f),
+                UpdateSizeIncrease * ConfigParam("sizeIncreasePerSecond", 1f),
                 ConfigParam("healthIncreasePerSecond", 10.0f)));
     }
 
@@ -45,7 +48,7 @@ public class Snowball : ProjectileAbility
             ConfigParam("projectileSpeed", 100f),
             ConfigParam("projectileLifetime", -1f));
         request.Health.Life = ConfigParam("projectileHealth", 100f);
-        request.Collision.CollisionMask = (uint)ConfigParam("collisionMask", 1 << 2);
+        request.Collision.CollisionMask = (uint)ConfigParam("collisionMask", (int)CombatCollisionLayers.TargetableEntities);
         request.Visual.AnimationOffset = new Vector2(ConfigParam("animationOffsetX", -8f), ConfigParam("animationOffsetY", 0f));
         var scale = ConfigParam("projectileScale", 1.0f);
         request.Visual.Scale = new Vector2(scale, scale);

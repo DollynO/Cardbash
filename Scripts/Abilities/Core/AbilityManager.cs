@@ -16,6 +16,7 @@ public static class AbilityManager
         { AbilityIds.IceArrowGuid, creator => new IceArrowAbility(creator) },
         { AbilityIds.GrapplingHookGuid, creator => new GrapplingHookAbility(creator) },
         { AbilityIds.CorruptedBoltGuid, creator => new CorruptedBolt(creator) },
+        { AbilityIds.AgnoyAbilitGuid, creator => new Agony(creator) },
         { AbilityIds.OrbitingIceShard, creator => new OrbitingIceShard(creator) },
         { AbilityIds.RicOSpamGuid, creator => new RicOSpam(creator) },
         { AbilityIds.SnowballGuid, creator => new Snowball(creator) },
@@ -77,4 +78,5 @@ public static class AbilityIds
     public static string RicOSpamGuid = "F42A4786-A727-48B1-8CE7-9F26A222ED55";
     public static string SnowballGuid = "A40C5A0A-79D9-4B56-9897-87E61D23B902";
     public static string MeteorGuid = "CAE877D4-799B-46E7-9BAA-79A7635299C9";
+    public static string AgnoyAbilitGuid = "92BE9E82-B796-47D7-A33B-6B048DD49871";
 }

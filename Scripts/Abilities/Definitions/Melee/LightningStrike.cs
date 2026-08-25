@@ -7,10 +7,13 @@ namespace CardBase.Scripts.Abilities;
 
 public class LightningStrike : Ability
 {
+    private bool chainStrikeEnabled;
+    private ChainLightning chainLightning;
+
     public LightningStrike(PlayerCharacter creator) : base(AbilityIds.LightningStrikeGuid, creator)
     {
         this.DisplayName = "Lightning Strike";
-        this.Description = "Fast lightning strike";
+        this.Description = "Fast lightning strike. Upgrade 2: lightning jumps to a nearby enemy after hitting.";
         this.IconPath = "res://Sprites/SkillIcons/Lightning/3_Electric_Boom.png";
     }
 
@@ -36,6 +39,7 @@ public class LightningStrike : Ability
 
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
     {
+        var chainExcludedTargets = new HashSet<IEntityComponent>(arg1);
 
         foreach (var playerCharacter in arg1)
         {
@@ -59,7 +63,14 @@ public class LightningStrike : Ability
             var hit = new Hit(arg2, ctx);
             if (playerCharacter.TryGetComponent(out DamageAbleComponent dac))
             {
-                dac.ReceiveHit(hit);
+                var hitLanded = dac.ReceiveHit(hit);
+                if (hitLanded && chainStrikeEnabled)
+                {
+                    foreach (var chainedTarget in GetChainLightning().StrikeFrom(playerCharacter, chainExcludedTargets))
+                    {
+                        chainExcludedTargets.Add(chainedTarget);
+                    }
+                }
             }
         }
     }
@@ -72,6 +83,29 @@ public class LightningStrike : Ability
 
     protected override void ApplyUpdate2()
     {
-        this.BaseCooldown = 5;
+        chainStrikeEnabled = true;
+    }
+
+    private ChainLightning GetChainLightning()
+    {
+        if (chainLightning != null)
+        {
+            return chainLightning;
+        }
+
+        var gameManager = ((Node)Caller).GetTree().Root.GetNode<GameManager>("/root/Main/Game");
+        chainLightning = new ChainLightning(Caller, gameManager, GlobalAbilitySpawner, GUID, new ChainLightningConfig
+        {
+            Range = ConfigParam("chainRange", 180f),
+            MaxJumps = ConfigParam("chainJumps", 1),
+            Damage = (float)BaseDamage,
+            DamageMultiplierPerJump = ConfigParam("chainDamageMultiplier", 0.5f),
+            DamageType = BaseType,
+            AilmentChance = BaseAilmentChance,
+            ArcDuration = ConfigParam("chainArcDuration", 0.18f),
+            ArcWidth = ConfigParam("chainArcWidth", 5f),
+        });
+
+        return chainLightning;
     }
 }

@@ -16,7 +16,7 @@
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/PlayerUi.cs" id="12_eaqiq"]
 [ext_resource type="PackedScene" uid="uid://ckfr6u0m0juo8" path="res://Scenes/overview_player.tscn" id="13_bqj63"]
 [ext_resource type="Script" path="res://Scripts/Scenes/Game/HealthBar.cs" id="13_k22l3"]
-[ext_resource type="Script" path="res://Scripts/Abilities/Runtime/GlobalAbilitySpawner.cs" id="13_v4tnd"]
+[ext_resource type="Script" path="res://Scripts/Abilities/Runtime/Spawning/GlobalAbilitySpawner.cs" id="13_v4tnd"]
 [ext_resource type="PackedScene" uid="uid://dlg058r1qx4fo" path="res://Scenes/stat_overview_element.tscn" id="14_7mrme"]
 [ext_resource type="Texture2D" uid="uid://di6t0aob1ceoh" path="res://Sprites/Items/ArmorItem.png" id="14_of2kk"]
 [ext_resource type="PackedScene" uid="uid://cewc4ky5xxtch" path="res://Prefabs/Buttons/green_button.res" id="17_hab0t"]

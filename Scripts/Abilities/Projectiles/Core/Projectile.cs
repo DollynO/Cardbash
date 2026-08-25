@@ -90,14 +90,14 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
                 SpawnRequest.Pull.Strength += statBlock.GetStat(StatType.AddPullStrength);
             }
 
-            if (SpawnRequest.Collision.CollisionMask > 0)
-            {
-                detectArea.CollisionMask = SpawnRequest.Collision.CollisionMask;
-            }
+            detectArea.CollisionMask = SpawnRequest.Collision.CollisionMask > 0
+                ? SpawnRequest.Collision.CollisionMask
+                : CombatCollisionLayers.ProjectileTargets;
         }
         pullArea.Visible = SpawnRequest.Pull.Radius > 0;
         if (SpawnRequest.Pull.Radius > 0)
         {
+            pullArea.CollisionMask = CombatCollisionLayers.TargetableEntities;
             pullArea.BodyEntered += PullAreaOnBodyEntered;
             pullArea.BodyExited += PullAreaOnBodyExit;
             if (pullAreaShape.Shape is CircleShape2D circleShape)

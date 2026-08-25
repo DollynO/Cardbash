@@ -37,6 +37,7 @@ public enum StatType
     AddPullStrength,
     
     IncreasedAOERange,
+    IncreasedMinionLife,
 }
 
 public sealed class StatBlock

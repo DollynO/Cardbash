@@ -180,6 +180,7 @@ public partial class AbilityComponent : Node2D, IComponent
         if (Abilities.Values.FirstOrDefault(a => a.GUID == abilityGuid) is { } ability)
         {
             ability.ApplyUpdate();
+            Rpc(MethodName.updateNetworkAbilitySkillLevel, ability.GUID, ability.UpdateCounter);
             return true;
         }
 
@@ -217,8 +218,18 @@ public partial class AbilityComponent : Node2D, IComponent
             GUID = guid,
             IconPath = iconPath,
             Index = index,
+            SkillLevel = 0,
         };
         networkAbilities.Add(guid, newNetAbility);
+    }
+    
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void updateNetworkAbilitySkillLevel(string guid, int skillLevel)
+    {
+        if (networkAbilities.TryGetValue(guid, out var netAbility))
+        {
+            netAbility.SkillLevel = skillLevel;
+        }
     }
 
     public void Enable()

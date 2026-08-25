@@ -12,7 +12,7 @@ public static class CombatTargeting
             return false;
         }
 
-        if (target is PlayerCharacter player && !player.IsTargetable)
+        if (target is ITargetableEntity targetable && !targetable.IsTargetable)
         {
             return false;
         }

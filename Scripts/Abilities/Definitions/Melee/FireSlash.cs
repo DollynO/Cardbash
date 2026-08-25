@@ -25,7 +25,7 @@ public class FireSlash : Ability
         {
             Angle = ConfigParam("angle", 120f),
             ActivationTime = ConfigParam("activationTime", 0.2f),
-            Radius = ConfigParam("radius", 80f),
+            Radius = ConfigParam("radius", 160f),
             AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
@@ -61,11 +61,26 @@ public class FireSlash : Ability
             {
                 dac.ReceiveHit(hit);
             }
+
+            if (UpdateCounter != 2) continue;
+            
+            var stats = new AoeBaseStats()
+            {
+                Angle = 360f,
+                ActivationTime = ConfigParam("activationTimeWildfire", 1f),
+                Radius = ConfigParam("radiusWildfire", 300f),
+                AngleOffset = ConfigParam("angleOffsetWildfire", 0f),
+                Owner = Caller,
+                Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            };
+            ApplyAoeConfig(stats);
+            GlobalAbilitySpawner.SpawnAoe(stats);
         }
     }
 
     protected override void ApplyUpdate1()
     {
+        BaseAilmentChance = 0.35f;
     }
 
     protected override void ApplyUpdate2()

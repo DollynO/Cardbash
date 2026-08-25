@@ -25,6 +25,10 @@ public class HitResolver
                 hitMods.AddRange(abilityHitMods);
             }
         }
+        if (ctx.Target.TryGetComponent<BuffManagerComponent>(out var targetBuffManager))
+        {
+            hitMods.AddRange(targetBuffManager.GetActiveBuffs<IHitModifier>());
+        }
 
         foreach (var mod in hitMods)
         {

@@ -238,7 +238,7 @@ public class RayStats
 {
     public float Range;
     public IEntityComponent Caster;
-    public uint CollisionMask = 4 + 1;
+    public uint CollisionMask = CombatCollisionLayers.TargetableEntities | CombatCollisionLayers.World;
     public Action<IEntityComponent, float> CollisionTick;
 
     public string AnimationResource;

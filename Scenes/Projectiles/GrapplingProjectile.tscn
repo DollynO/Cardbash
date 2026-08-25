@@ -11,7 +11,7 @@ radius = 0.01
 
 [node name="Node2D" type="Area2D" node_paths=PackedStringArray("_line", "timer", "sprite", "collisionShape", "pullArea", "pullAreaShape")]
 collision_layer = 0
-collision_mask = 5
+collision_mask = 21
 script = ExtResource("1_r487b")
 _line = NodePath("Line2D")
 timer = NodePath("LiveTimeTimer")
@@ -34,7 +34,7 @@ frame_progress = 0.762011
 
 [node name="PullArea" type="Area2D" parent="."]
 collision_layer = 0
-collision_mask = 4
+collision_mask = 20
 
 [node name="PullAreaShape" type="CollisionShape2D" parent="PullArea"]
 modulate = Color(0.588977, 0.130064, 0.489551, 1)
