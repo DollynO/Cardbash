@@ -137,7 +137,7 @@
     },
     "F42A4786-A727-48B1-8CE7-9F26A222ED55": {
       "displayName": "Ric-O-Spam",
-      "description": "SPAAAM",
+      "description": "SPAAAM. Upgrade 1: increases maximum stacks. Upgrade 2: cloned projectiles gain 20% speed per generation, up to 3x.",
       "iconPath": "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png",
       "cooldown": 5,
       "baseDamage": 5,
@@ -159,7 +159,11 @@
         "animationOffsetY": 0,
         "spreadDegrees": 15,
         "maxSplitProjectiles": 10,
-        "maxActiveCasts": 3
+        "maxActiveCasts": 3,
+        "stackIncrease": 1,
+        "cloneSpeedMultiplier": 1.2,
+        "maxCloneSpeedMultiplier": 3,
+        "maxCloneSpeedGeneration": 6
       },
       "maxStack": 1,
       "baseAilmentChance": 0

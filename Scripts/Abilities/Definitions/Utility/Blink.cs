@@ -67,7 +67,7 @@ public class Blink : Ability
             AnimationOffset = new Vector2(
                 ConfigParam("afterimageAnimationOffsetX", 0f),
                 ConfigParam("afterimageAnimationOffsetY", 0f)),
-            Duration = ConfigParam("afterimageDuration", 0.6f),
+            Duration = ConfigParam("afterimageDuration", 2.5f),
             Life = Mathf.Max(life, 1f),
             Alpha = ConfigParam("afterimageAlpha", 0.45f),
             CollisionRadius = ConfigParam("afterimageCollisionRadius", 12f),

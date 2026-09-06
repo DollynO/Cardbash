@@ -11,11 +11,12 @@ public class RicOSpam : ProjectileAbility
     private Dictionary<string, List<Projectile>> projectileLists = new();
     private Random rnd = new();
     private string currentCastGuid = string.Empty;
+    private bool speedUpClonedProjectiles;
 
     public RicOSpam(PlayerCharacter creator) : base(AbilityIds.RicOSpamGuid, creator)
     {
         this.DisplayName = "Ric-O-Spam";
-        this.Description = "SPAAAM";
+        this.Description = "SPAAAM. Upgrade 1: increases maximum stacks. Upgrade 2: cloned projectiles gain 20% speed per generation, up to 3x.";
         this.IconPath = "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png";
         this.SpawnDelay = 0.5f;
     }
@@ -72,10 +73,12 @@ public class RicOSpam : ProjectileAbility
 
     protected override void ApplyUpdate1()
     {
+        this.MaxStack += Math.Max(1, ConfigParam("stackIncrease", 1));
     }
 
     protected override void ApplyUpdate2()
     {
+        speedUpClonedProjectiles = true;
     }
 
     protected override void _onProjectileCollided(Vector2 position, Projectile projectile)
@@ -90,6 +93,8 @@ public class RicOSpam : ProjectileAbility
                 var spreadDegrees = Math.Max(1, ConfigParam("spreadDegrees", 15));
                 var offset = rnd.NextInt64(-spreadDegrees, spreadDegrees);
                 request.Movement.Direction = projectile.SpawnRequest.Movement.Direction.Rotated(Mathf.DegToRad(offset));
+                request.CloneGeneration = projectile.SpawnRequest.CloneGeneration + 1;
+                request.Movement.Speed = GetClonedProjectileSpeed(request.Movement.Speed, request.CloneGeneration);
                 request.Movement.AngleOffset = 0;
                 request.Caller = Caller;
                 var add_proj = GlobalAbilitySpawner.SpawnProjectile(request, GetProjectileRuntime());
@@ -99,6 +104,23 @@ public class RicOSpam : ProjectileAbility
                 _projectiles.Add(add_proj);
             }
         }
+    }
+
+    private float GetClonedProjectileSpeed(float baseSpeed, int cloneGeneration)
+    {
+        if (!speedUpClonedProjectiles)
+        {
+            return baseSpeed;
+        }
+
+        var cloneSpeedMultiplier = ConfigParam("cloneSpeedMultiplier", 1.2f);
+        var maxCloneSpeedMultiplier = ConfigParam("maxCloneSpeedMultiplier", 3f);
+        var maxCloneSpeedGeneration = Math.Max(1, ConfigParam("maxCloneSpeedGeneration", 6));
+        var speedMultiplier = cloneGeneration >= maxCloneSpeedGeneration
+            ? maxCloneSpeedMultiplier
+            : (float)Math.Pow(cloneSpeedMultiplier, cloneGeneration);
+
+        return baseSpeed * Mathf.Min(speedMultiplier, maxCloneSpeedMultiplier);
     }
 
     private void deleteProjectileList(List<Projectile> projectiles)

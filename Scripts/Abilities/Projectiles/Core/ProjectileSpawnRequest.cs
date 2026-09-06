@@ -9,6 +9,7 @@ namespace CardBase.Scripts.Abilities;
 public class ProjectileSpawnRequest
 {
     public string CastGuid = Guid.NewGuid().ToString();
+    public int CloneGeneration;
     public IEntityComponent Caller;
     public Vector2 StartPosition = new(-10000, -10000);
     public ProjectileVisualConfig Visual = new();
@@ -23,6 +24,7 @@ public class ProjectileSpawnRequest
         return new Godot.Collections.Dictionary<string, Variant>
         {
             { nameof(CastGuid), CastGuid },
+            { nameof(CloneGeneration), CloneGeneration },
             { nameof(Caller), Caller is Node2D callerNode ? callerNode.GetPath() : string.Empty },
             { "CallerPlayerId", Caller is PlayerCharacter callerPlayer ? callerPlayer.PlayerId : 0 },
             { nameof(StartPosition), StartPosition },
@@ -40,6 +42,9 @@ public class ProjectileSpawnRequest
         return new ProjectileSpawnRequest
         {
             CastGuid = (string)dict[nameof(CastGuid)],
+            CloneGeneration = dict.TryGetValue(nameof(CloneGeneration), out var cloneGeneration)
+                ? (int)cloneGeneration
+                : 0,
             Caller = ResolveCaller(dict, manager),
             StartPosition = (Vector2)dict[nameof(StartPosition)],
             Visual = ProjectileVisualConfig.FromDict(dict[nameof(Visual)].AsGodotDictionary<string, Variant>()),

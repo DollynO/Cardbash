@@ -204,7 +204,10 @@ public partial class Minion : CharacterbodyEntityComponent, IMinionEntity
     private void AddCombatComponents()
     {
         var life = Mathf.Max(Stats.Life, 1f);
-        var statBlock = new StatblockComponent();
+        var statBlock = new StatblockComponent
+        {
+            ReplicateStats = false,
+        };
         AddComponent(statBlock);
         statBlock.Define(StatType.Life, life, 1f, float.PositiveInfinity);
         statBlock.Define(StatType.Armor, 0, 0, float.PositiveInfinity);

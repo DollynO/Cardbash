@@ -12,6 +12,13 @@ namespace CardBase.Scripts;
 public partial class StatblockComponent : Node2D, IComponent
 {
     public IEntityComponent Parent { get; set; }
+    public bool ReplicateStats { get; set; } = true;
+
+    public StatblockComponent()
+    {
+        Name = nameof(StatblockComponent);
+    }
+
     public void SetParent(IEntityComponent component)
     {
         this.Parent = component;
@@ -63,19 +70,28 @@ public partial class StatblockComponent : Node2D, IComponent
 
     public override void _Ready()
     {
-        Name = "StatblockComponent";
+        Name = nameof(StatblockComponent);
     }
 
     public void Define(StatType stat, float baseValue, float? minValue = null, float? maxValue = null)
     {
-        if (!Multiplayer.IsServer()) return;
-
-        _stats.Define(stat, baseValue, minValue, maxValue);
         var dict = new Godot.Collections.Dictionary<int, float>()
         {
             {(int)stat, baseValue}
         };
-        Rpc(MethodName.updateStat, dict);
+
+        if (!Multiplayer.IsServer())
+        {
+            if (!ReplicateStats)
+            {
+                updateStat(dict);
+            }
+
+            return;
+        }
+
+        _stats.Define(stat, baseValue, minValue, maxValue);
+        SyncStats(dict);
     }
 
     public float GetStat(StatType stat)
@@ -108,7 +124,7 @@ public partial class StatblockComponent : Node2D, IComponent
             }
         }
 
-        Rpc(MethodName.updateStat, dict);
+        SyncStats(dict);
     }
 
     public void RemoveModifierSource(string sourceId)
@@ -117,7 +133,19 @@ public partial class StatblockComponent : Node2D, IComponent
 
         var affectedKeys = _stats.RemoveSource(sourceId);
         var dict = new Godot.Collections.Dictionary<int, float>(affectedKeys.ToDictionary(kvp => (int)kvp.Key, kvp => kvp.Value));
-        Rpc(MethodName.updateStat, dict);
+        SyncStats(dict);
+    }
+
+    private void SyncStats(Godot.Collections.Dictionary<int, float> stats)
+    {
+        if (ReplicateStats)
+        {
+            Rpc(MethodName.updateStat, stats);
+        }
+        else
+        {
+            updateStat(stats);
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
