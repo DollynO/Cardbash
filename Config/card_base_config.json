@@ -107,10 +107,10 @@
     },
     "10633462-9097-41ED-9331-6454F0AEAF93": {
       "displayName": "Orbiting Ice Shard",
-      "description": "",
+      "description": "Passively creates orbiting ice shards. Upgrade 1: increases Frost chance. Upgrade 2: recast fires all orbiting shards in the aim direction.",
       "iconPath": "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png",
       "cooldown": 2,
-      "baseDamage": 1,
+      "baseDamage": 30,
       "damageType": 3,
       "maxStack": 1,
       "baseAilmentChance": 1,
@@ -132,7 +132,9 @@
         "maxProjectiles": 3,
         "stunDuration": 5,
         "ringRadius": 100,
-        "ringScale": 1
+        "ringScale": 1,
+        "recastProjectileSpeed": 500,
+        "recastProjectileLifetime": 4
       }
     },
     "F42A4786-A727-48B1-8CE7-9F26A222ED55": {
@@ -183,7 +185,7 @@
         "angleOffset": 0,
         "pierceCount": 0,
         "collisionMask": 20,
-        "projectileHealth": 100,
+        "projectileHealth": 20,
         "pullRadius": 0,
         "pullStrength": 0,
         "projectileScaleX": 1,
@@ -397,7 +399,7 @@
     },
     "C19D6DD4-E8D5-488B-A89C-58A20211BA26": {
       "displayName": "Aegis",
-      "description": "AAAEEEGIIIS",
+      "description": "Passively creates Aegis charges that block incoming projectiles.",
       "iconPath": "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png",
       "cooldown": 10,
       "baseDamage": 0,

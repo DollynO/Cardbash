@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CardBase.Scripts;
 using Godot;
 
 [GlobalClass]
@@ -16,6 +17,7 @@ public partial class GameFlowController : Node
     private int drawRoundIndex;
     private bool allCardsDrawn;
     private bool gameStarted;
+    public EventBus EventBus => EventBus.Instance;
 
     public GameFlowController(GameContext ctx, GameModeSettings settings)
     {
@@ -185,6 +187,7 @@ public partial class GameFlowController : Node
     [Rpc(CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void CloseDrawOnClient()
     {
+        EventBus.MatchEventBus.EmitGamePhaseStarted(new MatchEventArgs(_roundIndex));
         _ctx.GameManager.Hud.ShowDrawUi(false);
     }
 

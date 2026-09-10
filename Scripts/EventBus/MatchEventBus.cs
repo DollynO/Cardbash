@@ -34,6 +34,13 @@ public class MatchEventBus
     {
         this.ScoreChangedEventHandler?.Invoke(this, args);
     }
+    
+    public event EventHandler<MatchEventArgs> GamePhaseStartedEventHandler;
+
+    public void EmitGamePhaseStarted(MatchEventArgs args)
+    {
+        this.GamePhaseStartedEventHandler?.Invoke(this, args);
+    }
 }
 
 public class MatchEventArgs

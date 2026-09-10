@@ -5,7 +5,7 @@ using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
-public class Aegis : Ability, IHitInterceptor
+public class Aegis : PassiveStackAbility, IHitInterceptor
 {
     private Ring ring;
     private AoeBase detectRing;
@@ -24,48 +24,69 @@ public class Aegis : Ability, IHitInterceptor
     public Aegis(IEntityComponent creator) : base(AbilityIds.AegisGuid, creator)
     {
         DisplayName = "Aegis";
-        Description = "AAAEEEGIIIS";
+        Description = "Passively creates Aegis charges that block incoming projectiles.";
         IconPath = "res://Sprites/SkillIcons/Holy/15_Holy_Shield.png";
-        AutoCast = true;
 
-        if (creator != null
-            && creator.TryGetComponent(out AbilityComponent abilityComponent)
-            && creator.TryGetComponent(out DamageAbleComponent dac))
+        if (creator != null)
         {
             ringRadius = ConfigParam("ringRadius", ringRadius);
-            var ringScale = ConfigParam("ringScale", 0.5f);
             var maxCharges = ConfigParam("maxCharges", 3);
-            ring = abilityComponent.RingContainer.AddRing(ringRadius, ringScale, maxCharges);
-            dac._HitInterceptors.Add(this);
+            InitializePassiveStacks(maxCharges);
+
+            if (creator.TryGetComponent(out AbilityComponent abilityComponent))
+            {
+                ring = abilityComponent.RingContainer.AddRing(
+                    ringRadius,
+                    ConfigParam("ringScale", 0.5f),
+                    maxCharges);
+            }
+
+            if (creator.TryGetComponent(out DamageAbleComponent dac))
+            {
+                dac._HitInterceptors.Add(this);
+            }
+
             buff = new AegisDamageIncreaseBuff(creator, creator);
         }
     }
 
-    public override void InternalUse()
+    protected override bool CreatePassiveStack()
     {
-        if (detectRing == null)
+        EnsureDetectRing();
+        if (ring == null)
         {
-            var stats = new AoeBaseStats()
-            {
-                Radius = ConfigParam("ringRadius", ringRadius),
-                ActivationTime = ConfigParam("activationTime", 0.1f),
-                Duration = ConfigParam("duration", -1f),
-                Callbacks = new AoeBaseCallbacks
-                {
-                    OnActivation = OnActivation,
-                    OnEntityEnter = OnPlayerEnter,
-                    OnEntityExit = OnPlayerExit,
-                },
-                AbilityGUID = GUID,
-                IsStationary = false,
-                CanAffectOwner = false,
-                Owner = Caller,
-            };
-            detectRing = GlobalAbilitySpawner.SpawnAoe(stats);
+            return false;
         }
 
         var scale = ConfigParam("shieldScale", spriteScale.X);
         ring.AddTextureNode(shieldPath, new Vector2(scale, scale));
+        return true;
+    }
+
+    private void EnsureDetectRing()
+    {
+        if (detectRing != null && GodotObject.IsInstanceValid(detectRing))
+        {
+            return;
+        }
+
+        var stats = new AoeBaseStats()
+        {
+            Radius = ConfigParam("ringRadius", ringRadius),
+            ActivationTime = ConfigParam("activationTime", 0.1f),
+            Duration = ConfigParam("duration", -1f),
+            Callbacks = new AoeBaseCallbacks
+            {
+                OnActivation = OnActivation,
+                OnEntityEnter = OnPlayerEnter,
+                OnEntityExit = OnPlayerExit,
+            },
+            AbilityGUID = GUID,
+            IsStationary = false,
+            CanAffectOwner = false,
+            Owner = Caller,
+        };
+        detectRing = GlobalAbilitySpawner.SpawnAoe(stats);
     }
 
     private void OnPlayerExit(IEntityComponent arg1, AoeBase arg2)
@@ -77,7 +98,7 @@ public class Aegis : Ability, IHitInterceptor
 
         if (!isCharInRange)
         {
-            detectRing.ChangeFillColor(emptyColor);
+            detectRing?.ChangeFillColor(emptyColor);
         }
     }
 
@@ -90,7 +111,7 @@ public class Aegis : Ability, IHitInterceptor
 
         if (isCharInRange)
         {
-            detectRing.ChangeFillColor(occupiedColor);
+            detectRing?.ChangeFillColor(occupiedColor);
         }
     }
 
@@ -100,20 +121,39 @@ public class Aegis : Ability, IHitInterceptor
 
         if (isCharInRange)
         {
-            detectRing.ChangeFillColor(occupiedColor);
+            detectRing?.ChangeFillColor(occupiedColor);
         }
     }
 
     public override void RoundReset()
     {
-        return;
+        base.RoundReset();
+        charactersInRange.Clear();
+        CancelDetectRing();
     }
 
-    protected override bool preventAutoCast()
+    public override void ClearAbility()
     {
-        return ring.GetStackCount() == ring.MaxStacks || isCharInRange;
+        base.ClearAbility();
+        if (Caller != null && Caller.TryGetComponent(out DamageAbleComponent dac))
+        {
+            dac._HitInterceptors.Remove(this);
+        }
+
+        CancelDetectRing();
     }
 
+    protected override bool CanCreatePassiveStack()
+    {
+        EnsureDetectRing();
+        return ring != null && base.CanCreatePassiveStack() && !isCharInRange;
+    }
+
+    protected override void ClearPassiveStacks()
+    {
+        ring?.ClearNodes();
+        base.ClearPassiveStacks();
+    }
 
     protected override void ApplyUpdate1()
     {
@@ -125,10 +165,15 @@ public class Aegis : Ability, IHitInterceptor
 
     public bool TryBlock(in Hit hit)
     {
-        var stackCount = ring.GetStackCount();
-        if (hit.Source is Projectile projectile && stackCount > 0)
+        if (hit.Source is Projectile projectile && PassiveStackCount > 0)
         {
-            ring.RemoveNodeAtSlot(stackCount - 1);
+            var slotIndex = (ring?.GetStackCount() ?? 0) - 1;
+            if (slotIndex >= 0)
+            {
+                ring.RemoveNodeAtSlot(slotIndex);
+            }
+
+            ConsumePassiveStack();
             if (buff != null && Caller.TryGetComponent(out BuffManagerComponent buffManagerComponent))
             {
                 buffManagerComponent.ApplyBuff(buff);
@@ -138,5 +183,15 @@ public class Aegis : Ability, IHitInterceptor
         }
 
         return false;
+    }
+
+    private void CancelDetectRing()
+    {
+        if (detectRing != null && GodotObject.IsInstanceValid(detectRing))
+        {
+            detectRing.Cancel();
+        }
+
+        detectRing = null;
     }
 }

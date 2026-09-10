@@ -81,6 +81,8 @@ public abstract class Ability : BaseCardableObject
 
     protected bool AutoCast = false;
 
+    protected virtual bool UsesStandardCooldown => true;
+
     private AbilityKeyState lastInputState = AbilityKeyState.ABILITY_NONE;
 
     protected GlobalAbilitySpawner GlobalAbilitySpawner => globalAbilitySpawner ??= ((Node2D)Caller).GetTree().Root
@@ -118,6 +120,12 @@ public abstract class Ability : BaseCardableObject
      */
     public void UpdateCooldown(double delta)
     {
+        ProcessPassive(delta);
+        if (!UsesStandardCooldown)
+        {
+            return;
+        }
+
         if (AutoCast)
         {
             if (!preventAutoCast())
@@ -165,6 +173,10 @@ public abstract class Ability : BaseCardableObject
         }
     }
 
+    protected virtual void ProcessPassive(double delta)
+    {
+    }
+
     protected virtual bool preventAutoCast()
     {
         return false;
@@ -180,6 +192,12 @@ public abstract class Ability : BaseCardableObject
         CurrentStack--;
         this.activated = true;
 
+        return true;
+    }
+
+    protected bool ActivateWithoutStack()
+    {
+        this.activated = true;
         return true;
     }
 

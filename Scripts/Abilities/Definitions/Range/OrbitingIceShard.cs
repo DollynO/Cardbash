@@ -1,64 +1,56 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
-public class OrbitingIceShard : Ability
+public class OrbitingIceShard : PassiveStackAbility
 {
     private int maxProjectiles = 3;
     private float baseStunDuration = 5;
     private Ring ring;
+    private bool canFireOrbitingShards;
 
     public OrbitingIceShard(PlayerCharacter creator) : base(AbilityIds.OrbitingIceShard, creator)
     {
         this.DisplayName = "Orbiting Ice Shard";
-        this.Description = "";
+        this.Description = "Passively creates orbiting ice shards. Upgrade 1: increases Frost chance. Upgrade 2: recast fires all orbiting shards in the aim direction.";
         this.IconPath = "res://Sprites/SkillIcons/Snow/16_Ice_Ball.png";
-        this.AutoCast = true;
 
-        if (creator != null && creator.TryGetComponent(out AbilityComponent abilityComponent))
+        
+        if (creator != null)
         {
-            creator.EventBus.MatchEventBus.RoundStartEventHandler += CreatorOnNewRoundStarted;
             maxProjectiles = ConfigParam("maxProjectiles", maxProjectiles);
-            ring = abilityComponent.RingContainer.AddRing(
-                ConfigParam("ringRadius", 100f),
-                ConfigParam("ringScale", 1f),
-                maxProjectiles);
+            InitializePassiveStacks(maxProjectiles);
+
+            if (creator.TryGetComponent(out AbilityComponent abilityComponent))
+            {
+                ring = abilityComponent.RingContainer.AddRing(
+                    ConfigParam("ringRadius", 100f),
+                    ConfigParam("ringScale", 1f),
+                    maxProjectiles);
+            }
         }
     }
 
-    private void CreatorOnNewRoundStarted(object sender, MatchEventArgs e)
+    protected override bool CanManualCast()
     {
-        CurrentStack = 0;
-        CurrentCooldown = BaseCooldown;
-    }
-
-    public override void RoundReset()
-    {
-        return;
-    }
-
-    public override void ClearAbility()
-    {
-        if (Caller == null)
-        {
-            return;
-        }
-
-        Caller.EventBus.MatchEventBus.RoundStartEventHandler -= CreatorOnNewRoundStarted;
-    }
-
-    protected override bool preventAutoCast()
-    {
-        return ring.GetStackCount() >= ConfigParam("maxProjectiles", maxProjectiles);
+        return canFireOrbitingShards && PassiveStackCount > 0;
     }
 
     public override void InternalUse()
     {
+        FireOrbitingShards();
+    }
+
+    protected override bool CreatePassiveStack()
+    {
+        if (ring == null)
+        {
+            return false;
+        }
+
         var spawnRequest = new ProjectileSpawnRequest
         {
             Caller = Caller,
@@ -88,6 +80,7 @@ public class OrbitingIceShard : Ability
 
         projectile.OnDestroyed += ProjectileOnOnDestroyed;
         ring.AddNode(projectile);
+        return true;
     }
 
     private void OnHit(IEntityComponent hitObject, Projectile source)
@@ -132,11 +125,81 @@ public class OrbitingIceShard : Ability
 
     protected override void ApplyUpdate2()
     {
+        canFireOrbitingShards = true;
     }
 
     private void ProjectileOnOnDestroyed(Vector2 position, Projectile projectile)
     {
-        ring.RemoveNode(projectile, false);
+        if (ring?.RemoveNode(projectile, false) == true)
+        {
+            ConsumePassiveStack();
+        }
+    }
+
+    protected override void ClearPassiveStacks()
+    {
+        if (ring == null)
+        {
+            base.ClearPassiveStacks();
+            return;
+        }
+
+        foreach (var node in ring.RemoveAllNodes(false))
+        {
+            if (node is Projectile projectile)
+            {
+                projectile.OnDestroyed -= ProjectileOnOnDestroyed;
+                projectile.DestroyProjectile();
+            }
+            else
+            {
+                node.QueueFree();
+            }
+        }
+
+        base.ClearPassiveStacks();
+    }
+
+    private void FireOrbitingShards()
+    {
+        var direction = GetAimDirection();
+        if (direction == Vector2.Zero)
+        {
+            direction = Vector2.Right;
+        }
+
+        var speed = ConfigParam("recastProjectileSpeed", 500f);
+        var lifetime = ConfigParam("recastProjectileLifetime", 4f);
+        ConsumeAllPassiveStacks();
+
+        foreach (var node in ring.RemoveAllNodes(false))
+        {
+            if (node is not Projectile projectile)
+            {
+                continue;
+            }
+
+            var projectileDirection = direction - projectile.GlobalPosition;
+            projectile.OnDestroyed -= ProjectileOnOnDestroyed;
+            projectile.SpawnRequest.Movement.Direction = projectileDirection;
+            projectile.SpawnRequest.Movement.Speed = speed;
+            projectile.SpawnRequest.Movement.Mode = MovementMode.STRAIGHT;
+            projectile.SpawnRequest.Movement.AngleOffset = 0;
+            projectile.Rotation = direction.Angle();
+            projectile.RestartLifetime(lifetime);
+        }
+    }
+
+    private Vector2 GetAimDirection()
+    {
+        if (Caller != null && Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            return aimComponent.GetPlayerMouesPosition(float.MaxValue);
+        }
+
+        return Caller is Node2D callerNode
+            ? Vector2.Right.Rotated(callerNode.GlobalRotation)
+            : Vector2.Right;
     }
 }
 

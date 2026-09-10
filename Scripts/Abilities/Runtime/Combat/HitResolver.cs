@@ -40,30 +40,13 @@ public class HitResolver
         {
             damageMods.AddRange(srcStatblock.GetDamageModifiers());
         }
-        DamageCalculator.CalculateTotalDamage(ctx.Damages, damageMods);
 
-        ctx.Target.TryGetComponent<StatblockComponent>(out var targetStatblock);
-        // apply mitigation
+        ctx.Target.TryGetComponent<StatblockComponent>(out var targetStatblock);        
+        ctx.Source.TryGetComponent<StatblockComponent>(out var sourceStatblock);        
+        DamageCalculator.CalculateTotalDamage(ctx.Damages, damageMods, targetStatblock, sourceStatblock);
+
         foreach (var dmg in ctx.Damages)
         {
-            var dr = 0f;
-
-            if (targetStatblock != null)
-            {
-                var defenseStat = dmg.Key switch
-                {
-                    DamageType.Physical or DamageType.Poison => targetStatblock.GetStat(StatType.Armor),
-                    DamageType.Darkness => 0,
-                    DamageType.Holy => 0,
-                    DamageType.Fire => targetStatblock.GetStat(StatType.EnergyShield),
-                    DamageType.Ice => targetStatblock.GetStat(StatType.EnergyShield),
-                    DamageType.Lightning => targetStatblock.GetStat(StatType.EnergyShield),
-                    _ => 0,
-                };
-                dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
-            }
-
-            ctx.Damages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
             targetHealthComponent.ApplyDamage(ctx.Damages[dmg.Key], ctx.Source);
             ApplyDamageTypeAilment(dmg.Value.Type, dmg.Value.AilmentChance, ctx.Source, ctx.Target);
         }

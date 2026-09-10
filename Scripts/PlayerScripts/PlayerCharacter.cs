@@ -196,7 +196,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.Armor, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.EnergyShield, 0, float.NegativeInfinity, float.PositiveInfinity);
         StatBlock.Define(StatType.CritBonus, 0, 0, float.PositiveInfinity);
-        StatBlock.Define(StatType.CritChance, 0, 0, 100);
+        StatBlock.Define(StatType.CritChance, 5, 0, 100);
         StatBlock.Define(StatType.Darkness, 0, 0, 20);
         StatBlock.Define(StatType.Blinding, 0, 0, 20);
         StatBlock.Define(StatType.DmgLightningBonus, 0, float.NegativeInfinity, float.PositiveInfinity);

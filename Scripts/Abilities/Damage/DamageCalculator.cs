@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
@@ -16,7 +17,8 @@ public static class DamageCalculator
      * @param[in]   modifiers   Modifiers to change the type or value of the damage.
      * conversion -> extra damage -> modifier
      */
-    public static void CalculateTotalDamage(Dictionary<DamageType, Damage> orgDamages, List<DamageModifier> modifiers)
+    public static void CalculateTotalDamage(Dictionary<DamageType, Damage> orgDamages, List<DamageModifier> modifiers,
+        StatblockComponent targetStatblock, StatblockComponent sourceStatblock)
     {
         var calculatedDamages = new Dictionary<DamageType, Damage>();
         foreach (var orgDamageDict in orgDamages)
@@ -115,6 +117,44 @@ public static class DamageCalculator
                     calculatedDamages[dmg.Key].DamageNumber += dmg.Value.DamageNumber;
                     calculatedDamages[dmg.Key].AilmentChance
                         = Math.Max(calculatedDamages[dmg.Key].AilmentChance, dmg.Value.AilmentChance);
+                }
+            }
+        }
+        
+        // apply mitigation
+        if (targetStatblock != null)
+        {
+            foreach (var dmg in calculatedDamages)
+            {
+                var dr = 0f;
+                var defenseStat = dmg.Key switch
+                {
+                    DamageType.Physical or DamageType.Poison => targetStatblock.GetStat(StatType.Armor),
+                    DamageType.Darkness => 0,
+                    DamageType.Holy => 0,
+                    DamageType.Fire => targetStatblock.GetStat(StatType.EnergyShield),
+                    DamageType.Ice => targetStatblock.GetStat(StatType.EnergyShield),
+                    DamageType.Lightning => targetStatblock.GetStat(StatType.EnergyShield),
+                    _ => 0,
+                };
+                dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
+                calculatedDamages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
+            }
+        }
+
+        if (sourceStatblock != null)
+        {
+            var critChance = sourceStatblock.GetStat(StatType.CritChance);
+            if (critChance > 0)
+            {
+                var rnd = new Random();
+                var chance = rnd.NextDouble();
+                if (chance <= (critChance/100))
+                {
+                    foreach (var dmg in calculatedDamages)
+                    {
+                        dmg.Value.DamageNumber *= (sourceStatblock.GetStat(StatType.CritBonus) + 2);
+                    }
                 }
             }
         }

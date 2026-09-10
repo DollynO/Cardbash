@@ -95,7 +95,7 @@ public partial class Ring : Node2D
     }
 
 
-    public void RemoveNode(Node2D node, bool freeObject = true)
+    public bool RemoveNode(Node2D node, bool freeObject = true)
     {
         int slotToRemove = -1;
         foreach (var kvp in anchoredNodes)
@@ -114,7 +114,41 @@ public partial class Ring : Node2D
             {
                 node.QueueFree();
             }
+
+            return true;
         }
+
+        return false;
+    }
+
+    public List<Node2D> GetNodes()
+    {
+        return anchoredNodes
+            .OrderBy(kvp => kvp.Key)
+            .Select(kvp => kvp.Value)
+            .Where(node => node != null && IsInstanceValid(node))
+            .ToList();
+    }
+
+    public List<Node2D> RemoveAllNodes(bool freeObjects = true)
+    {
+        var nodes = new List<Node2D>();
+        foreach (var entry in anchoredNodes.OrderBy(kvp => kvp.Key).ToList())
+        {
+            anchoredNodes.TryRemove(new KeyValuePair<int, Node2D>(entry.Key, entry.Value));
+            if (entry.Value == null || !IsInstanceValid(entry.Value))
+            {
+                continue;
+            }
+
+            nodes.Add(entry.Value);
+            if (freeObjects)
+            {
+                entry.Value.QueueFree();
+            }
+        }
+
+        return nodes;
     }
 
     public void RemoveNodeAtSlot(int slotIndex)
@@ -147,12 +181,7 @@ public partial class Ring : Node2D
 
     public void ClearNodes()
     {
-        while (!anchoredNodes.IsEmpty)
-        {
-            var node = anchoredNodes.First();
-            anchoredNodes.TryRemove(node);
-            node.Value.QueueFree();
-        }
+        RemoveAllNodes();
     }
 
     /**

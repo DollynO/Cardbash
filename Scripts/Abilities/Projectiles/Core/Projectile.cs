@@ -69,6 +69,24 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         }
     }
 
+    public void RestartLifetime(float seconds)
+    {
+        SpawnRequest.Lifetime.Seconds = seconds;
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        if (seconds > 0)
+        {
+            timer.Start(seconds);
+        }
+        else
+        {
+            timer.Stop();
+        }
+    }
+
     public override void _Draw()
     {
         DrawCircle(Vector2.Zero, SpawnRequest.Pull.Radius * 35, pullAreaColor);
@@ -77,6 +95,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     public override void _Ready()
     {
         SetMultiplayerAuthority(1);
+        CollisionMask = CombatCollisionLayers.World | CombatCollisionLayers.Wall;
         if (Multiplayer.IsServer())
         {
             if (SpawnRequest.Lifetime.Seconds > 0)
@@ -265,22 +284,24 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
     private void handleTerrainCollision(KinematicCollision2D collider)
     {
-        if (collider.GetCollider() is TileMapLayer layer)
+        if (collider.GetCollider() is not TileMapLayer
+            && collider.GetCollider() is not StaticBody2D)
         {
-            if (SpawnRequest.Movement.BounceCount > 0)
-            {
-                SpawnRequest.Movement.BounceCount--;
-                SpawnRequest.Movement.Direction = SpawnRequest.Movement.Direction.Bounce(collider.GetNormal());
-                Rotation = SpawnRequest.Movement.Direction.Angle();
-            }
-            else
-            {
-                DestroyProjectile();
-            }
-
-
-            EmitSignal(SignalName.OnCollision, Position, this);
+            return;
         }
+
+        if (SpawnRequest.Movement.BounceCount > 0)
+        {
+            SpawnRequest.Movement.BounceCount--;
+            SpawnRequest.Movement.Direction = SpawnRequest.Movement.Direction.Bounce(collider.GetNormal());
+            Rotation = SpawnRequest.Movement.Direction.Angle();
+        }
+        else
+        {
+            DestroyProjectile();
+        }
+
+        EmitSignal(SignalName.OnCollision, Position, this);
     }
 
     /**
