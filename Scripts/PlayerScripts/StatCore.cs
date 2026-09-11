@@ -32,6 +32,14 @@ public enum StatType
     DmgDarknessBonus,
     DmgPhysicalBonus,
     DmgPoisonBonus,
+    
+    // type converter
+    DmgConvertFireFrost,
+    DmgConvertFireLightning,
+    DmgConvertFrostFire,
+    DmgConvertFrostLightning,
+    DmgConvertLightningFrost,
+    DmgConvertLightningFire,
 
     AddPullRadius,
     AddPullStrength,

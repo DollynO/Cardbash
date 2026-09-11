@@ -39,6 +39,18 @@ public partial class StatblockComponent : Node2D, IComponent
             [DamageType.Darkness] = StatType.DmgDarknessBonus,
             [DamageType.Holy] = StatType.DmgHolyBonus,
         };
+    
+    public static readonly IReadOnlyDictionary<StatType, (DamageType, DamageType)> DamageConversionStats =
+        new System.Collections.Generic.Dictionary<StatType, (DamageType, DamageType)>
+        {
+            [StatType.DmgConvertFireFrost] = (DamageType.Fire, DamageType.Ice),
+            [StatType.DmgConvertFireLightning] = (DamageType.Fire, DamageType.Lightning),
+            [StatType.DmgConvertFrostFire] = (DamageType.Ice, DamageType.Fire),
+            [StatType.DmgConvertFrostLightning] = (DamageType.Ice, DamageType.Lightning),
+            [StatType.DmgConvertLightningFrost] = (DamageType.Lightning, DamageType.Ice),
+            [StatType.DmgConvertLightningFire] = (DamageType.Lightning, DamageType.Fire),
+        };
+
 
     public List<DamageModifier> GetDamageModifiers()
     {
@@ -47,6 +59,12 @@ public partial class StatblockComponent : Node2D, IComponent
         foreach (var (damageType, statType) in DamageBonusStats)
         {
             AddDamageModifier(modifiers, damageType, GetStat(statType));
+        }
+
+        foreach (var conv in DamageConversionStats)
+        {
+            
+            AddDamageConverterModifier(modifiers, conv.Value.Item1, conv.Value.Item2, GetStat(conv.Key));
         }
 
         return modifiers;
@@ -64,6 +82,23 @@ public partial class StatblockComponent : Node2D, IComponent
             TargetDamageType = damageType,
             OutputDamageType = damageType,
             Type = DamageModifierType.Modifier,
+            Value = value,
+        });
+    }
+
+    private static void AddDamageConverterModifier(List<DamageModifier> modifiers, DamageType sourceType,
+        DamageType targetType, float value)
+    {
+        if (Math.Abs(value) < 0.0001f)
+        {
+            return;
+        }
+        
+        modifiers.Add(new DamageModifier()
+        {
+            TargetDamageType = sourceType,
+            OutputDamageType = targetType,
+            Type = DamageModifierType.Conversion,
             Value = value,
         });
     }
@@ -101,6 +136,11 @@ public partial class StatblockComponent : Node2D, IComponent
         return (float)ReplicatedCurrent[(int)stat];
     }
 
+    public void AddDamageConverter(DamageType source, DamageType target, float convertValue)
+    {
+        
+    }
+    
     public void AddModifiers(StatModifier modifier)
     {
         AddModifiers(new[] { modifier });

@@ -4,9 +4,12 @@ namespace CardBase.Scripts.Abilities.Buffs;
 
 public class BaseDoTBuff : Buff
 {
+    protected const float DotTickInterval = 0.5f;
+
     protected float BaseDamage;
     protected DamageType BaseDamageType;
     protected DamageAbleComponent dac;
+    private float tickAccumulator;
 
     public BaseDoTBuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
@@ -24,8 +27,27 @@ public class BaseDoTBuff : Buff
             return;
         }
 
-        var damagePoint = (BaseDamage / Duration) * StackCount * delta;
-        
+        tickAccumulator += delta;
+        while (tickAccumulator >= DotTickInterval)
+        {
+            tickAccumulator -= DotTickInterval;
+            ApplyDamageTick(DotTickInterval);
+        }
+    }
+
+    protected virtual float GetDamageForTick(float tickDelta)
+    {
+        return (BaseDamage / Duration) * StackCount * tickDelta;
+    }
+
+    private void ApplyDamageTick(float tickDelta)
+    {
+        var damagePoint = GetDamageForTick(tickDelta);
+        if (damagePoint <= 0f)
+        {
+            return;
+        }
+
         var damage = new Damage { DamageNumber = damagePoint, AilmentChance = 0, Type = BaseDamageType };
         var ctx = new HitContext
         {
@@ -42,5 +64,6 @@ public class BaseDoTBuff : Buff
 
     protected override void InternalOnDeactivate()
     {
+        tickAccumulator = 0f;
     }
 }

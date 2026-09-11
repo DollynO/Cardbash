@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 using CardBase.Scripts.PlayerScripts;
 using CardBase.Scripts.Abilities.Buffs;
+using Godot;
 
 namespace CardBase.Scripts.Abilities;
 
 public class Agony : ProjectileAbility
 {
+    private readonly List<Projectile> activeProjectiles = new();
+    private readonly List<AoeBase> activeAoes = new();
+
     public Agony(PlayerCharacter creator) : base(AbilityIds.AgnoyAbilitGuid, creator)
     {
         this.DisplayName = "Agony";
@@ -15,7 +19,22 @@ public class Agony : ProjectileAbility
 
     public override void RoundReset()
     {
-        return;
+        CancelRuntimeObjects();
+    }
+
+    public override void ClearAbility()
+    {
+        CancelRuntimeObjects();
+    }
+
+    protected override void PostSpawnProjectile(Projectile projectile)
+    {
+        activeProjectiles.Add(projectile);
+    }
+
+    protected override void _onProjectileDestroyed(Vector2 position, Projectile projectile)
+    {
+        activeProjectiles.Remove(projectile);
     }
 
 
@@ -43,10 +62,18 @@ public class Agony : ProjectileAbility
             Radius = ConfigParam("radiusWildfire", 300f),
             AngleOffset = ConfigParam("angleOffsetWildfire", 0f),
             Owner = Caller,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AoeBaseCallbacks
+            {
+                OnActivation = OnActivation,
+                OnDeactivation = (_, aoe) => activeAoes.Remove(aoe),
+            },
         };
         ApplyAoeConfig(stats);
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        var aoe = GlobalAbilitySpawner.SpawnAoe(stats);
+        if (aoe != null)
+        {
+            activeAoes.Add(aoe);
+        }
     }
 
     private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
@@ -77,11 +104,32 @@ public class Agony : ProjectileAbility
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
         var request = AimedProjectile(
-            "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
+            "res://AnimationRes/Projectile/MagicMissile/MM_LargeViolet.tres",
             ConfigParam("projectileSpeed", 300f),
             ConfigParam("projectileLifetime", 4f));
         ApplyProjectileConfig(request);
         return request;
+    }
+
+    private void CancelRuntimeObjects()
+    {
+        foreach (var projectile in new List<Projectile>(activeProjectiles))
+        {
+            if (GodotObject.IsInstanceValid(projectile))
+            {
+                projectile.DestroyProjectile();
+            }
+        }
+        activeProjectiles.Clear();
+
+        foreach (var aoe in new List<AoeBase>(activeAoes))
+        {
+            if (GodotObject.IsInstanceValid(aoe))
+            {
+                aoe.Cancel();
+            }
+        }
+        activeAoes.Clear();
     }
     
     

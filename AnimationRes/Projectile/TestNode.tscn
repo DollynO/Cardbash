@@ -1,7 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://cllhqyomimq6k"]
 
-[ext_resource type="SpriteFrames" uid="uid://cy6004ior0aya" path="res://AnimationRes/Projectile/L_LargeViolet.tres" id="1_god4p"]
+[ext_resource type="SpriteFrames" uid="uid://ca2lshwvh2vti" path="res://AnimationRes/Projectile/MagicMissile/MM_LargeViolet.tres" id="1_pfya5"]
 
 [node name="Node2D" type="AnimatedSprite2D"]
-sprite_frames = ExtResource("1_god4p")
-frame_progress = 0.154102
+sprite_frames = ExtResource("1_pfya5")
+frame_progress = 0.190884

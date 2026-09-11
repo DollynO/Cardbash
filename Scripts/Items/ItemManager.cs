@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CardBase.Scripts.Cards;
 using CardBase.Scripts.GameSettings;
+using CardBase.Scripts.Items.Converter;
 
 namespace CardBase.Scripts.Items;
 
@@ -20,6 +21,12 @@ public class ItemManager
         {ItemIds.LightningOrbGuid, () =>new LightningOrb()},
         {ItemIds.PhysicalOrbGuid, () =>new PhysicalOrb()},
         {ItemIds.PoisonOrbGuid, () =>new PoisonOrb()},
+        {ItemIds.FireFrostConverterGuid, () =>new FireFrostConverter()},
+        {ItemIds.FireLightningConverterGuid, () =>new FireLightningConverter()},
+        {ItemIds.FrostFireConverterGuid, () =>new FrostFireConverter()},
+        {ItemIds.FrostLightningConverterGuid, () =>new FrostLightningConverter()},
+        {ItemIds.LightningFrostConverterGuid, () =>new LightningFrostConverter()},
+        {ItemIds.LightningFireConverterGuid, () =>new LightningFireConverter()},
     };
 
     public static BaseCardableObject Create(string guid)
@@ -48,4 +55,10 @@ public static class ItemIds
     public static string LightningOrbGuid = "80EF0A7B-D41C-4E07-AFF9-97578ABB48B0";
     public static string PhysicalOrbGuid = "1E6D23C1-02C5-4F0C-B73A-1BF56986C72F";
     public static string PoisonOrbGuid = "67868616-1BC8-4C53-A8DE-2C9BFA16E719";
+    public static string FireFrostConverterGuid = "DC0A184A-8936-497E-BE0D-9EB3922A51AE";
+    public static string FireLightningConverterGuid = "A09EFD9E-42B1-4D38-A6A2-61D79604D1E1";
+    public static string FrostFireConverterGuid = "776192BB-6C76-4C32-B83A-7EF989F9DA23";
+    public static string FrostLightningConverterGuid = "80E87A43-974B-4898-BFE8-8E01406D7C63";
+    public static string LightningFrostConverterGuid = "0A47CB26-57EA-4FD5-8E55-18504072EA0B";
+    public static string LightningFireConverterGuid = "13A59827-B8D4-41AB-81F9-E9ECEFF76092";
 }

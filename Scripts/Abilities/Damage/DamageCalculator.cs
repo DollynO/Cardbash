@@ -23,6 +23,7 @@ public static class DamageCalculator
         StatblockComponent targetStatblock, StatblockComponent sourceStatblock)
     {
         var calculatedDamages = CalculateOutgoingDamage(orgDamages, modifiers);
+        RemoveNonPositiveDamages(calculatedDamages);
         
         // apply mitigation
         if (targetStatblock != null)
@@ -40,10 +41,16 @@ public static class DamageCalculator
                     DamageType.Lightning => targetStatblock.GetStat(StatType.EnergyShield),
                     _ => 0,
                 };
-                dr = defenseStat / (defenseStat + 5 * dmg.Value.DamageNumber);
+                var mitigationDenominator = defenseStat + 5 * dmg.Value.DamageNumber;
+                if (mitigationDenominator > 0f)
+                {
+                    dr = defenseStat / mitigationDenominator;
+                }
                 calculatedDamages[dmg.Key].DamageNumber = dmg.Value.DamageNumber * (1 - dr);
             }
         }
+
+        RemoveNonPositiveDamages(calculatedDamages);
 
         if (sourceStatblock != null)
         {
@@ -92,7 +99,8 @@ public static class DamageCalculator
             var totalDamageList = ApplyConversions(baseDamage, modifierGroups.Conversions);
 
             ApplyExtraDamage(totalDamageList, baseDamage, modifierGroups.ExtraDamages);
-            ApplyDamageModifiers(totalDamageList, baseDamage.Type, modifierGroups.Modifiers);
+            ApplyDamageModifiers(totalDamageList, modifierGroups.Modifiers);
+            RemoveNonPositiveDamages(totalDamageList);
 
             foreach (var dmg in totalDamageList)
             {
@@ -221,6 +229,7 @@ public static class DamageCalculator
             });
         }
 
+        RemoveNonPositiveDamages(totalDamageList);
         return totalDamageList;
     }
 
@@ -242,19 +251,18 @@ public static class DamageCalculator
 
     private static void ApplyDamageModifiers(
         Dictionary<DamageType, Damage> totalDamageList,
-        DamageType baseDamageType,
         IEnumerable<DamageModifier> modifierList)
     {
-        var modifierByOutputType = new Dictionary<DamageType, float>();
-        foreach (var mod in modifierList.Where(mod => mod.TargetDamageType == baseDamageType))
+        var modifierByDamageType = new Dictionary<DamageType, float>();
+        foreach (var mod in modifierList)
         {
-            if (!modifierByOutputType.TryAdd(mod.OutputDamageType, mod.Value))
+            if (!modifierByDamageType.TryAdd(mod.OutputDamageType, mod.Value))
             {
-                modifierByOutputType[mod.OutputDamageType] += mod.Value;
+                modifierByDamageType[mod.OutputDamageType] += mod.Value;
             }
         }
 
-        foreach (var mod in modifierByOutputType)
+        foreach (var mod in modifierByDamageType)
         {
             if (totalDamageList.TryGetValue(mod.Key, out var damage))
             {
@@ -279,6 +287,17 @@ public static class DamageCalculator
         {
             damages[damage.Type].DamageNumber += damage.DamageNumber;
             damages[damage.Type].AilmentChance = Math.Max(damages[damage.Type].AilmentChance, damage.AilmentChance);
+        }
+    }
+
+    private static void RemoveNonPositiveDamages(Dictionary<DamageType, Damage> damages)
+    {
+        foreach (var type in damages
+                     .Where(kvp => !float.IsFinite(kvp.Value.DamageNumber) || kvp.Value.DamageNumber <= 0f)
+                     .Select(kvp => kvp.Key)
+                     .ToList())
+        {
+            damages.Remove(type);
         }
     }
 
