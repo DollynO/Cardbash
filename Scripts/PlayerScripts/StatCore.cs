@@ -23,6 +23,7 @@ public enum StatType
     Darkness,
     Blinding,
     CooldownReduction,
+    GlobalAilmentChance,
 
     // typed damage bonus
     DmgLightningBonus,
@@ -40,6 +41,12 @@ public enum StatType
     DmgConvertFrostLightning,
     DmgConvertLightningFrost,
     DmgConvertLightningFire,
+    DmgConvertFireDarkness,
+    DmgConvertFireHoly,
+    DmgConvertFrostDarkness,
+    DmgConvertFrostHoly,
+    DmgConvertLightningDarkness,
+    DmgConvertLightningHoly,
 
     AddPullRadius,
     AddPullStrength,

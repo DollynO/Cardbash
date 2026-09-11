@@ -199,6 +199,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.CritChance, 5, 0, 100);
         StatBlock.Define(StatType.Darkness, 0, 0, 20);
         StatBlock.Define(StatType.Blinding, 0, 0, 20);
+        StatBlock.Define(StatType.GlobalAilmentChance, 0, 0, 1);
         StatBlock.Define(StatType.DmgLightningBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
         StatBlock.Define(StatType.DmgIceBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
         StatBlock.Define(StatType.DmgFireBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
@@ -212,6 +213,12 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.DmgConvertFrostLightning, 0, 0, 100);
         StatBlock.Define(StatType.DmgConvertLightningFrost, 0, 0, 100);
         StatBlock.Define(StatType.DmgConvertLightningFire, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFireDarkness, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFireHoly, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFrostDarkness, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFrostHoly, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertLightningDarkness, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertLightningHoly, 0, 0, 100);
 
         StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);

@@ -240,7 +240,7 @@
         "angleOffset": 0,
         "activationTime": 0.25,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
       },
       "maxStack": 1,
@@ -259,7 +259,7 @@
         "angleOffset": 0,
         "activationTime": 0.25,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
         "chainRange": 180,
         "chainJumps": 1,
@@ -283,7 +283,7 @@
         "angleOffset": 0,
         "activationTime": 0.8,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
       },
       "maxStack": 1,
@@ -302,7 +302,7 @@
         "angleOffset": 0,
         "activationTime": 0.4,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
         "toxicWoundPoisonDamageIncrease": 0.25,
         "toxicWoundDuration": 4,
@@ -325,7 +325,7 @@
         "angleOffset": 0,
         "activationTime": 0.45,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
       },
       "maxStack": 1,
@@ -345,7 +345,7 @@
         "angleOffset": 0,
         "activationTime": 0.5,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
       },
       "maxStack": 1
@@ -363,7 +363,7 @@
         "angleOffset": 0,
         "activationTime": 2,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
         "contagionRadius": 90,
         "contagionActivationTime": 0.05,
@@ -461,7 +461,8 @@
         "shockAoeRadius": 100,
         "shockAoeActivationTime": 0.5,
         "shockAoeDuration": 0,
-        "shockAoeDamage": 16
+        "shockAoeDamage": 16,
+        "castMoveSlow": 0.5
       },
       "maxStack": 1,
       "baseAilmentChance": 0
@@ -479,9 +480,31 @@
         "angleOffset": 0,
         "activationTime": 2,
         "duration": 0,
-        "tickInterval": 1,
+        "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
         "range": 600
+      },
+      "maxStack": 1,
+      "baseAilmentChance": 0
+    },
+    "4E0183B5-C1E9-4A46-9970-8FDD7BEE7C26": {
+      "displayName": "IceStorm",
+      "description": "IceStorm",
+      "iconPath": "res://Sprites/SkillIcons/Snow/10_Frost_Whirlwind.png",
+      "cooldown": 1,
+      "baseDamage": 10,
+      "damageType": 3,
+      "params": {
+        "radius": 300,
+        "angle": 360,
+        "angleOffset": 0,
+        "activationTime": 0,
+        "duration": 5,
+        "tickInterval": 0.5,
+        "shapeUpdateInterval": 0.016,
+        "range": 400,
+        "ailmentChance": 0.5,
+        "stunDuration": 3
       },
       "maxStack": 1,
       "baseAilmentChance": 0
@@ -502,6 +525,22 @@
       "iconPath": "res://Sprites/Items/EnergyCore.png",
       "params": {
         "statIncrease": 20
+      }
+    },
+    "F1FCB766-E974-464D-9FA1-BB6506156E08": {
+      "displayName": "Life Armour",
+      "description": "Increases life by 25",
+      "iconPath": "res://Sprites/Items/life_armour.png",
+      "params": {
+        "statIncrease": 25
+      }
+    },
+    "D9ED349D-1774-406D-9565-E419C70A1F53": {
+      "displayName": "Shaman Puppet",
+      "description": "Increases global ailment chance by 5 %",
+      "iconPath": "res://Sprites/Items/shaman_puppet.png",
+      "params": {
+        "ailmentChance": 0.05
       }
     },
     "166D1A7F-8322-420F-A0A8-EC8DBE9FFA54": {
@@ -574,6 +613,102 @@
       "iconPath": "res://Sprites/Items/poison_orb.png",
       "params": {
         "damageModifier": 0.2
+      }
+    },
+    "DC0A184A-8936-497E-BE0D-9EB3922A51AE": {
+      "displayName": "Fire frost converter",
+      "description": "Converts 50% of fire damage into frost damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FireFrost.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "A09EFD9E-42B1-4D38-A6A2-61D79604D1E1": {
+      "displayName": "Fire lightning converter",
+      "description": "Converts 50% of fire damage into lightning damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FireLightning.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "776192BB-6C76-4C32-B83A-7EF989F9DA23": {
+      "displayName": "Frost fire converter",
+      "description": "Converts 50% of frost damage into fire damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FrostFire.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "80E87A43-974B-4898-BFE8-8E01406D7C63": {
+      "displayName": "Frost lightning converter",
+      "description": "Converts 50% of frost damage into lightning damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FrostLightning.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "0A47CB26-57EA-4FD5-8E55-18504072EA0B": {
+      "displayName": "Lightning frost converter",
+      "description": "Converts 50% of lightning damage into frost damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_LightningFrost.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "13A59827-B8D4-41AB-81F9-E9ECEFF76092": {
+      "displayName": "Lightning fire converter",
+      "description": "Converts 50% of lightning damage into fire damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_LightningFire.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "FCD60C75-10C3-403B-8908-B7F10C172EBD": {
+      "displayName": "Fire darkness converter",
+      "description": "Converts 50% of fire damage into darkness damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FireDarkness.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "0F1428E4-8C1B-414D-A15F-E5C01C60B97B": {
+      "displayName": "Fire holy converter",
+      "description": "Converts 50% of fire damage into holy damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FireHoly.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "4689C803-2434-405F-8852-40C3F777D395": {
+      "displayName": "Frost darkness converter",
+      "description": "Converts 50% of frost damage into darkness damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FrostDarkness.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "6261C25A-232F-4E48-9BB6-38B4320B55C6": {
+      "displayName": "Frost holy converter",
+      "description": "Converts 50% of frost damage into holy damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_FrostHoly.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "38941EC6-DD59-40A3-9F4F-CE9CFA3ED0B2": {
+      "displayName": "Lightning darkness converter",
+      "description": "Converts 50% of lightning damage into darkness damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_LightningDarkness.png",
+      "params": {
+        "conversion": 50
+      }
+    },
+    "1E0FC7DC-FE75-4452-ABAA-58E99E45337A": {
+      "displayName": "Lightning holy converter",
+      "description": "Converts 50% of lightning damage into holy damage.",
+      "iconPath": "res://Sprites/Items/DMG_Converter_LightningHoly.png",
+      "params": {
+        "conversion": 50
       }
     }
   }

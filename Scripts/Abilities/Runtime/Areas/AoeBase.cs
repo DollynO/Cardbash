@@ -18,6 +18,8 @@ public class AoeBaseCallbacks
 
 public class AoeBaseStats
 {
+    public const float DefaultTickInterval = 0.5f;
+
     public IEntityComponent Owner { get; set; }
     public DamageType BaseDamageType { get; set; }
     public System.Collections.Generic.Dictionary<DamageType, float> DamageTypePercentages { get; set; } = new();
@@ -29,7 +31,7 @@ public class AoeBaseStats
     public bool IsStationary { get; set; }
     public Vector2 StationaryPosition { get; set; }
     public string AbilityGUID { get; set; }
-    public float TickInterval { get; set; } = 1f; // How often OnTick is called
+    public float TickInterval { get; set; } = DefaultTickInterval; // How often OnTick is called
     public float ShapeUpdateInterval { get; set; } = 0.016f; // How often to recalculate collision shape
     public bool CanAffectOwner { get; set; } = true;
 
@@ -391,10 +393,14 @@ public partial class AoeBase : Node2D
             durationTimeCount += (float)delta;
             tickTimeCount += (float)delta;
 
+            var tickInterval = stats.TickInterval > 0f
+                ? stats.TickInterval
+                : AoeBaseStats.DefaultTickInterval;
+
             // Handle tick effects
-            if (tickTimeCount >= stats.TickInterval)
+            while (tickTimeCount >= tickInterval)
             {
-                tickTimeCount = 0f;
+                tickTimeCount -= tickInterval;
 
                 // Visual pulse effect every tick
                 AnimateTick();
@@ -404,7 +410,7 @@ public partial class AoeBase : Node2D
                 {
                     foreach (var player in playersInArea)
                     {
-                        callbacks.OnTick?.Invoke(player, delta, this);
+                        callbacks.OnTick?.Invoke(player, tickInterval, this);
                     }
                 }
             }
@@ -511,6 +517,7 @@ public partial class AoeBase : Node2D
 
         polygon.Polygon = tmpPoints.ToArray();
         polygon.UV = tmpUVs.ToArray();
+        QueueRedraw();
     }
 
     private void AnimateTick()
@@ -679,7 +686,7 @@ public partial class AoeBase : Node2D
             return;
         }
 
-        borderColor = DamageTypeColor(stats.BaseDamageType, 0.85f);
+        borderColor = DamageTypeBorderColor();
         var color1 = ToShaderColor(parts[0].Color);
         var color2 = ToShaderColor(parts[Math.Min(1, parts.Count - 1)].Color);
         var color3 = ToShaderColor(parts[Math.Min(2, parts.Count - 1)].Color);
@@ -734,6 +741,40 @@ public partial class AoeBase : Node2D
 
         parts[^1] = parts[^1] with { Stop = 1f };
         return parts;
+    }
+
+    private Color DamageTypeBorderColor()
+    {
+        var weightedColor = new Color(0f, 0f, 0f, 0f);
+        var total = 0f;
+
+        foreach (var (damageType, percentage) in stats.DamageTypePercentages)
+        {
+            var weight = Mathf.Max(0f, percentage);
+            if (weight <= 0f)
+            {
+                continue;
+            }
+
+            var color = DamageTypeColor(damageType, 1f);
+            weightedColor.R += color.R * weight;
+            weightedColor.G += color.G * weight;
+            weightedColor.B += color.B * weight;
+            total += weight;
+        }
+
+        if (total <= 0f)
+        {
+            var fallback = fillColor;
+            fallback.A = 0.5f;
+            return fallback;
+        }
+
+        weightedColor.R /= total;
+        weightedColor.G /= total;
+        weightedColor.B /= total;
+        weightedColor.A = 0.85f;
+        return weightedColor;
     }
 
     private static Vector4 ToShaderColor(Color color)

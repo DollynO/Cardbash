@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.Abilities.TriggerStrategy;
+using CardBase.Scripts.PlayerScripts;
 using Godot;
 
 namespace CardBase.Scripts.Abilities;
@@ -11,12 +12,13 @@ public class ChargingBeam : Ability
     private Ray _ray;
     private float deltaSum = 0;
     private float aoeBaseDamage = 20;
+    private readonly string castSlowModifierSourceId = System.Guid.NewGuid().ToString("N");
 
     public ChargingBeam(IEntityComponent creator) : base(AbilityIds.ChargingBeamGuid, creator)
     {
         TriggerStrategy = new PressAndReleaseStrategy();
         this.DisplayName = "Charging Beam";
-        this.Description = "Charging Beam";
+        this.Description = "Charging Beam.";
         this.IconPath = "res://Sprites/SkillIcons/Snow/11_Ice_Ray.png";
     }
 
@@ -27,6 +29,8 @@ public class ChargingBeam : Ability
 
     public override void InternalUse()
     {
+        ApplyCastSlow();
+
         var rayStats = new RayStats()
         {
             Caster = Caller,
@@ -133,9 +137,34 @@ public class ChargingBeam : Ability
 
     protected override void InternalCancel()
     {
-        if (_ray == null) return;
-        _ray.Destroy();
-        _ray = null;
+        RemoveCastSlow();
+
+        if (_ray != null)
+        {
+            _ray.Destroy();
+            _ray = null;
+        }
+    }
+
+    private void ApplyCastSlow()
+    {
+        if (Caller.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(castSlowModifierSourceId);
+            statblock.AddModifiers(new StatModifier(
+                castSlowModifierSourceId,
+                StatType.MovementSpeed,
+                StatOp.PercentAdd,
+                -ConfigParam("castMoveSlow", 0.5f)));
+        }
+    }
+
+    private void RemoveCastSlow()
+    {
+        if (Caller.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(castSlowModifierSourceId);
+        }
     }
 
     protected override void ApplyUpdate1()

@@ -41,6 +41,7 @@ public static class AbilityManager
         
         // AOE
         { AbilityIds.MeteorGuid, creator => new Meteor(creator) },
+        { AbilityIds.IceStormGuid, creator => new IceStorm(creator) },
     };
 
     public static BaseCardableObject Create(string GUID, PlayerCharacter creator)
@@ -79,4 +80,5 @@ public static class AbilityIds
     public static string SnowballGuid = "A40C5A0A-79D9-4B56-9897-87E61D23B902";
     public static string MeteorGuid = "CAE877D4-799B-46E7-9BAA-79A7635299C9";
     public static string AgnoyAbilitGuid = "92BE9E82-B796-47D7-A33B-6B048DD49871";
+    public static string IceStormGuid = "4E0183B5-C1E9-4A46-9970-8FDD7BEE7C26";
 }

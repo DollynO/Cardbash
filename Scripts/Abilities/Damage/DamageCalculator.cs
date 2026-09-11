@@ -54,6 +54,8 @@ public static class DamageCalculator
 
         if (sourceStatblock != null)
         {
+            ApplyGlobalAilmentChance(calculatedDamages, sourceStatblock);
+
             var critChance = sourceStatblock.GetStat(StatType.CritChance);
             if (critChance > 0)
             {
@@ -287,6 +289,20 @@ public static class DamageCalculator
         {
             damages[damage.Type].DamageNumber += damage.DamageNumber;
             damages[damage.Type].AilmentChance = Math.Max(damages[damage.Type].AilmentChance, damage.AilmentChance);
+        }
+    }
+
+    private static void ApplyGlobalAilmentChance(Dictionary<DamageType, Damage> damages, StatblockComponent sourceStatblock)
+    {
+        var globalAilmentChance = sourceStatblock.GetStat(StatType.GlobalAilmentChance);
+        if (globalAilmentChance <= 0f)
+        {
+            return;
+        }
+
+        foreach (var damage in damages.Values)
+        {
+            damage.AilmentChance = Mathf.Clamp(damage.AilmentChance + globalAilmentChance, 0f, 1f);
         }
     }
 

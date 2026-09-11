@@ -49,6 +49,12 @@ public partial class StatblockComponent : Node2D, IComponent
             [StatType.DmgConvertFrostLightning] = (DamageType.Ice, DamageType.Lightning),
             [StatType.DmgConvertLightningFrost] = (DamageType.Lightning, DamageType.Ice),
             [StatType.DmgConvertLightningFire] = (DamageType.Lightning, DamageType.Fire),
+            [StatType.DmgConvertFireDarkness] = (DamageType.Fire, DamageType.Darkness),
+            [StatType.DmgConvertFireHoly] = (DamageType.Fire, DamageType.Holy),
+            [StatType.DmgConvertFrostDarkness] = (DamageType.Ice, DamageType.Darkness),
+            [StatType.DmgConvertFrostHoly] = (DamageType.Ice, DamageType.Holy),
+            [StatType.DmgConvertLightningDarkness] = (DamageType.Lightning, DamageType.Darkness),
+            [StatType.DmgConvertLightningHoly] = (DamageType.Lightning, DamageType.Holy),
         };
 
 
