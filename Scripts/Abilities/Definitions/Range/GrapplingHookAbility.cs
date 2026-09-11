@@ -51,7 +51,6 @@ public class GrapplingHookAbility : ProjectileAbility
             "res://Sprites/Projectiles/fireBallProjectile.png",
             ConfigParam("projectileSpeed", 500f),
             ConfigParam("projectileLifetime", 4f));
-        request.Movement.Direction = Vector2.Zero;
         request.Visual.ScenePath = "res://Scenes/Projectiles/GrapplingProjectile.tscn";
         ApplyProjectileConfig(request);
         return request;

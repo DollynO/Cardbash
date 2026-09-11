@@ -15,6 +15,7 @@ public class Darkness : Buff
         this.Guid = "6B0039DA-6E85-4659-829B-599D6D0BB43A";
         this.IsStackable = true;
         this.IsRefreshable = true;
+        this.BuffType = DamageType.Darkness;
         modifer = new StatModifier(System.Guid.NewGuid().ToString("n"), StatType.Darkness, StatOp.FlatAdd,
             1);
     }

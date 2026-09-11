@@ -28,6 +28,7 @@ public class FireSlash : Ability
             Radius = ConfigParam("radius", 160f),
             AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
+            CanAffectOwner = false,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
         ApplyAoeConfig(stats);
@@ -71,6 +72,7 @@ public class FireSlash : Ability
                 Radius = ConfigParam("radiusWildfire", 300f),
                 AngleOffset = ConfigParam("angleOffsetWildfire", 0f),
                 Owner = Caller,
+                CanAffectOwner = false,
                 Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
             };
             ApplyAoeConfig(stats);

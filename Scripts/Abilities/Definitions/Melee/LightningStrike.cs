@@ -31,6 +31,7 @@ public class LightningStrike : Ability
             Radius = ConfigParam("radius", 150f),
             Owner = Caller,
             AbilityGUID = GUID,
+            CanAffectOwner = false,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
         ApplyAoeConfig(stats);

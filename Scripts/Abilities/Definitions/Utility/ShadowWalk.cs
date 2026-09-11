@@ -85,7 +85,7 @@ public class ShadowWalk : Ability
 
     protected override void ApplyUpdate2()
     {
-        Caller.EventBus.CombatEventBus.DamageTakeEventHandler += CreatorOnDamageTaken;
+        Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
     }
 
     private void removeBuff()

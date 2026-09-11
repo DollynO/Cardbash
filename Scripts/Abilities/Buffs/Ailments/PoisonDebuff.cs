@@ -5,14 +5,14 @@ namespace CardBase.Scripts.Abilities.Buffs;
 public class PoisonDebuff : Buff
 {
     private Damage poisonDamage;
-    private float baseDamage = 10;
+    private float baseDamage = 2;
     private DamageAbleComponent dac;
     public PoisonDebuff(IEntityComponent caller, IEntityComponent target) : base(caller, target)
     {
         this.Description = $"Inflicts the target with poison stack";
         this.DisplayName = "Poison";
         this.IconPath = "res://Sprites/SkillIcons/Poison/19_Infection.png";
-        this.Duration = 15;
+        this.Duration = 5;
         this.Guid = "0970FD01-B46F-4817-8157-BC543FBDD3A9";
         this.IsStackable = true;
         this.IsRefreshable = false;

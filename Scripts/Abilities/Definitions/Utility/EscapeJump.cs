@@ -34,7 +34,7 @@ public class EscapeJump : Ability
             moveComponent.Knockback(
                 aimComponent.GetProjectileStartPosition(),
                 ConfigParam("strength", 1000f),
-                ConfigParam("duration", 1.0f));
+                ConfigParam("duration", 2.0f));
 
             if (dmgIncreaseBuff != null && Caller.TryGetComponent(out BuffManagerComponent bmc))
             {

@@ -34,7 +34,8 @@ public class ShatterStrike : Ability
             Radius = ConfigParam("radius", 150f),
             AngleOffset = ConfigParam("angleOffset", 0f),
             AbilityGUID = GUID,
-            Owner = Caller
+            Owner = Caller,
+            CanAffectOwner = false
         };
         ApplyAoeConfig(aoeStats);
         GlobalAbilitySpawner.SpawnAoe(aoeStats);

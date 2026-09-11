@@ -13,6 +13,7 @@ public class Agony : BaseDoTBuff
         this.BaseDamage = 10;
         this.BaseDamageType = DamageType.Darkness;
         this.Guid = "AD034034-42A9-4163-A448-5998214CB7ED";
+        this.BuffType = DamageType.Darkness;
         this.IsStackable = true;
         this.IsRefreshable = true;
         this.MaxStacks = 10;
@@ -20,6 +21,6 @@ public class Agony : BaseDoTBuff
 
     public void SetStartingStacks(int amount)
     {
-        this.StackCount = 4;
+        this.StackCount = amount > 0 ? amount - 1 : 0;
     }
 }

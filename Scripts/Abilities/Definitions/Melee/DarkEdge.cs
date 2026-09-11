@@ -35,6 +35,7 @@ public class DarkEdge : Ability
             Radius = ConfigParam("radius", 60f),
             AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
+            CanAffectOwner = false,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
         ApplyAoeConfig(stats);

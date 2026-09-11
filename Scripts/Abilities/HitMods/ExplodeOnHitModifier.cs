@@ -31,7 +31,7 @@ public class ExplodeOnHitModifier : IHitModifier
         {
             var spawner = sourceNode.GetTree().Root
                 .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
-            var aoe = spawner.SpawnAoe(new AoeBaseStats()
+            var stats = new AoeBaseStats
             {
                 AbilityGUID = ctx.AbilityGuid,
                 ActivationTime = 3,
@@ -43,13 +43,27 @@ public class ExplodeOnHitModifier : IHitModifier
                 {
                     OnActivation = OnActivation,
                 }
-            });
+            };
+            ApplyDamagePreview(stats, DamageType.Fire);
+            var aoe = spawner.SpawnAoe(stats);
 
             if (aoe != null)
             {
                 activeAoes.Add(aoe);
             }
         }
+    }
+
+    private void ApplyDamagePreview(AoeBaseStats stats, DamageType baseType)
+    {
+        stats.BaseDamageType = baseType;
+        var damageModifiers = new List<DamageModifier>();
+        if (_caller != null && _caller.TryGetComponent(out StatblockComponent statblock))
+        {
+            damageModifiers = statblock.GetDamageModifiers();
+        }
+
+        stats.DamageTypePercentages = DamageCalculator.PreviewDamageTypeMix(baseType, damageModifiers);
     }
 
     public void CancelActiveAoes()

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 
@@ -32,7 +32,26 @@ public class IceArrowAbility : ProjectileAbility
 
     private void OnHit(IEntityComponent arg1, Projectile arg2)
     {
-
+        if (arg1.TryGetComponent(out DamageAbleComponent damageAbleComponent))
+        {
+            var damage = new Damage
+            {
+                Type = BaseType,
+                DamageNumber = (float)BaseDamage,
+                AilmentChance = BaseAilmentChance,
+            };
+            var ctx = new HitContext
+            {
+                AbilityGuid = GUID,
+                Damages = new Dictionary<DamageType, Damage>
+                {
+                    { damage.Type, damage },
+                },
+                Source = Caller,
+                Target = arg1,
+            };
+            damageAbleComponent.ReceiveHit(new Hit(arg2, ctx));
+        }
     }
 
 

@@ -51,7 +51,7 @@ public class FireballAbility : ProjectileAbility
     protected override ProjectileSpawnRequest GetProjectileSpawnRequest()
     {
         var request = AimedProjectile(
-            "res://AnimationRes/Projectile/MagicMissile/mm_lrage_blue.tres",
+            "res://AnimationRes/Projectile/L_LargeOrange.tres",
             ConfigParam("projectileSpeed", 300f),
             ConfigParam("projectileLifetime", 10f));
         ApplyProjectileConfig(request);

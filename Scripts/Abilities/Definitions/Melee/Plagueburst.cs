@@ -116,6 +116,7 @@ public class Plagueburst : Ability
             Owner = Caller,
             AbilityGUID = GUID,
             Angle = ConfigParam("angle", 90f),
+            CanAffectOwner = false,
         };
         ApplyAoeConfig(stats);
         GlobalAbilitySpawner.SpawnAoe(stats);

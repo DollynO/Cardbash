@@ -14,6 +14,7 @@ public class Corruption : BaseDoTBuff
         this.BaseDamage = 30;
         this.BaseDamageType = DamageType.Darkness;
         this.Guid = "899B90A4-5502-4C87-83C8-003706AC9B03";
+        this.BuffType = DamageType.Darkness;
         this.IsStackable = false;
         this.IsRefreshable = false;
     }

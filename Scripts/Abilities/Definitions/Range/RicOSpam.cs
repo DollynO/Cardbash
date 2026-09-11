@@ -125,11 +125,15 @@ public class RicOSpam : ProjectileAbility
 
     private void deleteProjectileList(List<Projectile> projectiles)
     {
-        while (projectiles.Count > 0)
+        foreach (var projectile in projectiles.ToList())
         {
-            projectiles[0].QueueFree();
-            projectiles.Remove(projectiles[0]);
+            projectile.OnCollision -= _onProjectileCollided;
+            projectile.OnPiercing -= _onProjectilePierced;
+            projectile.OnDestroyed -= _onProjectileDestroyed;
+            projectile.DestroyProjectile();
         }
+
+        projectiles.Clear();
     }
     
     protected override void _onProjectileDestroyed(Vector2 position, Projectile projectile)
@@ -150,7 +154,8 @@ public class RicOSpam : ProjectileAbility
 
     protected override bool PreSpawnProjectile()
     {
-        while (projectileLists.Count > ConfigParam("maxActiveCasts", 3))
+        var maxActiveCasts = Math.Max(1, ConfigParam("maxActiveCasts", 3));
+        while (projectileLists.Count >= maxActiveCasts)
         {
             var kvp = projectileLists.First();
             deleteProjectileList(kvp.Value);

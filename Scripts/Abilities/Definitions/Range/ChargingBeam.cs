@@ -95,6 +95,7 @@ public class ChargingBeam : Ability
                         },
                         Owner = Caller,
                     };
+                    ApplyAoeDamagePreview(aoeStats);
                     GlobalAbilitySpawner.SpawnAoe(aoeStats);
                 }
             }

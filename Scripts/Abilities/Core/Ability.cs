@@ -314,6 +314,24 @@ public abstract class Ability : BaseCardableObject
         stats.Duration = ConfigParam("duration", stats.Duration);
         stats.TickInterval = ConfigParam("tickInterval", stats.TickInterval);
         stats.ShapeUpdateInterval = ConfigParam("shapeUpdateInterval", stats.ShapeUpdateInterval);
+        ApplyAoeDamagePreview(stats);
+    }
+
+    protected void ApplyAoeDamagePreview(AoeBaseStats stats)
+    {
+        if (stats == null)
+        {
+            return;
+        }
+
+        stats.BaseDamageType = BaseType;
+        IEnumerable<DamageModifier> damageModifiers = System.Array.Empty<DamageModifier>();
+        if (Caller != null && Caller.TryGetComponent(out StatblockComponent statblock))
+        {
+            damageModifiers = statblock.GetDamageModifiers();
+        }
+
+        stats.DamageTypePercentages = DamageCalculator.PreviewDamageTypeMix(BaseType, damageModifiers);
     }
 
     protected void ApplyRayConfig(RayStats stats)

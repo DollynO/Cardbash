@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using CardBase.Scripts.Abilities.Buffs.DoTs;
 using CardBase.Scripts.PlayerScripts;
 using CardBase.Scripts.Abilities.Buffs;
 
@@ -7,14 +6,11 @@ namespace CardBase.Scripts.Abilities;
 
 public class Agony : ProjectileAbility
 {
-    private CardBase.Scripts.Abilities.Buffs.DoTs.Agony agony;
     public Agony(PlayerCharacter creator) : base(AbilityIds.AgnoyAbilitGuid, creator)
     {
         this.DisplayName = "Agony";
         this.Description = "Applies Agony debuff.";
         this.IconPath = "res://Sprites/SkillIcons/Dark/7_Black_Label.png";
-
-        agony = new CardBase.Scripts.Abilities.Buffs.DoTs.Agony(Caller, null);
     }
 
     public override void RoundReset()
@@ -25,7 +21,6 @@ public class Agony : ProjectileAbility
 
     protected override void ApplyUpdate1()
     {
-        agony.SetStartingStacks(4);
     }
 
     protected override void ApplyUpdate2()
@@ -36,7 +31,7 @@ public class Agony : ProjectileAbility
     {
         if (ec.TryGetComponent<BuffManagerComponent>(out var buffManager))
         {
-            buffManager.ApplyBuff(agony);
+            ApplyAgony(buffManager, ec);
         }
 
         if (UpdateCounter != 2) return;
@@ -60,8 +55,17 @@ public class Agony : ProjectileAbility
         {
             if (ec.TryGetComponent<BuffManagerComponent>(out var buffManager))
             {
-                buffManager.ApplyBuff(agony);
+                ApplyAgony(buffManager, ec);
             }
+        }
+    }
+
+    private void ApplyAgony(BuffManagerComponent buffManager, IEntityComponent target)
+    {
+        var stackCount = UpdateCounter >= 1 ? 4 : 1;
+        for (var i = 0; i < stackCount; i++)
+        {
+            buffManager.ApplyBuff(new CardBase.Scripts.Abilities.Buffs.DoTs.Agony(Caller, target));
         }
     }
 

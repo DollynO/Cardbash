@@ -19,6 +19,8 @@ public class AoeBaseCallbacks
 public class AoeBaseStats
 {
     public IEntityComponent Owner { get; set; }
+    public DamageType BaseDamageType { get; set; }
+    public System.Collections.Generic.Dictionary<DamageType, float> DamageTypePercentages { get; set; } = new();
     public float Radius { get; set; }
     public float Angle { get; set; } = 360f; // Default to full circle
     public float AngleOffset { get; set; } = 0f; // Rotation offset in degrees
@@ -35,8 +37,16 @@ public class AoeBaseStats
 
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
+        var damageTypePercentages = new Godot.Collections.Dictionary<int, float>();
+        foreach (var (damageType, percentage) in DamageTypePercentages ?? new System.Collections.Generic.Dictionary<DamageType, float>())
+        {
+            damageTypePercentages[(int)damageType] = percentage;
+        }
+
         var dict = new Godot.Collections.Dictionary<string, Variant>
         {
+            ["BaseDamageType"] = (int)BaseDamageType,
+            ["DamageTypePercentages"] = damageTypePercentages,
             ["Radius"] = Radius,
             ["Angle"] = Angle,
             ["AngleOffset"] = AngleOffset,
@@ -72,6 +82,25 @@ public class AoeBaseStats
             CanAffectOwner = !dict.TryGetValue("CanAffectOwner", out var canAffectOwnerVariant)
                              || (bool)canAffectOwnerVariant,
         };
+
+        if (dict.TryGetValue("BaseDamageType", out var baseDamageTypeVariant)
+            && System.Enum.IsDefined(typeof(DamageType), (int)baseDamageTypeVariant))
+        {
+            stats.BaseDamageType = (DamageType)(int)baseDamageTypeVariant;
+        }
+
+        if (dict.TryGetValue("DamageTypePercentages", out var damageTypePercentagesVariant))
+        {
+            var damageTypePercentages = damageTypePercentagesVariant.AsGodotDictionary<int, float>();
+            foreach (var (damageType, percentage) in damageTypePercentages)
+            {
+                if (System.Enum.IsDefined(typeof(DamageType), damageType))
+                {
+                    stats.DamageTypePercentages[(DamageType)damageType] = percentage;
+                }
+            }
+        }
+
         if (dict.TryGetValue("OwnerPlayerId", out var ownerPlayerIdVariant)
             && (long)ownerPlayerIdVariant != 0
             && gameManager.GetPlayerCharacter((long)ownerPlayerIdVariant) is { } ownerPlayer)
@@ -117,6 +146,7 @@ public partial class AoeBase : Node2D
 
     private Godot.Color fillColor = Colors.Aqua;
     private Godot.Color emptyColor = Colors.White;
+    private Godot.Color borderColor = new(1f, 1f, 1f, 0.5f);
     private PhysicsDirectSpaceState2D spaceState;
     private float activationTimeCount;
     private float durationTimeCount;
@@ -168,9 +198,8 @@ public partial class AoeBase : Node2D
         shaderMaterial.Shader = fillAmountShader;
         polygon.Material = shaderMaterial;
         var shaderColorEmpty = new Vector4(emptyColor.R, emptyColor.G, emptyColor.B, emptyColor.A);
-        var shaderFillColor = new Vector4(fillColor.R, fillColor.G, fillColor.B, fillColor.A);
         ((ShaderMaterial)polygon.Material).SetShaderParameter("empty_color", shaderColorEmpty);
-        ((ShaderMaterial)polygon.Material).SetShaderParameter("fill_color", shaderFillColor);
+        ApplyDamageVisuals((ShaderMaterial)polygon.Material);
         polygon.Texture = fillAmountTexture;
 
         // Setup collision detection (server only)
@@ -592,7 +621,7 @@ public partial class AoeBase : Node2D
         for (var i = 1; i < collisionPoints.Count; i++)
         {
             var to = collisionPoints[i];
-            DrawLine(from, to, new Godot.Color(1.0f, 1.0f, 1.0f, 0.5f));
+            DrawLine(from, to, borderColor, 2f);
             from = to;
         }
     }
@@ -622,8 +651,114 @@ public partial class AoeBase : Node2D
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
     private void changeFillColorClient(Vector4 color)
     {
-        ((ShaderMaterial)polygon.Material).SetShaderParameter("fill_color", color);
+        if (polygon.Material is not ShaderMaterial material)
+        {
+            return;
+        }
+
+        material.SetShaderParameter("damage_mix_count", 1);
+        material.SetShaderParameter("fill_color", color);
+        material.SetShaderParameter("fill_color_1", color);
+        material.SetShaderParameter("fill_split_1", 1f);
+        material.SetShaderParameter("fill_split_2", 1f);
+        material.SetShaderParameter("fill_split_3", 1f);
     }
+
+    private void ApplyDamageVisuals(ShaderMaterial material)
+    {
+        var parts = GetDamageVisualParts();
+        if (parts.Count == 0)
+        {
+            var fallbackColor = ToShaderColor(fillColor);
+            material.SetShaderParameter("fill_color", fallbackColor);
+            material.SetShaderParameter("fill_color_1", fallbackColor);
+            material.SetShaderParameter("damage_mix_count", 1);
+            material.SetShaderParameter("fill_split_1", 1f);
+            material.SetShaderParameter("fill_split_2", 1f);
+            material.SetShaderParameter("fill_split_3", 1f);
+            return;
+        }
+
+        borderColor = DamageTypeColor(stats.BaseDamageType, 0.85f);
+        var color1 = ToShaderColor(parts[0].Color);
+        var color2 = ToShaderColor(parts[Math.Min(1, parts.Count - 1)].Color);
+        var color3 = ToShaderColor(parts[Math.Min(2, parts.Count - 1)].Color);
+        var color4 = ToShaderColor(parts[Math.Min(3, parts.Count - 1)].Color);
+
+        material.SetShaderParameter("fill_color", color1);
+        material.SetShaderParameter("fill_color_1", color1);
+        material.SetShaderParameter("fill_color_2", color2);
+        material.SetShaderParameter("fill_color_3", color3);
+        material.SetShaderParameter("fill_color_4", color4);
+        material.SetShaderParameter("damage_mix_count", parts.Count);
+        material.SetShaderParameter("fill_split_1", parts[0].Stop);
+        material.SetShaderParameter("fill_split_2", parts[Math.Min(1, parts.Count - 1)].Stop);
+        material.SetShaderParameter("fill_split_3", parts[Math.Min(2, parts.Count - 1)].Stop);
+    }
+
+    private List<DamageVisualPart> GetDamageVisualParts()
+    {
+        var total = stats.DamageTypePercentages.Values.Sum(percentage => Mathf.Max(0f, percentage));
+        var parts = new List<DamageVisualPart>();
+        if (total <= 0f)
+        {
+            return parts;
+        }
+
+        var displayedPercentages = stats.DamageTypePercentages
+            .Where(kvp => kvp.Value > 0f)
+            .OrderByDescending(kvp => kvp.Value)
+            .ThenBy(kvp => kvp.Key)
+            .Take(4)
+            .ToList();
+
+        if (displayedPercentages.Count == 0)
+        {
+            return parts;
+        }
+
+        if (stats.DamageTypePercentages.Count(kvp => kvp.Value > 0f) > displayedPercentages.Count)
+        {
+            var displayedTotal = displayedPercentages.Take(displayedPercentages.Count - 1)
+                .Sum(kvp => Mathf.Max(0f, kvp.Value));
+            var last = displayedPercentages[^1];
+            displayedPercentages[^1] = new KeyValuePair<DamageType, float>(last.Key, total - displayedTotal);
+        }
+
+        var cumulative = 0f;
+        foreach (var (damageType, percentage) in displayedPercentages)
+        {
+            cumulative += Mathf.Max(0f, percentage) / total;
+            parts.Add(new DamageVisualPart(DamageTypeColor(damageType, 0.5f), Mathf.Clamp(cumulative, 0f, 1f)));
+        }
+
+        parts[^1] = parts[^1] with { Stop = 1f };
+        return parts;
+    }
+
+    private static Vector4 ToShaderColor(Color color)
+    {
+        return new Vector4(color.R, color.G, color.B, color.A);
+    }
+
+    private static Color DamageTypeColor(DamageType type, float alpha)
+    {
+        var color = type switch
+        {
+            DamageType.Physical => new Color(0.72f, 0.72f, 0.68f),
+            DamageType.Poison => new Color(0.22f, 0.86f, 0.24f),
+            DamageType.Fire => new Color(1f, 0.36f, 0.05f),
+            DamageType.Ice => new Color(0.25f, 0.72f, 1f),
+            DamageType.Lightning => new Color(1f, 0.9f, 0.18f),
+            DamageType.Darkness => new Color(0.55f, 0.16f, 0.82f),
+            DamageType.Holy => new Color(1f, 0.88f, 0.44f),
+            _ => Colors.Aqua,
+        };
+        color.A = alpha;
+        return color;
+    }
+
+    private readonly record struct DamageVisualPart(Color Color, float Stop);
 
     private bool areEqualApprox(List<Vector2> a, List<Vector2> b)
     {

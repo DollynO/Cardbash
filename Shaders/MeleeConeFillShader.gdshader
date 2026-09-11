@@ -11,10 +11,34 @@ uniform float cone_rotation : hint_range(0.0, 360.0) = 0.0;
 
 // Colors
 uniform vec4 fill_color : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 fill_color_1 : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 fill_color_2 : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 fill_color_3 : source_color = vec4(1.0, 1.0, 1.0, 1.0);
+uniform vec4 fill_color_4 : source_color = vec4(1.0, 1.0, 1.0, 1.0);
 uniform vec4 empty_color : source_color = vec4(0.0, 0.0, 0.0, 0.0);
+uniform int damage_mix_count = 1;
+uniform float fill_split_1 : hint_range(0.0, 1.0) = 1.0;
+uniform float fill_split_2 : hint_range(0.0, 1.0) = 1.0;
+uniform float fill_split_3 : hint_range(0.0, 1.0) = 1.0;
 
 // Smooth edge transition
 uniform float edge_smoothness : hint_range(0.0, 0.1) = 0.01;
+
+vec4 damage_mix_color(float position) {
+    if (damage_mix_count <= 1 || position <= fill_split_1) {
+        return fill_color_1;
+    }
+
+    if (damage_mix_count == 2 || position <= fill_split_2) {
+        return fill_color_2;
+    }
+
+    if (damage_mix_count == 3 || position <= fill_split_3) {
+        return fill_color_3;
+    }
+
+    return fill_color_4;
+}
 
 void fragment() {
     // Get UV coordinates centered at (0.5, 0.5)
@@ -44,9 +68,10 @@ void fragment() {
 
     // Combine masks
     float final_mask = fill_mask * cone_mask;
+    vec4 filled_color = damage_mix_color(clamp(UV.x, 0.0, 1.0));
 
     // Mix colors based on mask
-    vec4 final_color = mix(empty_color, fill_color, final_mask);
+    vec4 final_color = mix(empty_color, filled_color, final_mask);
 
     COLOR = final_color;
 }

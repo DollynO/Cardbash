@@ -42,6 +42,7 @@ public class PoisonJab : Ability
             AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
             AbilityGUID = GUID,
+            CanAffectOwner = false,
             Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
         };
         ApplyAoeConfig(stats);

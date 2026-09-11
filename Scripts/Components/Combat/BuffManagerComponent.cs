@@ -132,7 +132,7 @@ public partial class BuffManagerComponent : Node2D, IComponent
     public int ConsumeBuffType(DamageType type)
     {
         var buffCounts = this.activeBuffs.Where(b => b.BuffType == type).ToList();
-        var count = buffCounts.Count;
+        var count = buffCounts.Sum(buff => buff.StackCount);
         foreach (var buff in buffCounts)
         {
             buff.RemainingDuration = 0;

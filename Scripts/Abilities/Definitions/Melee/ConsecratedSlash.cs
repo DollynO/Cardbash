@@ -35,6 +35,7 @@ public class ConsecratedSlash : Ability
             AngleOffset = angleOffset,
             Owner = Caller,
             AbilityGUID = GUID,
+            CanAffectOwner = false,
         };
         ApplyAoeConfig(stats, false);
         GlobalAbilitySpawner.SpawnAoe(stats);
@@ -48,6 +49,7 @@ public class ConsecratedSlash : Ability
             AngleOffset = angleOffset + 90,
             Owner = Caller,
             AbilityGUID = GUID,
+            CanAffectOwner = false,
         };
         ApplyAoeConfig(stats1, false);
         GlobalAbilitySpawner.SpawnAoe(stats1);
@@ -61,6 +63,7 @@ public class ConsecratedSlash : Ability
             AngleOffset = angleOffset + 180,
             Owner = Caller,
             AbilityGUID = GUID,
+            CanAffectOwner = false,
         };
         ApplyAoeConfig(stats2, false);
         GlobalAbilitySpawner.SpawnAoe(stats2);
@@ -74,6 +77,7 @@ public class ConsecratedSlash : Ability
             AngleOffset = angleOffset + 270,
             Owner = Caller,
             AbilityGUID = GUID,
+            CanAffectOwner = false,
         };
         ApplyAoeConfig(stats3, false);
         GlobalAbilitySpawner.SpawnAoe(stats3);
