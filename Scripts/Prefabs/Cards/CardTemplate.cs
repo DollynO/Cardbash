@@ -60,6 +60,11 @@ public partial class CardTemplate : TextureRect
         }
     }
 
+    public void SetDisplayName(string displayName)
+    {
+        NameLabel.Text = displayName;
+    }
+
     public override void _Ready()
     {
 

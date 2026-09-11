@@ -53,9 +53,13 @@ public partial class CardDrawTemplate : Control
 		EmitSignal(SignalName.CardClicked, card);
 	}
 
-	public void SetCard(Card card)
+	public void SetCard(Card card, string displayName = null)
 	{
 		_cardTemplate.Card = card;
+		if (!string.IsNullOrWhiteSpace(displayName))
+		{
+			_cardTemplate.SetDisplayName(displayName);
+		}
 	}
 	
 	public void NotifyCardSelected(string card_guid)
@@ -72,6 +76,7 @@ public partial class CardDrawTemplate : Control
 
 	public void SetLockState(bool locked)
 	{
+		is_locked = locked;
 		_unlockCard.Visible = locked;
 		_lockCard.Visible = !locked;
 	}

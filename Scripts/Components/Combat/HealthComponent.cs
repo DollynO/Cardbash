@@ -32,7 +32,6 @@ public partial class HealthComponent : Node2D, IComponent
     {
         MaxHealth = newMaxHealth;
         CurrentHealth = MaxHealth;
-        maxHealthChanges.Clear();
     }
 
     public void ApplyDamage(Damage damage, IEntityComponent component)
@@ -67,6 +66,11 @@ public partial class HealthComponent : Node2D, IComponent
     public void ApplyMod(StatModifier mod)
     {
         var id = mod.Id;
+        if (maxHealthChanges.ContainsKey(id))
+        {
+            RemoveMod(id);
+        }
+
         var value = 0f;
         switch (mod.Op)
         {
@@ -87,8 +91,7 @@ public partial class HealthComponent : Node2D, IComponent
                 throw new ArgumentOutOfRangeException();
         }
         maxHealthChanges.Add(id, value);
-        MaxHealth += value;
-        Mathf.Clamp(MaxHealth, 1, MaxHealth);
+        MaxHealth = Mathf.Max(1, MaxHealth + value);
         if (value < 0 && Mathf.Abs(value) > CurrentHealth)
         {
             CurrentHealth = 1;
@@ -96,14 +99,20 @@ public partial class HealthComponent : Node2D, IComponent
         else
         {
             CurrentHealth += value;
-            Mathf.Clamp(CurrentHealth, 1, MaxHealth);
         }
+
+        CurrentHealth = Mathf.Clamp(CurrentHealth, IsDead ? 0 : 1, MaxHealth);
     }
 
     public void RemoveMod(string id)
     {
-        var value = maxHealthChanges[id];
+        if (!maxHealthChanges.TryGetValue(id, out var value))
+        {
+            return;
+        }
+
         maxHealthChanges.Remove(id);
+        MaxHealth = Mathf.Max(1, MaxHealth - value);
         if (value > 0 && Mathf.Abs(value) > CurrentHealth)
         {
             CurrentHealth = 1;
@@ -111,7 +120,8 @@ public partial class HealthComponent : Node2D, IComponent
         else
         {
             CurrentHealth -= value;
-            Mathf.Clamp(CurrentHealth, 1, MaxHealth);
         }
+
+        CurrentHealth = Mathf.Clamp(CurrentHealth, IsDead ? 0 : 1, MaxHealth);
     }
 }

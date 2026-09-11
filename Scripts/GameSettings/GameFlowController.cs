@@ -49,6 +49,12 @@ public partial class GameFlowController : Node
     {
         if (Multiplayer.IsServer())
         {
+            if (pickedCards.Any(p => p.id == playerId)
+                || !_ctx.CardSystem.CanSelectCard(playerId, cardGuid))
+            {
+                return;
+            }
+
             pickedCards.Add((playerId, cardGuid));
 
             if (pickedCards.Count == _ctx.Players.Count)

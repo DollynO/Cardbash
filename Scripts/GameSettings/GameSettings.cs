@@ -14,6 +14,7 @@ public partial class GameModeSettings : Resource
     [Export] public bool FriendlyFire { get; set; }
     
     public int CardLockCosts { get; set; } = 10;
+    public int CardRerollCosts { get; set; } = 10;
 
     public void Copy(GameModeSettings gameSettings)
     {
@@ -23,5 +24,6 @@ public partial class GameModeSettings : Resource
         CardsPerRound = gameSettings.CardsPerRound;
         FriendlyFire = gameSettings.FriendlyFire;
         CardLockCosts = gameSettings.CardLockCosts;
+        CardRerollCosts = gameSettings.CardRerollCosts;
     }
 }

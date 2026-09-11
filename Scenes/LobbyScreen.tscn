@@ -18,7 +18,8 @@ notReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Not
 startButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start")
 _teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/TeamSelect")
 _deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
-_playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer")
+_playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer")
+_playerSlotScene = ExtResource("3_p6nru")
 gameSettingFields = [NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/CardsPerRoundInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsToWinInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnRoundEndInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnKillInput")]
 friendlyFireToggle = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/FriendlyFireToggle")
 
@@ -64,30 +65,35 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PlayerListContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList"]
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 
-[node name="PlayerSlot" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerListContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayerSlot" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot2" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot2" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot3" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot3" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot4" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot4" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot5" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot5" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot6" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot6" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
 [node name="Settings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main"]

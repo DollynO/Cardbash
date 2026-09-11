@@ -9,13 +9,12 @@ radius = 111.803
 [sub_resource type="CircleShape2D" id="CircleShape2D_07f7a"]
 radius = 0.01
 
-[node name="Node2D" type="Area2D" node_paths=PackedStringArray("_line", "timer", "sprite", "collisionShape", "pullArea", "pullAreaShape")]
+[node name="Node2D" type="Area2D" node_paths=PackedStringArray("_line", "timer", "collisionShape", "pullArea", "pullAreaShape")]
 collision_layer = 0
 collision_mask = 21
 script = ExtResource("1_r487b")
 _line = NodePath("Line2D")
 timer = NodePath("LiveTimeTimer")
-sprite = NodePath("CollisionShape/Sprite2D")
 collisionShape = NodePath("CollisionShape")
 pullArea = NodePath("PullArea")
 pullAreaShape = NodePath("PullArea/PullAreaShape")

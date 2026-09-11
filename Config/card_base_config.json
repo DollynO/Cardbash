@@ -171,7 +171,7 @@
       "description": "SPAAAM. Upgrade 1: increases maximum stacks. Upgrade 2: cloned projectiles gain 20% speed per generation, up to 3x.",
       "iconPath": "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png",
       "cooldown": 4.5,
-      "baseDamage": 4,
+      "baseDamage": 20,
       "damageType": 0,
       "params": {
         "projectileSpeed": 500,
@@ -192,6 +192,7 @@
         "maxSplitProjectiles": 8,
         "maxActiveCasts": 2,
         "stackIncrease": 1,
+        "selfDamage": 5,
         "cloneSpeedMultiplier": 1.2,
         "maxCloneSpeedMultiplier": 3,
         "maxCloneSpeedGeneration": 6
@@ -491,14 +492,14 @@
       "displayName": "IceStorm",
       "description": "IceStorm",
       "iconPath": "res://Sprites/SkillIcons/Snow/10_Frost_Whirlwind.png",
-      "cooldown": 1,
+      "cooldown": 10,
       "baseDamage": 10,
       "damageType": 3,
       "params": {
         "radius": 300,
         "angle": 360,
         "angleOffset": 0,
-        "activationTime": 0,
+        "activationTime": 1,
         "duration": 5,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,

@@ -6466,7 +6466,7 @@ tile_set = SubResource("TileSet_b8d8o")
 _spawnable_scenes = PackedStringArray("res://Scenes/PlayerCharacter.tscn")
 spawn_path = NodePath(".")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_drawUiContainer", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_itemContainer", "_healthBar", "_gameManager", "_pointsContainer")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("_drawUiContainer", "_waitLabel", "_cardBox", "_darknessEffect", "_roundLabel", "_lockButton", "_rerollButton", "_itemContainer", "_healthBar", "_gameManager", "_pointsContainer")]
 script = ExtResource("4_e1s5y")
 _drawUiContainer = NodePath("DrawUi")
 _waitLabel = NodePath("DrawUi/WaitLabel")
@@ -6474,6 +6474,7 @@ _cardBox = NodePath("DrawUi/VBoxContainer/CardBox")
 _darknessEffect = NodePath("DarknessEffect")
 _roundLabel = NodePath("RoundLabel")
 _lockButton = NodePath("DrawUi/VBoxContainer/CardLock")
+_rerollButton = NodePath("DrawUi/VBoxContainer/CardReroll")
 _itemContainer = NodePath("PlayerUi/HBoxContainer/Control/ScrollContainer/ItemContainer")
 _healthBar = NodePath("PlayerUi/HBoxContainer/Control/HealthBar")
 _gameManager = NodePath("..")
@@ -6482,11 +6483,9 @@ pointOverviewTemplate = ExtResource("9_1xcf0")
 
 [node name="DarknessEffect" type="ColorRect" parent="HUD"]
 material = SubResource("ShaderMaterial_cerkr")
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
@@ -6536,6 +6535,11 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 4
 Text = "Submit"
+
+[node name="CardReroll" parent="HUD/DrawUi/VBoxContainer" instance=ExtResource("5_amcby")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Reroll (10) x0"
 
 [node name="WaitLabel" type="Label" parent="HUD/DrawUi"]
 visible = false
@@ -6809,3 +6813,4 @@ shape = SubResource("WorldBoundaryShape2D_mpfk8")
 shape = SubResource("WorldBoundaryShape2D_aeqv0")
 
 [connection signal="pressed" from="HUD/DrawUi/VBoxContainer/CardLock" to="HUD" method="_on_card_lock_pressed"]
+[connection signal="pressed" from="HUD/DrawUi/VBoxContainer/CardReroll" to="HUD" method="_on_card_reroll_pressed"]

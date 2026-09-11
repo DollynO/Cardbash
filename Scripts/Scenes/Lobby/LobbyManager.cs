@@ -17,6 +17,7 @@ public partial class LobbyManager : ColorRect
     [Export] private OptionButton _deckSelect;
 
     [Export] private VBoxContainer _playerListContainer;
+    [Export] private PackedScene _playerSlotScene;
     [Export] private Array<LineEdit> gameSettingFields;
     [Export] private CheckBox friendlyFireToggle;
     private Array<PlayerSlot> _playerSlots = new();
@@ -83,7 +84,10 @@ public partial class LobbyManager : ColorRect
         readyButton.Visible = false;
         foreach (var child in _playerListContainer.GetChildren())
         {
-            _playerSlots.Add(child as PlayerSlot);
+            if (child is PlayerSlot playerSlot)
+            {
+                _playerSlots.Add(playerSlot);
+            }
         }
     }
 
@@ -92,6 +96,9 @@ public partial class LobbyManager : ColorRect
         startButton.Disabled = _isStartingGame || !(Multiplayer.IsServer() && _network.CurrentPlayers.Values.All(p => p.IsReady));
         var playerCount = _network.CurrentPlayers.Count;
         var playerList = _network.CurrentPlayers.Values.ToList();
+        currentPlayer = playerList.FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
+
+        EnsurePlayerSlotCount(playerCount);
 
         for (var i = 0; i < _playerSlots.Count; i++)
         {
@@ -100,10 +107,6 @@ public partial class LobbyManager : ColorRect
             {
                 slot.Visible = true;
                 slot.UpdateSlotUi(playerList[i]);
-                if (playerList[i].PlayerId == Multiplayer.GetUniqueId())
-                {
-                    currentPlayer = playerList[i];
-                }
             }
             else
             {
@@ -112,6 +115,32 @@ public partial class LobbyManager : ColorRect
         }
 
         _teamSelect.Selected = currentPlayer?.TeamNumber ?? 0;
+    }
+
+    private void EnsurePlayerSlotCount(int playerCount)
+    {
+        while (_playerSlots.Count < playerCount)
+        {
+            PlayerSlot slot = null;
+            if (_playerSlotScene != null)
+            {
+                slot = _playerSlotScene.Instantiate<PlayerSlot>();
+            }
+            else if (_playerSlots.Count > 0)
+            {
+                slot = _playerSlots[0].Duplicate() as PlayerSlot;
+            }
+
+            if (slot == null)
+            {
+                GD.PrintErr("Unable to create lobby player slot.");
+                return;
+            }
+
+            slot.Name = $"PlayerSlot{_playerSlots.Count + 1}";
+            _playerListContainer.AddChild(slot);
+            _playerSlots.Add(slot);
+        }
     }
 
     public override void _ExitTree()

@@ -25,6 +25,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     private Color pullAreaColor = new(0.5f, 0.5f, 0.5f, 0.1f);
 
     private List<IEntityComponent> entityInPullArea = new();
+    private bool callerCollisionReady;
 
     [Signal]
     public delegate void OnDestroyedEventHandler(Vector2 position, Projectile projectile);
@@ -104,6 +105,7 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
             }
 
             detectArea.BodyEntered += OnBodyEntered;
+            detectArea.BodyExited += OnDetectAreaBodyExited;
             if (statBlock != null)
             {
                 SpawnRequest.Pull.Strength += statBlock.GetStat(StatType.AddPullStrength);
@@ -166,6 +168,10 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     public override void _ExitTree()
     {
         EventBus.CombatEventBus.KilledEventHandler -= onProjectileDeath;
+        if (detectArea != null)
+        {
+            detectArea.BodyExited -= OnDetectAreaBodyExited;
+        }
     }
 
     private void OnBodyEntered(Node2D body)
@@ -183,10 +189,29 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         }
 
         if (body is IEntityComponent hitObject
-            && CombatTargeting.ShouldAbilityAffect(SpawnRequest.Caller, hitObject))
+            && ShouldHitObject(hitObject))
         {
             HitableObjectCollided(hitObject);
         }
+    }
+
+    private void OnDetectAreaBodyExited(Node2D body)
+    {
+        if (SpawnRequest.Collision.AllowCallerCollision
+            && ReferenceEquals(body, SpawnRequest.Caller))
+        {
+            callerCollisionReady = true;
+        }
+    }
+
+    private bool ShouldHitObject(IEntityComponent hitObject)
+    {
+        if (ReferenceEquals(hitObject, SpawnRequest.Caller))
+        {
+            return SpawnRequest.Collision.AllowCallerCollision && callerCollisionReady;
+        }
+
+        return CombatTargeting.ShouldAbilityAffect(SpawnRequest.Caller, hitObject);
     }
 
     private void PullAreaOnBodyEntered(Node2D body)
@@ -267,6 +292,8 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
     {
         if (Multiplayer.IsServer())
         {
+            UpdateCallerCollisionReadiness();
+
             if (SpawnRequest.Movement.Mode != MovementMode.NONE)
             {
                 var to = getNextPosition(SpawnRequest.Movement, (float)delta);
@@ -280,6 +307,26 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
 
             this.behaviors.ForEach(b => b.OnProcess((float)delta));
         }
+    }
+
+    private void UpdateCallerCollisionReadiness()
+    {
+        if (callerCollisionReady
+            || !SpawnRequest.Collision.AllowCallerCollision
+            || SpawnRequest.Caller is not Node2D callerNode)
+        {
+            return;
+        }
+
+        foreach (var body in detectArea.GetOverlappingBodies())
+        {
+            if (body == callerNode)
+            {
+                return;
+            }
+        }
+
+        callerCollisionReady = true;
     }
 
     private void handleTerrainCollision(KinematicCollision2D collider)

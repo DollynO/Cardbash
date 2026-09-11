@@ -5,6 +5,7 @@ namespace CardBase.Scripts.Items;
 public partial class LifeArmour : Item
 {
     private const int StatIncrease = 25;
+    private StatModifier lifeModifier;
 
     public LifeArmour() : base(ItemIds.LifeArmourGuid)
     {
@@ -15,10 +16,19 @@ public partial class LifeArmour : Item
 
     public override void ApplyItem(IEntityComponent targetEntity)
     {
+        var statIncrease = ConfigParam("statIncrease", StatIncrease);
+        lifeModifier ??= new StatModifier(InstanceGuid, StatType.Life, StatOp.FlatAdd, statIncrease);
+        lifeModifier.Value = statIncrease;
+
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
-            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.Life, StatOp.FlatAdd,
-                ConfigParam("statIncrease", StatIncrease)));
+            statblock.RemoveModifierSource(InstanceGuid);
+            statblock.AddModifiers(lifeModifier);
+        }
+
+        if (targetEntity.TryGetComponent<HealthComponent>(out var healthComponent))
+        {
+            healthComponent.ApplyMod(lifeModifier);
         }
     }
 
@@ -27,6 +37,11 @@ public partial class LifeArmour : Item
         if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
         {
             statblock.RemoveModifierSource(InstanceGuid);
+        }
+
+        if (lifeModifier != null && targetEntity.TryGetComponent<HealthComponent>(out var healthComponent))
+        {
+            healthComponent.RemoveMod(lifeModifier.Id);
         }
     }
 }

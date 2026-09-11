@@ -11,6 +11,7 @@ public partial class CardSystem : Node
 {
     private Dictionary<PlayerCharacter, string> lockedCards = new();
     private Dictionary<int, List<CardState>> serverHandCards = new();
+    private Dictionary<int, Dictionary<string, int>> serverExhaustionCounts = new();
     private List<CardState> handCards = new();
     public GameManager gameManager;
     
@@ -30,6 +31,7 @@ public partial class CardSystem : Node
         {
             serverHandCards.Add((int)player.PlayerId, DrawCardsPlayer(amount, player));
             UpdateCardsServer((int)player.PlayerId, serverHandCards[(int)player.PlayerId]);
+            SyncDeckExhaustion(player);
         }
     }
 
@@ -56,13 +58,24 @@ public partial class CardSystem : Node
         UpdateHandCardsEventHandler?.Invoke(this, new DrawCardEventArgs(handCards));
     }
     
-    private List<CardState> DrawCardsPlayer(int amount, PlayerCharacter player)
+    private List<CardState> DrawCardsPlayer(
+        int amount,
+        PlayerCharacter player,
+        bool includeLockedCard = true,
+        bool advanceExhaustion = true,
+        HashSet<string> excludedCardGuids = null)
     {
-        player.Deck.Cards.Keys.Where(c => c.ExhaustionCount > 0).ToList().ForEach(c => c.ExhaustionCount--);
+        var playerId = (int)player.PlayerId;
+        if (advanceExhaustion)
+        {
+            AdvanceServerExhaustion(playerId, player);
+        }
 
         var rng = new Random();
         var cards = new List<Card>();
-        foreach (var deckCard in player.Deck.Cards.Where(c => c.Key.ExhaustionCount == 0))
+        foreach (var deckCard in player.Deck.Cards.Where(c =>
+                     GetServerExhaustionCount(playerId, c.Key.EffectGUID) == 0
+                     && (excludedCardGuids == null || !excludedCardGuids.Contains(c.Key.EffectGUID))))
         {
             for (var i = 0; i < deckCard.Value.Count; i++)
             {
@@ -71,7 +84,7 @@ public partial class CardSystem : Node
         }
         
         var handCards = new List<CardState>();
-        if (lockedCards.TryGetValue(player, out var cardGuid))
+        if (includeLockedCard && lockedCards.TryGetValue(player, out var cardGuid))
         {
             handCards.Add(new CardState
             {
@@ -90,7 +103,7 @@ public partial class CardSystem : Node
                 break;
             }
 
-            var number = rng.NextInt64(0, cards.Count - 1);
+            var number = rng.NextInt64(0, cards.Count);
             var guid = cards[(int)number].EffectGUID;
             handCards.Add(new CardState
             {
@@ -101,6 +114,94 @@ public partial class CardSystem : Node
         }
 
         return handCards;
+    }
+
+    public void RerollHand(PlayerCharacter player)
+    {
+        if (player == null) return;
+
+        Rpc(MethodName.rerollHandServer, player.PlayerId);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void rerollHandServer(int playerId)
+    {
+        if (!Multiplayer.IsServer()) return;
+
+        var senderId = Multiplayer.GetRemoteSenderId();
+        if (senderId != 0 && senderId != playerId)
+        {
+            return;
+        }
+
+        var player = gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == playerId);
+        if (player == null) return;
+
+        if (!serverHandCards.TryGetValue(playerId, out var playerHand) || playerHand.Count == 0)
+        {
+            return;
+        }
+
+        var currentHandGuids = playerHand.Select(c => c.guid).ToHashSet();
+        var rerolledHand = DrawCardsPlayer(
+            playerHand.Count,
+            player,
+            includeLockedCard: false,
+            advanceExhaustion: false,
+            excludedCardGuids: currentHandGuids);
+        if (rerolledHand.Count == 0)
+        {
+            return;
+        }
+
+        if (!gameManager.ScoreSystem.TryRemoveFromTeamScore(player, gameManager.Settings.CardRerollCosts))
+        {
+            return;
+        }
+
+        lockedCards.Remove(player);
+        serverHandCards[playerId] = rerolledHand;
+        UpdateCardsServer(playerId, serverHandCards[playerId]);
+    }
+
+    private Dictionary<string, int> GetServerExhaustionCounts(int playerId)
+    {
+        if (!serverExhaustionCounts.TryGetValue(playerId, out var exhaustionCounts))
+        {
+            exhaustionCounts = new Dictionary<string, int>();
+            serverExhaustionCounts[playerId] = exhaustionCounts;
+        }
+
+        return exhaustionCounts;
+    }
+
+    private int GetServerExhaustionCount(int playerId, string cardGuid)
+    {
+        return GetServerExhaustionCounts(playerId).GetValueOrDefault(cardGuid, 0);
+    }
+
+    private void SetServerExhaustionCount(int playerId, string cardGuid, int count)
+    {
+        var exhaustionCounts = GetServerExhaustionCounts(playerId);
+        if (count <= 0)
+        {
+            exhaustionCounts.Remove(cardGuid);
+            return;
+        }
+
+        exhaustionCounts[cardGuid] = count;
+    }
+
+    private void AdvanceServerExhaustion(int playerId, PlayerCharacter player)
+    {
+        foreach (var card in player.Deck.Cards.Keys)
+        {
+            var count = GetServerExhaustionCount(playerId, card.EffectGUID);
+            if (count > 0)
+            {
+                SetServerExhaustionCount(playerId, card.EffectGUID, count - 1);
+            }
+        }
     }
 
     public void LockCard(PlayerCharacter player, Card card)
@@ -183,17 +284,33 @@ public partial class CardSystem : Node
     {
         EventBus.Instance.CardSystemEventBus.EmitCardUnlocked(new CardEventArgs(cardGuid));
     }
+
+    public bool CanSelectCard(int playerId, string cardGuid)
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return false;
+        }
+
+        return serverHandCards.TryGetValue(playerId, out var playerHand)
+               && playerHand.Any(card => card.guid == cardGuid);
+    }
     
     public void ServerApplyCards(List<string> cardGuids, PlayerCharacter player)
     {
-        if (lockedCards.TryGetValue(player, out var lockedCardGuid) && cardGuids.Contains(lockedCardGuid))
+        var selectableCardGuids = cardGuids
+            .Distinct()
+            .Where(cardGuid => CanSelectCard((int)player.PlayerId, cardGuid))
+            .ToList();
+
+        if (lockedCards.TryGetValue(player, out var lockedCardGuid) && selectableCardGuids.Contains(lockedCardGuid))
         {
             lockedCards.Remove(player);
         }
 
-        foreach (var cardGuid in cardGuids)
+        foreach (var cardGuid in selectableCardGuids)
         {
-            player.Deck.Cards.FirstOrDefault(c => c.Key.EffectGUID == cardGuid).Key.ExhaustionCount = 2;
+            SetServerExhaustionCount((int)player.PlayerId, cardGuid, 2);
             EventBus.Instance.CardSystemEventBus.EmitCardPicked(new CardEventArgs(cardGuid, player));
             if (GlobalCardManager.Instance.AbilityCards.ContainsKey(cardGuid))
             {
@@ -205,6 +322,7 @@ public partial class CardSystem : Node
             }
         }
 
+        SyncDeckExhaustion(player);
     }
 
     private void applyAbility(string guid, PlayerCharacter player)
@@ -218,6 +336,34 @@ public partial class CardSystem : Node
     private void applyItem(ItemCard item, PlayerCharacter player)
     {
         item.ApplyEffect(new PlayerContext() { player = player });
+    }
+
+    private void SyncDeckExhaustion(PlayerCharacter player)
+    {
+        var exhaustionCounts = new Godot.Collections.Dictionary<string, int>();
+        foreach (var card in player.Deck.Cards.Keys)
+        {
+            exhaustionCounts[card.EffectGUID] = GetServerExhaustionCount((int)player.PlayerId, card.EffectGUID);
+        }
+
+        RpcId(player.PlayerId, MethodName.UpdateDeckExhaustion, exhaustionCounts);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void UpdateDeckExhaustion(Godot.Collections.Dictionary<string, int> exhaustionCounts)
+    {
+        var player = gameManager.GetPlayerCharacter(Multiplayer.GetUniqueId());
+        if (player?.Deck == null)
+        {
+            return;
+        }
+
+        foreach (var card in player.Deck.Cards.Keys)
+        {
+            card.ExhaustionCount = exhaustionCounts.TryGetValue(card.EffectGUID, out var count)
+                ? count
+                : 0;
+        }
     }
 }
 

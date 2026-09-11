@@ -152,6 +152,7 @@ public class ProjectileCollisionConfig
 {
     public int PierceCount;
     public uint CollisionMask;
+    public bool AllowCallerCollision;
 
     public Godot.Collections.Dictionary<string, Variant> ToDict()
     {
@@ -159,6 +160,7 @@ public class ProjectileCollisionConfig
         {
             { nameof(PierceCount), PierceCount },
             { nameof(CollisionMask), CollisionMask },
+            { nameof(AllowCallerCollision), AllowCallerCollision },
         };
     }
 
@@ -168,6 +170,8 @@ public class ProjectileCollisionConfig
         {
             PierceCount = (int)dict[nameof(PierceCount)],
             CollisionMask = (uint)dict[nameof(CollisionMask)],
+            AllowCallerCollision = dict.TryGetValue(nameof(AllowCallerCollision), out var allowCallerCollision)
+                && (bool)allowCallerCollision,
         };
     }
 }

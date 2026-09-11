@@ -1,12 +1,15 @@
 using System.Collections.Generic;
 using CardBase.Scripts.Abilities.Buffs;
 using CardBase.Scripts.PlayerScripts;
+using Godot;
 
 namespace CardBase.Scripts.Abilities.AOE;
 
 public class IceStorm : Ability
 {
     private float baseStunDuration = 3;
+    private readonly List<AoeBase> activeAoes = new();
+
     public IceStorm(PlayerCharacter creator) : base(AbilityIds.IceStormGuid, creator)
     {
         this.DisplayName = "IceStorm";
@@ -25,7 +28,12 @@ public class IceStorm : Ability
 
     public override void RoundReset()
     {
+        CancelRuntimeObjects();
+    }
 
+    public override void ClearAbility()
+    {
+        CancelRuntimeObjects();
     }
 
     public override void InternalUse()
@@ -34,17 +42,25 @@ public class IceStorm : Ability
 
         var stats = new AoeBaseStats()
         {
-            ActivationTime = ConfigParam("activationTime", 0f),
+            ActivationTime = ConfigParam("activationTime", 1f),
             Radius = ConfigParam("radius", 300f),
             Duration = ConfigParam("duration", 5f),
-            Callbacks = new AoeBaseCallbacks { OnTick = OnTick },
             Owner = Caller,
             AbilityGUID = GUID,
-            StationaryPosition = aimComponent.GetPlayerMouesPosition(ConfigParam("range", 400f)),
+            StationaryPosition = aimComponent.GetPlayerMouesPosition(ConfigParam("range", 500f)),
             IsStationary = true,
+            Callbacks = new AoeBaseCallbacks
+            {
+                OnTick = OnTick,
+                OnDeactivation = (_, aoe) => activeAoes.Remove(aoe),
+            },
         };
         ApplyAoeConfig(stats);
         var aoe = GlobalAbilitySpawner.SpawnAoe(stats);
+        if (aoe != null)
+        {
+            activeAoes.Add(aoe);
+        }
 
     }
 
@@ -85,6 +101,19 @@ public class IceStorm : Ability
                 }
             }
         }
+    }
+
+    private void CancelRuntimeObjects()
+    {
+        foreach (var aoe in new List<AoeBase>(activeAoes))
+        {
+            if (GodotObject.IsInstanceValid(aoe))
+            {
+                aoe.Cancel();
+            }
+        }
+
+        activeAoes.Clear();
     }
     
     private void OnActivation(List<IEntityComponent> playersHit, AoeBase source)

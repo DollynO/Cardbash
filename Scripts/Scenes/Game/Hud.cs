@@ -10,6 +10,10 @@ using CardBase.Scripts.PlayerScripts;
 public partial class Hud : CanvasLayer
 {
     private const int DebugConsoleLayer = 100;
+    private const uint FpsToggleUnicode = 35;
+    private const double FpsRefreshInterval = 0.25;
+    private const float DarknessStacksForFullEffect = 10f;
+    private static readonly string[] AbilityTierLabels = { "I", "II", "III" };
 
     [Export] private Container _drawUiContainer;
     [Export] private Label _waitLabel;
@@ -17,6 +21,7 @@ public partial class Hud : CanvasLayer
     [Export] private ColorRect _darknessEffect;
     [Export] private Label _roundLabel;
     [Export] private ButtonPrefab _lockButton;
+    [Export] private ButtonPrefab _rerollButton;
     [Export] private HBoxContainer _itemContainer;
     [Export] private HealthBar _healthBar;
     [Export] private GameManager _gameManager;
@@ -29,6 +34,8 @@ public partial class Hud : CanvasLayer
     private List<CardDrawTemplate> cardTemplates = new();
     private ItemManagerComponent _displayedItemManager;
     private string _displayedItemSignature = string.Empty;
+    private Label _fpsLabel;
+    private double _fpsRefreshTimer;
 
     [Signal]
     public delegate void CardLockedEventHandler(int playerId, string cardGuid);
@@ -44,7 +51,59 @@ public partial class Hud : CanvasLayer
         _gameManager.EventBus.MatchEventBus.ScoreChangedEventHandler += score_changed;
 
         _gameManager.EventBus.MatchEventBus.RoundStartEventHandler += on_round_start;
+        SetProcessInput(true);
+        AddFpsLabel();
         AddDebugConsole();
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (@event is not InputEventKey { Pressed: true, Echo: false } keyEvent)
+        {
+            return;
+        }
+
+        if (!IsFpsToggleKey(keyEvent))
+        {
+            return;
+        }
+
+        _fpsLabel.Visible = !_fpsLabel.Visible;
+        GetViewport().SetInputAsHandled();
+    }
+
+    private void AddFpsLabel()
+    {
+        _fpsLabel = new Label
+        {
+            Name = "FpsLabel",
+            Text = "FPS: 0",
+            Visible = true,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            ZIndex = 4096,
+            AnchorLeft = 0.5f,
+            AnchorTop = 0f,
+            AnchorRight = 0.5f,
+            AnchorBottom = 0f,
+            OffsetLeft = -80f,
+            OffsetTop = 8f,
+            OffsetRight = 80f,
+            OffsetBottom = 34f,
+        };
+        _fpsLabel.AddThemeFontSizeOverride("font_size", 18);
+        _fpsLabel.AddThemeColorOverride("font_color", Colors.White);
+        _fpsLabel.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f, 0.85f));
+        _fpsLabel.AddThemeConstantOverride("outline_size", 4);
+        AddChild(_fpsLabel);
+    }
+
+    private static bool IsFpsToggleKey(InputEventKey keyEvent)
+    {
+        return keyEvent.Unicode == FpsToggleUnicode
+               || keyEvent.Keycode == (Key)FpsToggleUnicode
+               || keyEvent.PhysicalKeycode == (Key)FpsToggleUnicode;
     }
 
     private void AddDebugConsole()
@@ -66,6 +125,7 @@ public partial class Hud : CanvasLayer
     private void score_changed(object sender, ScoreEventArgs args)
     {
         updatePointsTable();
+        UpdateRerollButtonText();
     }
 
     private void updatePointsTable()
@@ -109,6 +169,8 @@ public partial class Hud : CanvasLayer
     {
         _clear_card_box();
         cardTemplates.Clear();
+        _selectedCard = null;
+        var player = _gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
 
         foreach (var kvp in args.cards)
         {
@@ -132,7 +194,7 @@ public partial class Hud : CanvasLayer
             }
             
             cardTemplate.Name = card.EffectGUID;
-            cardTemplate.SetCard(card);
+            cardTemplate.SetCard(card, GetDrawCardDisplayName(card, player));
             cardTemplate.SetLockState(kvp.locked);
             cardTemplate.CardClicked += on_card_clicked;
             cardTemplate.LockCardClicked += on_lock_clicked;
@@ -142,9 +204,40 @@ public partial class Hud : CanvasLayer
         }
     }
 
+    private static string GetDrawCardDisplayName(Card card, PlayerCharacter player)
+    {
+        if (card?.CardType != CardType.Ability || player == null)
+        {
+            return card?.DisplayName;
+        }
+
+        var currentTierIndex = -1;
+        if (player.TryGetComponent(out AbilityComponent abilityComponent)
+            && abilityComponent.networkAbilities.TryGetValue(card.EffectGUID, out var ability))
+        {
+            currentTierIndex = ability.SkillLevel;
+        }
+
+        var nextTierIndex = Mathf.Clamp(currentTierIndex + 1, 0, AbilityTierLabels.Length - 1);
+        return $"{card.DisplayName} ({AbilityTierLabels[nextTierIndex]})";
+    }
+
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta)
     {
+        if (_fpsLabel == null || !_fpsLabel.Visible)
+        {
+            return;
+        }
+
+        _fpsRefreshTimer += delta;
+        if (_fpsRefreshTimer < FpsRefreshInterval)
+        {
+            return;
+        }
+
+        _fpsRefreshTimer = 0;
+        _fpsLabel.Text = $"FPS: {(int)Math.Round(Engine.GetFramesPerSecond())}";
     }
 
     public void DisplayRoundInfo(string info)
@@ -165,6 +258,8 @@ public partial class Hud : CanvasLayer
         if (visible)
         {
             _lockButton.Disabled = false;
+            _rerollButton.Disabled = false;
+            UpdateRerollButtonText();
             _cardBox.Visible = true;
             ShowWaitLabel(false);
             _selectedCard = null;
@@ -183,7 +278,7 @@ public partial class Hud : CanvasLayer
             return;
         }
 
-        ((ShaderMaterial)_darknessEffect.Material).SetShaderParameter("fill_amount", Math.Clamp(player.StatBlock.GetStat(StatType.Darkness) * 0.1, 0, 1));
+        UpdateDarknessEffect(player.StatBlock.GetStat(StatType.Darkness));
         if (player.TryGetComponent(out HealthComponent healthComponent))
         {
             _healthBar.SetHealth(healthComponent.CurrentHealth, healthComponent.MaxHealth);
@@ -193,6 +288,44 @@ public partial class Hud : CanvasLayer
         {
             RefreshItemsIfChanged(imc);
         }
+
+        if (player.PlayerId == Multiplayer.GetUniqueId())
+        {
+            UpdateRerollButtonText(player);
+        }
+    }
+
+    private void UpdateDarknessEffect(float darknessStacks)
+    {
+        if (_darknessEffect?.Material is not ShaderMaterial shaderMaterial)
+        {
+            return;
+        }
+
+        var fillAmount = Mathf.Clamp(darknessStacks / DarknessStacksForFullEffect, 0f, 1f);
+        shaderMaterial.SetShaderParameter("fill_amount", fillAmount);
+    }
+
+    private void UpdateRerollButtonText(PlayerCharacter player = null)
+    {
+        if (_rerollButton == null || _gameManager == null)
+        {
+            return;
+        }
+
+        player ??= _gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
+        var cost = _gameManager.Settings.CardRerollCosts;
+        var availablePurchases = 0;
+
+        if (player != null && cost > 0)
+        {
+            availablePurchases = _gameManager.ScoreSystem.GetTeamScore(player) / cost;
+        }
+
+        var purchaseText = cost > 0
+            ? $"x{availablePurchases}"
+            : "unlimited";
+        _rerollButton.SetText($"Reroll ({cost}) {purchaseText}");
     }
 
     private void _clear_card_box()
@@ -227,11 +360,29 @@ public partial class Hud : CanvasLayer
         _cardBox.Visible = false;
         _waitLabel.Visible = true;
         _lockButton.Disabled = true;
+        _rerollButton.Disabled = true;
         EmitSignal(SignalName.CardLocked, Multiplayer.GetUniqueId(), _selectedCard.EffectGUID);
+    }
+
+    private void _on_card_reroll_pressed()
+    {
+        var player = _gameManager.GetPlayers().FirstOrDefault(p => p.PlayerId == Multiplayer.GetUniqueId());
+        if (player == null)
+        {
+            return;
+        }
+
+        _selectedCard = null;
+        _gameManager.Context.CardSystem.RerollHand(player);
     }
 
     private void on_card_clicked(Card card)
     {
+        if (card == null)
+        {
+            return;
+        }
+
         _selectedCard = card;
         cardTemplates.ForEach(ct => ct.NotifyCardSelected(card.EffectGUID));
     }

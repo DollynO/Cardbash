@@ -5,6 +5,8 @@ using Godot.Collections;
 
 public partial class NetworkManager : Node
 {
+    public const int MaxRemoteClients = 15;
+
     public Dictionary<long, Player> CurrentPlayers = new();
     public string LocalUsername { get; set; }
     private bool _hostSignalsConnected;
@@ -44,7 +46,7 @@ public partial class NetworkManager : Node
         CurrentPlayers.Clear();
         clearMultiplayerSpawner();
         var peer = new ENetMultiplayerPeer();
-        peer.CreateServer(port);
+        peer.CreateServer(port, MaxRemoteClients);
         Multiplayer.MultiplayerPeer = peer;
 
         Multiplayer.PeerConnected += _on_player_connected;

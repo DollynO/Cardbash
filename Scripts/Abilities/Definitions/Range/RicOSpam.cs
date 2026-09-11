@@ -36,12 +36,19 @@ public class RicOSpam : ProjectileAbility
             ConfigParam("projectileLifetime", 10f));
         ApplyProjectileConfig(request);
         request.CastGuid = currentCastGuid;
+        request.Collision.AllowCallerCollision = true;
         request.Movement.AngleOffset = ConfigParam("angleOffset", 0f) + offset * Mathf.Pi / 180;
         return request;
     }
 
     private void OnHit(IEntityComponent arg1, Projectile arg2)
     {
+        if (ReferenceEquals(arg1, Caller))
+        {
+            ApplySelfDamage();
+            return;
+        }
+
         if (arg1.TryGetComponent(out DamageAbleComponent dac))
         {
             var damageDict = new Dictionary<DamageType, Damage>();
@@ -54,7 +61,7 @@ public class RicOSpam : ProjectileAbility
             damageDict.Add(BaseType, dmg);
             var ctx = new HitContext
             {
-                Target = (PlayerCharacter)arg1,
+                Target = arg1,
                 Source = Caller,
                 AbilityGuid = GUID,
                 Damages = damageDict
@@ -172,6 +179,22 @@ public class RicOSpam : ProjectileAbility
         {
             _projectiles.Add(projectile);
         }
+    }
+
+    private void ApplySelfDamage()
+    {
+        var selfDamage = ConfigParam("selfDamage", 5f);
+        if (selfDamage <= 0f || !Caller.TryGetComponent(out HealthComponent healthComponent))
+        {
+            return;
+        }
+
+        healthComponent.ApplyDamage(new Damage
+        {
+            AilmentChance = 0f,
+            DamageNumber = selfDamage,
+            Type = DamageType.Physical,
+        }, Caller);
     }
 
     protected override void InternalCancel()
