@@ -11,6 +11,7 @@ public class CombatEventBus
 
     public void EmitKilled(KilledEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(KilledEventHandler), args);
         this.KilledEventHandler?.Invoke(this, args);
     }
     
@@ -18,6 +19,7 @@ public class CombatEventBus
 
     public void EmitDamageTaked(DamageEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(DamageTakeEventHandler), args);
         this.DamageTakeEventHandler?.Invoke(this, args);
     }
     
@@ -25,6 +27,7 @@ public class CombatEventBus
 
     public void EmitDamageMitigated(DamageEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(DamageMitigatedEventHandler), args);
         this.DamageMitigatedEventHandler?.Invoke(this, args);
     }
     
@@ -32,6 +35,7 @@ public class CombatEventBus
 
     public void EmitDamageHealed(DamageEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(DamageHealedEventHandler), args);
         this.DamageHealedEventHandler?.Invoke(this, args);
     }
     
@@ -39,6 +43,7 @@ public class CombatEventBus
 
     public void EmitBuffAdded(BuffEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(BuffAddedEventHandler), args);
         this.BuffAddedEventHandler?.Invoke(this, args);
     }
 
@@ -46,6 +51,7 @@ public class CombatEventBus
 
     public void EmitBuffRemoved(BuffEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(BuffRemovedEventHandler), args);
         this.BuffRemovedEventHandler?.Invoke(this, args);
     }
 
@@ -53,6 +59,7 @@ public class CombatEventBus
 
     public void EmitAbilityCasted(AbilityEventArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(CombatEventBus), nameof(AbilityCastedEventHandler), args);
         this.AbilityCastedEventHandler?.Invoke(this, args);
     }
 }

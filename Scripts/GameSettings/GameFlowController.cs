@@ -137,6 +137,7 @@ public partial class GameFlowController : Node
         _roundIndex++;
         _ctx.TeamSystem.UpdateTeams();
         _mode.ServerStartRound(_roundIndex);
+        EventBus.MatchEventBus.EmitRoundStart(new MatchEventArgs(_roundIndex));
 
         Rpc(nameof(ClientRoundSetup), _roundIndex);
 

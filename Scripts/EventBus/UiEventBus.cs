@@ -9,6 +9,7 @@ public class UiEventBus
 
     public void EmitNotification(NotificationArgs args)
     {
+        EventBus.Instance.EmitTrace(nameof(UiEventBus), nameof(NotificationEventHandler), args);
         NotificationEventHandler?.Invoke(this, args);
     }
 }

@@ -251,8 +251,6 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
             abilityComponent.RoundReset();
             abilityComponent.Disable();
         }
-
-        EventBus.MatchEventBus.EmitRoundStart(new MatchEventArgs(roundIndex));
     }
 
     public void RoundStart()

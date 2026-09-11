@@ -141,6 +141,7 @@ public partial class CardSystem : Node
         }
 
         state.locked = true;
+        EventBus.Instance.CardSystemEventBus.EmitCardLocked(new CardEventArgs(cardGuid, player));
 
         UpdateCardsServer(playerId, serverHandCards[playerId]);
     }
@@ -174,6 +175,7 @@ public partial class CardSystem : Node
         gameManager.ScoreSystem.AddToTeamScore(player, gameManager.Settings.CardLockCosts);
         lockedCards.Remove(player);
         state.locked = false;
+        EventBus.Instance.CardSystemEventBus.EmitCardUnlocked(new CardEventArgs(cardGuid, player));
         UpdateCardsServer(playerId, serverHandCards[playerId]);
     }
 
@@ -192,6 +194,7 @@ public partial class CardSystem : Node
         foreach (var cardGuid in cardGuids)
         {
             player.Deck.Cards.FirstOrDefault(c => c.Key.EffectGUID == cardGuid).Key.ExhaustionCount = 2;
+            EventBus.Instance.CardSystemEventBus.EmitCardPicked(new CardEventArgs(cardGuid, player));
             if (GlobalCardManager.Instance.AbilityCards.ContainsKey(cardGuid))
             {
                 applyAbility(cardGuid, player);

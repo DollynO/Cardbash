@@ -45,6 +45,7 @@ public partial class HealthComponent : Node2D, IComponent
         var damageValue = damage.DamageNumber;
         damageValue = Mathf.Abs(damageValue);
         CurrentHealth = Mathf.Clamp(CurrentHealth - damageValue, 0, MaxHealth);
+        Parent.EventBus.CombatEventBus.EmitDamageTaked(new DamageEventArgs(component, Parent, damage));
 
         if (IsDead)
         {
@@ -54,10 +55,6 @@ public partial class HealthComponent : Node2D, IComponent
                 gameManager?.NotifyPlayerDeath(victimPlayer, killerPlayer);
             }
             Parent.EventBus.CombatEventBus.EmitKilled(new KilledEventArgs(component, Parent));
-        }
-        else
-        {
-            Parent.EventBus.CombatEventBus.EmitDamageTaked(new DamageEventArgs(component, Parent, damage));
         }
     }
 

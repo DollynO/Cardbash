@@ -9,6 +9,8 @@ using CardBase.Scripts.PlayerScripts;
 
 public partial class Hud : CanvasLayer
 {
+    private const int DebugConsoleLayer = 100;
+
     [Export] private Container _drawUiContainer;
     [Export] private Label _waitLabel;
     [Export] private HBoxContainer _cardBox;
@@ -42,6 +44,18 @@ public partial class Hud : CanvasLayer
         _gameManager.EventBus.MatchEventBus.ScoreChangedEventHandler += score_changed;
 
         _gameManager.EventBus.MatchEventBus.RoundStartEventHandler += on_round_start;
+        AddDebugConsole();
+    }
+
+    private void AddDebugConsole()
+    {
+        var layer = new CanvasLayer
+        {
+            Name = "DebugConsoleLayer",
+            Layer = DebugConsoleLayer,
+        };
+        AddChild(layer);
+        layer.AddChild(new DebugConsoleWindow { Name = nameof(DebugConsoleWindow) });
     }
     
     private void on_round_start(object sender, MatchEventArgs args)
