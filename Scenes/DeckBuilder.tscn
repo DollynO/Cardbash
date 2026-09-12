@@ -182,7 +182,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/h_separation = 25
 theme_override_constants/v_separation = 25
-columns = 5
+columns = 4
 
 [node name="Items" type="ScrollContainer" parent="MarginContainer/VBoxContainer/Main/AllCardContainer/TabContainer"]
 visible = false

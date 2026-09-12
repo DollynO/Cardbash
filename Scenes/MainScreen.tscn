@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://7dp11nbgmeoo" path="res://Prefabs/Buttons/green_button_big.tscn" id="12_vbn57"]
 [ext_resource type="PackedScene" uid="uid://oj676k2vorbg" path="res://Prefabs/Buttons/red_button_big.tscn" id="13_crb0r"]
 
-[node name="MainScreen" type="Control" node_paths=PackedStringArray("_mpScreen", "_username", "_ip_address", "_port", "_localIpAddress")]
+[node name="MainScreen" type="Control" node_paths=PackedStringArray("_mpScreen", "_username", "_ip_address", "_port", "_localIpAddress", "_keybindingScreen", "_keybindingButtons", "_keybindingMessage")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -17,6 +17,9 @@ _username = NodePath("Panel/VBoxContainer/GridContainer/UsernameEdit")
 _ip_address = NodePath("Panel/VBoxContainer/GridContainer/IpEdit")
 _port = NodePath("Panel/VBoxContainer/GridContainer/PortEdit")
 _localIpAddress = NodePath("Panel/VBoxContainer/GridContainer/LocalIpValue")
+_keybindingScreen = NodePath("KeybindingsPanel")
+_keybindingButtons = [NodePath("KeybindingsPanel/VBoxContainer/GridContainer/Ability1Key"), NodePath("KeybindingsPanel/VBoxContainer/GridContainer/Ability2Key"), NodePath("KeybindingsPanel/VBoxContainer/GridContainer/Ability3Key"), NodePath("KeybindingsPanel/VBoxContainer/GridContainer/Ability4Key")]
+_keybindingMessage = NodePath("KeybindingsPanel/VBoxContainer/Message")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -26,9 +29,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -304.0
-offset_top = -150.0
+offset_top = -190.0
 offset_right = 288.0
-offset_bottom = 150.0
+offset_bottom = 190.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
@@ -42,6 +45,11 @@ Text = "Deck Builder"
 layout_mode = 2
 size_flags_horizontal = 4
 Text = "Multiplayer"
+
+[node name="Keybindings" parent="VBoxContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Key Bindings"
 
 [node name="Exit" parent="VBoxContainer" instance=ExtResource("13_crb0r")]
 layout_mode = 2
@@ -136,9 +144,139 @@ layout_mode = 2
 size_flags_horizontal = 4
 Text = "Cancel"
 
+[node name="KeybindingsPanel" type="Panel" parent="."]
+visible = false
+z_index = 3
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="KeybindingsPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="KeybindingsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+text = "Ability Key Bindings"
+horizontal_alignment = 1
+
+[node name="GridContainer" type="GridContainer" parent="KeybindingsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 25
+theme_override_constants/v_separation = 15
+columns = 2
+
+[node name="Ability1Label" type="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+text = "Ability 1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Ability1Key" parent="KeybindingsPanel/VBoxContainer/GridContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Ability 1: 1"
+
+[node name="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer/Ability1Key" index="0"]
+theme_override_font_sizes/font_size = 30
+
+[node name="Ability2Label" type="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+text = "Ability 2"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Ability2Key" parent="KeybindingsPanel/VBoxContainer/GridContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Ability 2: 2"
+
+[node name="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer/Ability2Key" index="0"]
+theme_override_font_sizes/font_size = 30
+
+[node name="Ability3Label" type="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+text = "Ability 3"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Ability3Key" parent="KeybindingsPanel/VBoxContainer/GridContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Ability 3: 3"
+
+[node name="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer/Ability3Key" index="0"]
+theme_override_font_sizes/font_size = 30
+
+[node name="Ability4Label" type="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 30
+text = "Ability 4"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="Ability4Key" parent="KeybindingsPanel/VBoxContainer/GridContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Ability 4: 4"
+
+[node name="Label" parent="KeybindingsPanel/VBoxContainer/GridContainer/Ability4Key" index="0"]
+theme_override_font_sizes/font_size = 30
+
+[node name="Message" type="Label" parent="KeybindingsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Select an ability, then press a key or mouse button."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="KeybindingsPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 25
+
+[node name="ResetKeybindings" parent="KeybindingsPanel/VBoxContainer/HBoxContainer" instance=ExtResource("12_vbn57")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Reset"
+
+[node name="CancelKeybindings" parent="KeybindingsPanel/VBoxContainer/HBoxContainer" instance=ExtResource("13_crb0r")]
+layout_mode = 2
+size_flags_horizontal = 4
+Text = "Back"
+
 [connection signal="pressed" from="VBoxContainer/DeckBuilder" to="." method="_on_deck_builder_pressed"]
 [connection signal="pressed" from="VBoxContainer/Multiplayer" to="." method="_on_multiplayer_pressed"]
+[connection signal="pressed" from="VBoxContainer/Keybindings" to="." method="_on_keybindings_pressed"]
 [connection signal="pressed" from="VBoxContainer/Exit" to="." method="_on_exit_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/GridContainer/Host" to="." method="_on_host_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/GridContainer/Join" to="." method="_on_join_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/CancelMP" to="." method="_on_cancel_mp_pressed"]
+[connection signal="pressed" from="KeybindingsPanel/VBoxContainer/GridContainer/Ability1Key" to="." method="_on_ability_1_key_pressed"]
+[connection signal="pressed" from="KeybindingsPanel/VBoxContainer/GridContainer/Ability2Key" to="." method="_on_ability_2_key_pressed"]
+[connection signal="pressed" from="KeybindingsPanel/VBoxContainer/GridContainer/Ability3Key" to="." method="_on_ability_3_key_pressed"]
+[connection signal="pressed" from="KeybindingsPanel/VBoxContainer/GridContainer/Ability4Key" to="." method="_on_ability_4_key_pressed"]
+[connection signal="pressed" from="KeybindingsPanel/VBoxContainer/HBoxContainer/ResetKeybindings" to="." method="_on_reset_keybindings_pressed"]
+[connection signal="pressed" from="KeybindingsPanel/VBoxContainer/HBoxContainer/CancelKeybindings" to="." method="_on_cancel_keybindings_pressed"]

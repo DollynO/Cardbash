@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CardBase.Scripts;
 using Godot;
 
 namespace CardBase.Scripts.PlayerScripts;
@@ -22,7 +23,6 @@ public enum AbilityKeyState
 public partial class PlayerInput : MultiplayerSynchronizer
 {
     private const int AbilitySlotCount = 4;
-    private static readonly string[] AbilityActions = { "Ability1", "Ability2", "Ability3", "Ability4" };
     
     [Export]
     public float XDirection;
@@ -48,6 +48,7 @@ public partial class PlayerInput : MultiplayerSynchronizer
 
     public override void _Ready()
     {
+        AbilityKeyBindings.ApplySavedBindings();
         if (GetMultiplayerAuthority() != Multiplayer.GetUniqueId())
         {
             SetPhysicsProcess(false);
@@ -60,9 +61,23 @@ public partial class PlayerInput : MultiplayerSynchronizer
         XDirection = Input.GetAxis("MoveLeft", "MoveRight");
         YDirection = Input.GetAxis("MoveUp", "MoveDown");
         ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition();
-        LookAtRotation.LookAt(ClientGlobalMousePosition);
-        LookAtRotation.Rotate(-Mathf.Tau / 4);
+        var desiredRotation = (ClientGlobalMousePosition - LookAtRotation.GlobalPosition).Angle() - Mathf.Tau / 4;
+        LookAtRotation.Rotation = Mathf.LerpAngle(
+            LookAtRotation.Rotation,
+            desiredRotation,
+            GetAimRotationSpeed());
         LookAtRotationValue = LookAtRotation.Rotation;
+    }
+
+    private float GetAimRotationSpeed()
+    {
+        var player = GetParent<PlayerCharacter>();
+        if (player?.StatBlock == null || !player.StatBlock.ReplicatedCurrent.ContainsKey((int)StatType.AimRotationSpeed))
+        {
+            return 1f;
+        }
+
+        return Mathf.Clamp(player.StatBlock.GetStat(StatType.AimRotationSpeed), 0f, 1f);
     }
 
     public override void _Input(InputEvent @event)
@@ -72,19 +87,19 @@ public partial class PlayerInput : MultiplayerSynchronizer
             return;
         }
 
-        if (@event is InputEventKey { Echo: true })
+        if (@event is InputEventKey { Echo: true } or InputEventKey {CtrlPressed: true})
         {
             return;
         }
 
-        for (var i = 0; i < AbilityActions.Length; i++)
+        for (var i = 0; i < AbilityKeyBindings.AbilityActions.Length; i++)
         {
-            if (@event.IsActionPressed(AbilityActions[i]))
+            if (@event.IsActionPressed(AbilityKeyBindings.AbilityActions[i]))
             {
                 SendAbilityPressed(i);
             }
 
-            if (@event.IsActionReleased(AbilityActions[i]))
+            if (@event.IsActionReleased(AbilityKeyBindings.AbilityActions[i]))
             {
                 SendAbilityReleased(i);
             }

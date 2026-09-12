@@ -12,6 +12,8 @@ public partial class Hud : CanvasLayer
     private const int DebugConsoleLayer = 100;
     private const uint FpsToggleUnicode = 35;
     private const double FpsRefreshInterval = 0.25;
+    private const double KillFeedEntryLifetime = 8.0;
+    private const int KillFeedMaxEntries = 6;
     private const float DarknessStacksForFullEffect = 10f;
     private static readonly string[] AbilityTierLabels = { "I", "II", "III" };
 
@@ -36,6 +38,11 @@ public partial class Hud : CanvasLayer
     private string _displayedItemSignature = string.Empty;
     private Label _fpsLabel;
     private double _fpsRefreshTimer;
+    private VBoxContainer _killFeedContainer;
+    private readonly List<KillFeedEntry> _killFeedEntries = new();
+    private PanelContainer _damageHistoryPanel;
+    private Label _damageHistoryLabel;
+    private double _damageHistoryHideAt;
 
     [Signal]
     public delegate void CardLockedEventHandler(int playerId, string cardGuid);
@@ -52,6 +59,8 @@ public partial class Hud : CanvasLayer
 
         _gameManager.EventBus.MatchEventBus.RoundStartEventHandler += on_round_start;
         SetProcessInput(true);
+        AddKillFeed();
+        AddDamageHistoryPanel();
         AddFpsLabel();
         AddDebugConsole();
     }
@@ -115,6 +124,137 @@ public partial class Hud : CanvasLayer
         };
         AddChild(layer);
         layer.AddChild(new DebugConsoleWindow { Name = nameof(DebugConsoleWindow) });
+    }
+
+    private void AddKillFeed()
+    {
+        if (_killFeedContainer != null)
+        {
+            return;
+        }
+
+        var panel = new PanelContainer
+        {
+            Name = "KillFeed",
+            AnchorLeft = 1f,
+            AnchorTop = 0f,
+            AnchorRight = 1f,
+            AnchorBottom = 0f,
+            OffsetLeft = -380f,
+            OffsetTop = 56f,
+            OffsetRight = -16f,
+            OffsetBottom = 356f,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            ZIndex = 32,
+        };
+        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.02f, 0.025f, 0.035f, 0.25f),
+            BorderColor = new Color(1f, 1f, 1f, 0.08f),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        });
+        AddChild(panel);
+
+        var margin = new MarginContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        margin.AddThemeConstantOverride("margin_left", 8);
+        margin.AddThemeConstantOverride("margin_top", 8);
+        margin.AddThemeConstantOverride("margin_right", 8);
+        margin.AddThemeConstantOverride("margin_bottom", 8);
+        panel.AddChild(margin);
+
+        _killFeedContainer = new VBoxContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        _killFeedContainer.AddThemeConstantOverride("separation", 6);
+        margin.AddChild(_killFeedContainer);
+    }
+
+    private void AddDamageHistoryPanel()
+    {
+        if (_damageHistoryPanel != null)
+        {
+            return;
+        }
+
+        _damageHistoryPanel = new PanelContainer
+        {
+            Name = "DamageHistory",
+            Visible = false,
+            AnchorLeft = 0.5f,
+            AnchorTop = 0f,
+            AnchorRight = 0.5f,
+            AnchorBottom = 0f,
+            OffsetLeft = -220f,
+            OffsetTop = 96f,
+            OffsetRight = 220f,
+            OffsetBottom = 180f,
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            ZIndex = 36,
+        };
+        _damageHistoryPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.02f, 0.025f, 0.035f, 0.78f),
+            BorderColor = new Color(1f, 1f, 1f, 0.14f),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        });
+        AddChild(_damageHistoryPanel);
+
+        var margin = new MarginContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        margin.AddThemeConstantOverride("margin_left", 10);
+        margin.AddThemeConstantOverride("margin_top", 8);
+        margin.AddThemeConstantOverride("margin_right", 10);
+        margin.AddThemeConstantOverride("margin_bottom", 8);
+        _damageHistoryPanel.AddChild(margin);
+
+        var textStack = new VBoxContainer
+        {
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        textStack.AddThemeConstantOverride("separation", 3);
+        margin.AddChild(textStack);
+
+        var title = new Label
+        {
+            Text = "Damage history",
+            ClipText = true,
+        };
+        title.AddThemeFontSizeOverride("font_size", 14);
+        title.AddThemeColorOverride("font_color", Colors.White);
+        title.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f, 0.85f));
+        title.AddThemeConstantOverride("outline_size", 3);
+        textStack.AddChild(title);
+
+        _damageHistoryLabel = new Label
+        {
+            ClipText = true,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _damageHistoryLabel.AddThemeFontSizeOverride("font_size", 12);
+        _damageHistoryLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.9f, 1f, 0.9f));
+        _damageHistoryLabel.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f, 0.85f));
+        _damageHistoryLabel.AddThemeConstantOverride("outline_size", 2);
+        textStack.AddChild(_damageHistoryLabel);
     }
     
     private void on_round_start(object sender, MatchEventArgs args)
@@ -225,19 +365,173 @@ public partial class Hud : CanvasLayer
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _Process(double delta)
     {
+        UpdateKillFeed();
+        UpdateDamageHistory();
+
         if (_fpsLabel == null || !_fpsLabel.Visible)
         {
             return;
         }
 
         _fpsRefreshTimer += delta;
-        if (_fpsRefreshTimer < FpsRefreshInterval)
+        if (_fpsRefreshTimer >= FpsRefreshInterval)
+        {
+            _fpsRefreshTimer = 0;
+            _fpsLabel.Text = $"FPS: {(int)Math.Round(Engine.GetFramesPerSecond())}";
+        }
+    }
+
+    public void ShowKillFeedEntry(string killerName, string victimName)
+    {
+        AddKillFeedEntry(killerName, victimName);
+        Rpc(MethodName.ClientShowKillFeedEntry, killerName, victimName);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void ClientShowKillFeedEntry(string killerName, string victimName)
+    {
+        AddKillFeedEntry(killerName, victimName);
+    }
+
+    public void ShowDamageHistoryForPlayer(long playerId, string damagePreview)
+    {
+        if (string.IsNullOrWhiteSpace(damagePreview))
         {
             return;
         }
 
-        _fpsRefreshTimer = 0;
-        _fpsLabel.Text = $"FPS: {(int)Math.Round(Engine.GetFramesPerSecond())}";
+        if (playerId == Multiplayer.GetUniqueId())
+        {
+            ShowLocalDamageHistory(damagePreview);
+            return;
+        }
+
+        RpcId((int)playerId, MethodName.ClientShowDamageHistory, damagePreview);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void ClientShowDamageHistory(string damagePreview)
+    {
+        ShowLocalDamageHistory(damagePreview);
+    }
+
+    private void ShowLocalDamageHistory(string damagePreview)
+    {
+        if (_damageHistoryPanel == null)
+        {
+            AddDamageHistoryPanel();
+        }
+
+        _damageHistoryLabel.Text = $"Last 2s: {damagePreview}";
+        _damageHistoryPanel.Visible = true;
+        _damageHistoryHideAt = Godot.Time.GetTicksMsec() / 1000.0 + KillFeedEntryLifetime;
+    }
+
+    private void AddKillFeedEntry(string killerName, string victimName)
+    {
+        if (_killFeedContainer == null)
+        {
+            AddKillFeed();
+        }
+
+        var entryNode = CreateKillFeedEntryNode(killerName, victimName);
+        _killFeedContainer.AddChild(entryNode);
+        _killFeedContainer.MoveChild(entryNode, 0);
+        _killFeedEntries.Insert(0, new KillFeedEntry(entryNode, Godot.Time.GetTicksMsec() / 1000.0));
+
+        while (_killFeedEntries.Count > KillFeedMaxEntries)
+        {
+            RemoveKillFeedEntry(_killFeedEntries[^1]);
+        }
+    }
+
+    private static Control CreateKillFeedEntryNode(string killerName, string victimName)
+    {
+        var panel = new PanelContainer
+        {
+            CustomMinimumSize = new Vector2(0, 38),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+        };
+        panel.AddThemeStyleboxOverride("panel", new StyleBoxFlat
+        {
+            BgColor = new Color(0.02f, 0.025f, 0.035f, 0.72f),
+            BorderColor = new Color(1f, 1f, 1f, 0.14f),
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        });
+
+        var margin = new MarginContainer();
+        margin.AddThemeConstantOverride("margin_left", 8);
+        margin.AddThemeConstantOverride("margin_top", 6);
+        margin.AddThemeConstantOverride("margin_right", 8);
+        margin.AddThemeConstantOverride("margin_bottom", 6);
+        panel.AddChild(margin);
+
+        var textStack = new VBoxContainer();
+        textStack.AddThemeConstantOverride("separation", 2);
+        margin.AddChild(textStack);
+
+        var killLine = new Label
+        {
+            Text = $"{SafeName(killerName)} killed {SafeName(victimName)}",
+            ClipText = true,
+        };
+        killLine.AddThemeFontSizeOverride("font_size", 16);
+        killLine.AddThemeColorOverride("font_color", Colors.White);
+        killLine.AddThemeColorOverride("font_outline_color", new Color(0f, 0f, 0f, 0.85f));
+        killLine.AddThemeConstantOverride("outline_size", 3);
+        textStack.AddChild(killLine);
+
+        return panel;
+    }
+
+    private void UpdateKillFeed()
+    {
+        if (_killFeedEntries.Count == 0)
+        {
+            return;
+        }
+
+        var now = Godot.Time.GetTicksMsec() / 1000.0;
+        for (var i = _killFeedEntries.Count - 1; i >= 0; i--)
+        {
+            if (now - _killFeedEntries[i].CreatedAt < KillFeedEntryLifetime)
+            {
+                continue;
+            }
+
+            RemoveKillFeedEntry(_killFeedEntries[i]);
+        }
+    }
+
+    private void RemoveKillFeedEntry(KillFeedEntry entry)
+    {
+        _killFeedEntries.Remove(entry);
+        entry.Node.QueueFree();
+    }
+
+    private void UpdateDamageHistory()
+    {
+        if (_damageHistoryPanel == null || !_damageHistoryPanel.Visible)
+        {
+            return;
+        }
+
+        if (Godot.Time.GetTicksMsec() / 1000.0 >= _damageHistoryHideAt)
+        {
+            _damageHistoryPanel.Visible = false;
+        }
+    }
+
+    private static string SafeName(string name)
+    {
+        return string.IsNullOrWhiteSpace(name) ? "Unknown" : name;
     }
 
     public void DisplayRoundInfo(string info)
@@ -418,4 +712,6 @@ public partial class Hud : CanvasLayer
             _itemContainer.AddChild(item);
         }
     }
+
+    private readonly record struct KillFeedEntry(Control Node, double CreatedAt);
 }

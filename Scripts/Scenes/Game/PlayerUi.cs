@@ -270,7 +270,7 @@ public partial class PlayerUi : Control
         {
             var po = PlayerOverviewScene.Instantiate<OverviewPlayer>();
             po.Name = player.Name;
-            po.Update(player);
+            po.Update(player, gameManager.ScoreSystem.GetTeamScore(player));
 
             PlayerOverview.AddChild(po);
         }

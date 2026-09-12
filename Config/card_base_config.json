@@ -35,7 +35,7 @@
       "baseDamage": 25,
       "damageType": 3,
       "params": {
-        "projectileSpeed": 500,
+        "projectileSpeed": 750,
         "projectileLifetime": 3,
         "movementMode": 1,
         "bounceCount": 1,
@@ -88,7 +88,7 @@
       "damageType": 5,
       "maxStack": 1,
       "params": {
-        "projectileSpeed": 300,
+        "projectileSpeed": 750,
         "projectileLifetime": 4,
         "movementMode": 1,
         "bounceCount": 0,
@@ -113,7 +113,7 @@
       "baseDamage": 0,
       "damageType": 5,
       "params": {
-        "projectileSpeed": 300,
+        "projectileSpeed": 750,
         "projectileLifetime": 4,
         "movementMode": 1,
         "bounceCount": 0,
@@ -162,7 +162,7 @@
         "stunDuration": 1,
         "ringRadius": 100,
         "ringScale": 1,
-        "recastProjectileSpeed": 500,
+        "recastProjectileSpeed": 750,
         "recastProjectileLifetime": 4
       }
     },
@@ -174,7 +174,7 @@
       "baseDamage": 20,
       "damageType": 0,
       "params": {
-        "projectileSpeed": 500,
+        "projectileSpeed": 750,
         "projectileLifetime": 6,
         "movementMode": 1,
         "bounceCount": 2,
@@ -208,7 +208,7 @@
       "baseDamage": 1,
       "damageType": 3,
       "params": {
-        "projectileSpeed": 100,
+        "projectileSpeed": 500,
         "projectileLifetime": 8,
         "movementMode": 1,
         "bounceCount": 0,
@@ -236,10 +236,10 @@
       "baseDamage": 30,
       "damageType": 2,
       "params": {
-        "radius": 100,
+        "radius": 200,
         "angle": 120,
         "angleOffset": 0,
-        "activationTime": 0.25,
+        "activationTime": 0.125,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
@@ -255,10 +255,10 @@
       "baseDamage": 38,
       "damageType": 4,
       "params": {
-        "radius": 150,
+        "radius": 300,
         "angle": 20,
         "angleOffset": 0,
-        "activationTime": 0.25,
+        "activationTime": 0.125,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
@@ -279,10 +279,10 @@
       "baseDamage": 28,
       "damageType": 6,
       "params": {
-        "radius": 100,
+        "radius": 200,
         "angle": 45,
         "angleOffset": 0,
-        "activationTime": 0.8,
+        "activationTime": 0.4,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
@@ -298,10 +298,10 @@
       "baseDamage": 20,
       "damageType": 1,
       "params": {
-        "radius": 100,
+        "radius": 200,
         "angle": 120,
         "angleOffset": 0,
-        "activationTime": 0.4,
+        "activationTime": 0.2,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
@@ -321,10 +321,10 @@
       "baseDamage": 8,
       "damageType": 5,
       "params": {
-        "radius": 100,
+        "radius": 200,
         "angle": 160,
         "angleOffset": 0,
-        "activationTime": 0.45,
+        "activationTime": 0.225,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
@@ -341,10 +341,10 @@
       "damageType": 3,
       "baseAilmentChance": 0.25,
       "params": {
-        "radius": 125,
+        "radius": 250,
         "angle": 45,
         "angleOffset": 0,
-        "activationTime": 0.5,
+        "activationTime": 0.25,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016
@@ -359,10 +359,10 @@
       "baseDamage": 8,
       "damageType": 5,
       "params": {
-        "radius": 110,
+        "radius": 220,
         "angle": 90,
         "angleOffset": 0,
-        "activationTime": 2,
+        "activationTime": 1,
         "duration": 0,
         "tickInterval": 0.5,
         "shapeUpdateInterval": 0.016,
@@ -457,6 +457,7 @@
         "rayCollisionMask": 21,
         "rayCenterLoopCount": 8,
         "rayPierceCount": 1,
+        "maxDuration": 3,
         "damageTickInterval": 0.5,
         "shockAoeStackInterval": 5,
         "shockAoeRadius": 100,
@@ -554,10 +555,10 @@
     },
     "E852D4A6-1630-4548-A23F-8570F21E41704": {
       "displayName": "Swift Boots",
-      "description": "Increase movement speed by 25 %",
+      "description": "Increase movement speed by 5 %",
       "iconPath": "res://Sprites/Items/SwiftBoots.png",
       "params": {
-        "statIncrease": 25
+        "statIncrease": 5
       }
     },
     "8B005B38-934B-455F-BC82-404D7A8E4B95": {

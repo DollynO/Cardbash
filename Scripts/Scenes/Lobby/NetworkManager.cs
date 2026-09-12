@@ -9,6 +9,7 @@ public partial class NetworkManager : Node
 
     public Dictionary<long, Player> CurrentPlayers = new();
     public string LocalUsername { get; set; }
+    public string HostIP { get; set; }
     private bool _hostSignalsConnected;
     private bool _clientSignalsConnected;
 
@@ -191,6 +192,7 @@ public partial class NetworkManager : Node
 
     private void _connected_to_server()
     {
+        HostIP = ((ENetMultiplayerPeer)Multiplayer.MultiplayerPeer).Host.GetPeers()[0].GetRemoteAddress();
         EmitSignal(SignalName.OnConnectedToServer);
     }
 

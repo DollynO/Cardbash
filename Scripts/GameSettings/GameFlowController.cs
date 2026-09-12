@@ -171,6 +171,14 @@ public partial class GameFlowController : Node
     private void ServerBeginCardDraw()
     {
         drawRoundIndex++;
+        foreach (var player in _ctx.Players.Values)
+        {
+            if (player.TryGetComponent(out AbilityComponent abilityComponent))
+            {
+                abilityComponent.EnterCardDrawPhase();
+            }
+        }
+
         _ctx.CardSystem.DrawCards(5);
 
         foreach (var kvp in _ctx.Players)

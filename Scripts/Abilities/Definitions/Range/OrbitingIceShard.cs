@@ -77,6 +77,10 @@ public class OrbitingIceShard : PassiveStackAbility
             OnHit = OnHit,
         };
         var projectile = GlobalAbilitySpawner.SpawnProjectile(spawnRequest, runtime);
+        if (projectile == null)
+        {
+            return false;
+        }
 
         projectile.OnDestroyed += ProjectileOnOnDestroyed;
         ring.AddNode(projectile);

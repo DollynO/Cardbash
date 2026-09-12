@@ -53,6 +53,7 @@ public enum StatType
     
     IncreasedAOERange,
     IncreasedMinionLife,
+    AimRotationSpeed,
 }
 
 public sealed class StatBlock

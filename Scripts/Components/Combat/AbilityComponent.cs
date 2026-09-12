@@ -78,6 +78,7 @@ public partial class AbilityComponent : Node2D, IComponent
     public Dictionary<string, NetAbility> networkAbilities = new();
     public Dictionary<int, Ability> Abilities = new();
     private bool active = false;
+    private bool cooldownsPaused = false;
     private const float NetworkUpdateInterval = 0.1f;
     private float networkUpdateTime = NetworkUpdateInterval;
 
@@ -140,16 +141,14 @@ public partial class AbilityComponent : Node2D, IComponent
                 ability.HandleInput(keyStates[key], delta);
             }
             
-            ability.UpdateCooldown(delta);
+            if (!cooldownsPaused)
+            {
+                ability.UpdateCooldown(delta);
+            }
 
             if (shouldSync)
             {
-                var netAbilityDict = new Godot.Collections.Dictionary<string, Variant>();
-                dict.Add(ability.GUID, netAbilityDict);
-                netAbilityDict["cdx"] = ability.CurrentCooldown;
-                netAbilityDict["cdy"] = ability.BaseCooldown;
-                netAbilityDict["sx"] = ability.CurrentStack;
-                netAbilityDict["sy"] = ability.MaxStack;
+                AddAbilitySyncEntry(dict, ability);
             }
         }
 
@@ -173,6 +172,21 @@ public partial class AbilityComponent : Node2D, IComponent
         {
             ability.RoundReset();
         }
+
+        EnterCardDrawPhase();
+    }
+
+    public void EnterCardDrawPhase()
+    {
+        InterruptAbilities();
+        active = false;
+        cooldownsPaused = true;
+        foreach (var ability in Abilities.Values)
+        {
+            ability.PrepareForCardDraw();
+        }
+
+        SyncAbilities();
     }
 
     public bool AddUpdateAbility(string abilityGuid)
@@ -180,11 +194,26 @@ public partial class AbilityComponent : Node2D, IComponent
         if (Abilities.Values.FirstOrDefault(a => a.GUID == abilityGuid) is { } ability)
         {
             ability.ApplyUpdate();
+            if (cooldownsPaused)
+            {
+                ability.PrepareForCardDraw();
+            }
             Rpc(MethodName.updateNetworkAbilitySkillLevel, ability.GUID, ability.UpdateCounter);
+            SyncAbilities();
             return true;
         }
 
         var newAbility = (Ability)AbilityManager.Create(abilityGuid, (PlayerCharacter)Parent);
+        if (newAbility == null)
+        {
+            return false;
+        }
+
+        if (cooldownsPaused)
+        {
+            newAbility.PrepareForCardDraw();
+        }
+
         var index = 0;
         
         if (Abilities.Count > 0)
@@ -207,6 +236,7 @@ public partial class AbilityComponent : Node2D, IComponent
 
         Abilities.Add(index, newAbility);
         Rpc(MethodName.addNetworkAbility, newAbility.GUID, newAbility.IconPath, index);
+        SyncAbilities();
         return true;
     }
 
@@ -235,12 +265,43 @@ public partial class AbilityComponent : Node2D, IComponent
     public void Enable()
     {
         active = true;
+        cooldownsPaused = false;
+        foreach (var ability in Abilities.Values)
+        {
+            ability.BeginCombat();
+        }
     }
 
     public void Disable()
     {
         InterruptAbilities();
         active = false;
+    }
+
+    private void SyncAbilities()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        var dict = new Godot.Collections.Dictionary<string, Variant>();
+        foreach (var ability in Abilities.Values)
+        {
+            AddAbilitySyncEntry(dict, ability);
+        }
+
+        Rpc(MethodName.updateAbilities, dict);
+    }
+
+    private static void AddAbilitySyncEntry(Godot.Collections.Dictionary<string, Variant> dict, Ability ability)
+    {
+        var netAbilityDict = new Godot.Collections.Dictionary<string, Variant>();
+        dict.Add(ability.GUID, netAbilityDict);
+        netAbilityDict["cdx"] = ability.CurrentCooldown;
+        netAbilityDict["cdy"] = ability.BaseCooldown;
+        netAbilityDict["sx"] = ability.CurrentStack;
+        netAbilityDict["sy"] = ability.MaxStack;
     }
 
     public IList<NetAbility> GetNetAbilities()

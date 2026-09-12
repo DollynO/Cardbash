@@ -11,9 +11,10 @@ public partial class OverviewPlayer : Control
     [Export] private TextureRect[] abilityIcons;
     [Export] private HBoxContainer itemContainer;
 
-    public void Update(PlayerCharacter player)
+    public void Update(PlayerCharacter player, int score)
     {
         playerName.Text = player.PlayerName;
+        points.Text = $"Score {score}   K/D {player.Kills}/{player.Deaths}";
         teamColor.Color = ColorPlate.GetColor(player.TeamId);
         foreach (var ability in player.AbilityComponent.GetNetAbilities())
         {

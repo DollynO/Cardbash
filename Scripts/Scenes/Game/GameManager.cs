@@ -78,11 +78,29 @@ public partial class GameManager : Node2D
         Settings.Copy(stats);
     }
 
-    public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter killer)
+    public void NotifyPlayerDeath(PlayerCharacter victim, PlayerCharacter killer, string damagePreview = "")
     {
+        victim?.AddDeath();
+        if (killer != null && killer != victim)
+        {
+            killer.AddKill();
+        }
+
         EmitSignal(SignalName.OnPlayerKilled, victim, killer);
+        Hud.ShowKillFeedEntry(GetPlayerDisplayName(killer), GetPlayerDisplayName(victim));
+        if (victim != null)
+        {
+            Hud.ShowDamageHistoryForPlayer(victim.PlayerId, damagePreview);
+        }
         victim.Cleanup();
 
+    }
+
+    private static string GetPlayerDisplayName(PlayerCharacter player)
+    {
+        return player == null || string.IsNullOrWhiteSpace(player.PlayerName)
+            ? "Unknown"
+            : player.PlayerName;
     }
 
     public WorldContext GetWorldContext()

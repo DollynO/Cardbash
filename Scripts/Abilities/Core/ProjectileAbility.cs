@@ -30,11 +30,22 @@ public abstract class ProjectileAbility : Ability
     {
         if (PreSpawnProjectile())
         {
-            if (SpawnProjectile() is { } proj)
+            var projectile = SpawnProjectile();
+            if (projectile is { } proj)
             {
                 PostSpawnProjectile(proj);
             }
+            else
+            {
+                OnProjectileSpawnFailed();
+                RefundFailedSpawn();
+                MarkUseFailed();
+            }
         }
+    }
+
+    protected virtual void OnProjectileSpawnFailed()
+    {
     }
 
     protected Projectile SpawnProjectile()
@@ -56,11 +67,20 @@ public abstract class ProjectileAbility : Ability
 
         spawnRequest.Caller = Caller;
         var projectile = GlobalAbilitySpawner.SpawnProjectile(spawnRequest, GetProjectileRuntime());
+        if (projectile == null)
+        {
+            return null;
+        }
 
         projectile.OnCollision += _onProjectileCollided;
         projectile.OnPiercing += _onProjectilePierced;
         projectile.OnDestroyed += _onProjectileDestroyed;
         return projectile;
+    }
+
+    private void RefundFailedSpawn()
+    {
+        CurrentStack = Math.Min(CurrentStack + 1, MaxStack);
     }
 
     protected virtual void _onProjectileDestroyed(Vector2 position, Projectile projectile)

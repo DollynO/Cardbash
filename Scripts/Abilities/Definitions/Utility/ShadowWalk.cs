@@ -52,13 +52,7 @@ public class ShadowWalk : Ability
 
     public override void ClearAbility()
     {
-        if (Caller == null)
-        {
-            return;
-        }
-
-        Caller.EventBus.CombatEventBus.DamageTakeEventHandler -= CreatorOnDamageTaken;
-        Caller.EventBus.CombatEventBus.AbilityCastedEventHandler -= CreatorOnAbilityCasted;
+        return;
     }
 
     public override void InternalUse()

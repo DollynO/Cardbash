@@ -13,10 +13,15 @@ public class ChargingBeam : Ability
     private float deltaSum = 0;
     private float aoeBaseDamage = 20;
     private readonly string castSlowModifierSourceId = System.Guid.NewGuid().ToString("N");
+    private bool _isBeamActive;
+    private bool _cooldownRunning;
+    private float _beamActiveTime;
+
+    protected override bool UsesStandardCooldown => false;
 
     public ChargingBeam(IEntityComponent creator) : base(AbilityIds.ChargingBeamGuid, creator)
     {
-        TriggerStrategy = new PressAndReleaseStrategy();
+        TriggerStrategy = new BeamTriggerStrategy();
         this.DisplayName = "Charging Beam";
         this.Description = "Charging Beam.";
         this.IconPath = "res://Sprites/SkillIcons/Snow/11_Ice_Ray.png";
@@ -27,8 +32,61 @@ public class ChargingBeam : Ability
         CancelAbility();
     }
 
+    public override void ProcessAbility(float delta)
+    {
+        if (!_isBeamActive)
+        {
+            return;
+        }
+
+        _beamActiveTime += delta;
+        var maxDuration = ConfigParam("maxDuration", 3f);
+        if (maxDuration > 0f && _beamActiveTime >= maxDuration)
+        {
+            ReleaseBeam();
+        }
+    }
+
+    protected override void ProcessPassive(double delta)
+    {
+        if (_isBeamActive || CurrentStack >= MaxStack)
+        {
+            return;
+        }
+
+        if (!_cooldownRunning)
+        {
+            StartCooldown();
+        }
+
+        CurrentCooldown -= delta;
+        if (CurrentCooldown > 0)
+        {
+            return;
+        }
+
+        CurrentStack++;
+        if (CurrentStack < MaxStack)
+        {
+            StartCooldown();
+            return;
+        }
+
+        _cooldownRunning = false;
+        CurrentCooldown = GetCooldownDuration();
+    }
+
     public override void InternalUse()
     {
+        if (_isBeamActive)
+        {
+            return;
+        }
+
+        _isBeamActive = true;
+        _beamActiveTime = 0f;
+        _cooldownRunning = false;
+        CurrentCooldown = 0;
         ApplyCastSlow();
 
         var rayStats = new RayStats()
@@ -51,6 +109,20 @@ public class ChargingBeam : Ability
 
         _ray = (Ray)GlobalAbilitySpawner.Spawn(spawnData);
         _ray?.SetCollisionTick(onHit);
+    }
+
+    public void ReleaseBeam()
+    {
+        if (!_isBeamActive)
+        {
+            return;
+        }
+
+        CancelAbility();
+        if (CurrentStack < MaxStack)
+        {
+            StartCooldown();
+        }
     }
 
     private void onHit(IEntityComponent entityComponent, float delta)
@@ -137,6 +209,8 @@ public class ChargingBeam : Ability
 
     protected override void InternalCancel()
     {
+        _isBeamActive = false;
+        _beamActiveTime = 0f;
         RemoveCastSlow();
 
         if (_ray != null)
@@ -150,12 +224,21 @@ public class ChargingBeam : Ability
     {
         if (Caller.TryGetComponent<StatblockComponent>(out var statblock))
         {
+            var slow = ConfigParam("castMoveSlow", 0.5f);
             statblock.RemoveModifierSource(castSlowModifierSourceId);
-            statblock.AddModifiers(new StatModifier(
-                castSlowModifierSourceId,
-                StatType.MovementSpeed,
-                StatOp.PercentAdd,
-                -ConfigParam("castMoveSlow", 0.5f)));
+            statblock.AddModifiers(new[]
+            {
+                new StatModifier(
+                    castSlowModifierSourceId,
+                    StatType.MovementSpeed,
+                    StatOp.PercentAdd,
+                    -slow),
+                new StatModifier(
+                    castSlowModifierSourceId,
+                    StatType.AimRotationSpeed,
+                    StatOp.PercentAdd,
+                    -slow),
+            });
         }
     }
 
@@ -173,5 +256,34 @@ public class ChargingBeam : Ability
 
     protected override void ApplyUpdate2()
     {
+    }
+
+    private void StartCooldown()
+    {
+        _cooldownRunning = true;
+        CurrentCooldown = GetCooldownDuration();
+    }
+
+    private class BeamTriggerStrategy : ITriggerStrategy
+    {
+        public void OnKeyJustPressed(Ability ability)
+        {
+            if (ability.Activate())
+            {
+                ability.Use();
+            }
+        }
+
+        public void OnKeyPressed(Ability ability, double delta)
+        {
+        }
+
+        public void OnKeyReleased(Ability ability)
+        {
+            if (ability is ChargingBeam chargingBeam)
+            {
+                chargingBeam.ReleaseBeam();
+            }
+        }
     }
 }

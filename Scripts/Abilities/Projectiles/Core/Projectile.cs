@@ -88,6 +88,21 @@ public partial class Projectile : CharacterbodyEntityComponent, ITeamAffiliation
         }
     }
 
+    public float GetRemainingLifetime()
+    {
+        if (SpawnRequest?.Lifetime.Seconds <= 0f)
+        {
+            return SpawnRequest?.Lifetime.Seconds ?? 0f;
+        }
+
+        if (timer != null && !timer.IsStopped())
+        {
+            return (float)timer.TimeLeft;
+        }
+
+        return SpawnRequest.Lifetime.Seconds;
+    }
+
     public override void _Draw()
     {
         DrawCircle(Vector2.Zero, SpawnRequest.Pull.Radius * 35, pullAreaColor);

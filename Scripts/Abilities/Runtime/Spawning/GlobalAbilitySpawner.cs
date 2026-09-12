@@ -1,4 +1,5 @@
 using System;
+using CardBase.Scripts;
 using CardBase.Scripts.PlayerScripts;
 using Godot;
 using Godot.Collections;
@@ -143,6 +144,11 @@ public partial class GlobalAbilitySpawner : Node2D
 
     public Projectile SpawnProjectile(ProjectileSpawnRequest spawnRequest, ProjectileRuntime runtime = null)
     {
+        if (!HasClearProjectileSpawnPath(spawnRequest))
+        {
+            return null;
+        }
+
         var projectile = instantiateProjectile(spawnRequest.Visual.ScenePath);
         var name = GenerateSpawnName(SpawnType.PROJECTILE);
         projectile.Name = name;
@@ -154,6 +160,44 @@ public partial class GlobalAbilitySpawner : Node2D
 
         Rpc(MethodName.spawnProjectileOnClient, dict, name);
         return projectile;
+    }
+
+    private bool HasClearProjectileSpawnPath(ProjectileSpawnRequest spawnRequest)
+    {
+        if (spawnRequest?.Caller == null)
+        {
+            return true;
+        }
+
+        var from = GetProjectileCasterPosition(spawnRequest);
+        var to = spawnRequest.StartPosition;
+        if (from.IsEqualApprox(to))
+        {
+            return true;
+        }
+
+        var query = new PhysicsRayQueryParameters2D
+        {
+            From = from,
+            To = to,
+            CollisionMask = CombatCollisionLayers.World | CombatCollisionLayers.Wall,
+            CollideWithAreas = false,
+            CollideWithBodies = true,
+        };
+
+        return GetWorld2D().DirectSpaceState.IntersectRay(query).Count == 0;
+    }
+
+    private static Vector2 GetProjectileCasterPosition(ProjectileSpawnRequest spawnRequest)
+    {
+        if (spawnRequest.Caller.TryGetComponent(out AimComponent aimComponent))
+        {
+            return aimComponent.GetCharacterCenterPosition();
+        }
+
+        return spawnRequest.Caller is Node2D callerNode
+            ? callerNode.GlobalPosition
+            : spawnRequest.StartPosition;
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]

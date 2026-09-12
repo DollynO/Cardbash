@@ -59,6 +59,8 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
+    public int Kills { get; private set; }
+    public int Deaths { get; private set; }
     public bool IsTargetable => !_isEliminated && HealthComponent is { IsDead: false };
 
     private bool _statsInitialized;
@@ -192,6 +194,7 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     private void defineCharacterStats()
     {
         StatBlock.Define(StatType.MovementSpeed, 150, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.AimRotationSpeed, 1, 0, 1);
         StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity);
         StatBlock.Define(StatType.Armor, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.EnergyShield, 0, float.NegativeInfinity, float.PositiveInfinity);
@@ -334,6 +337,26 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         return _isSpectating && _spectateTarget != null ? _spectateTarget : this;
     }
 
+    public void AddKill()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        SetCombatStats(Kills + 1, Deaths);
+    }
+
+    public void AddDeath()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        SetCombatStats(Kills, Deaths + 1);
+    }
+
     private bool IsLocalPlayer()
     {
         return PlayerId == Multiplayer.GetUniqueId();
@@ -421,6 +444,18 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
     private static int PosMod(int value, int modulo)
     {
         return (value % modulo + modulo) % modulo;
+    }
+
+    private void SetCombatStats(int kills, int deaths)
+    {
+        Rpc(MethodName.SyncCombatStats, kills, deaths);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void SyncCombatStats(int kills, int deaths)
+    {
+        Kills = kills;
+        Deaths = deaths;
     }
 
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]

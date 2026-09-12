@@ -72,7 +72,7 @@ public partial class AbilityFrame : TextureRect
 
     public override void _GuiInput(InputEvent @event)
     {
-        if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true })
+        if (@event is InputEventMouseButton { ButtonIndex: MouseButton.Right, Pressed: true, CtrlPressed: true })
         {
             EmitSignal(SignalName.Clicked, SlotIndex);
         }

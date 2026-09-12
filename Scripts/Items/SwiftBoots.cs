@@ -5,7 +5,7 @@ namespace CardBase.Scripts.Items;
 
 public partial class SwiftBoots : Item
 {
-    private const int StatIncrease = 25;
+    private const int StatIncrease = 5;
     public SwiftBoots() : base("E852D4A6-1630-4548-A23F-8570F21E41704")
     {
         this.DisplayName = "Swift Boots";

@@ -15,10 +15,6 @@ public abstract class PassiveStackAbility : Ability
 
     protected PassiveStackAbility(string guid, IEntityComponent creator) : base(guid, creator)
     {
-        if (creator != null)
-        {
-            creator.EventBus.MatchEventBus.GamePhaseStartedEventHandler += OnRoundStarted;
-        }
     }
 
     protected void InitializePassiveStacks(int stackCount)
@@ -41,6 +37,11 @@ public abstract class PassiveStackAbility : Ability
 
     public override void RoundReset()
     {
+        PrepareForCardDraw();
+    }
+
+    public override void PrepareForCardDraw()
+    {
         passiveGenerationStarted = false;
         passiveCooldown = GetPassiveCooldown();
         CurrentCooldown = passiveCooldown;
@@ -49,11 +50,6 @@ public abstract class PassiveStackAbility : Ability
 
     public override void ClearAbility()
     {
-        if (Caller != null)
-        {
-            Caller.EventBus.MatchEventBus.RoundStartEventHandler -= OnRoundStarted;
-        }
-
         ClearPassiveStacks();
     }
 
@@ -128,7 +124,7 @@ public abstract class PassiveStackAbility : Ability
 
     protected abstract bool CreatePassiveStack();
 
-    private void OnRoundStarted(object sender, MatchEventArgs e)
+    public override void BeginCombat()
     {
         passiveGenerationStarted = true;
         passiveCooldown = GetPassiveCooldown();

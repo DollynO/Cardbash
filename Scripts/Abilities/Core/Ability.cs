@@ -78,6 +78,7 @@ public abstract class Ability : BaseCardableObject
     protected float ChargePower;
 
     private bool activated;
+    private bool useSucceeded = true;
 
     protected bool AutoCast = false;
 
@@ -109,6 +110,17 @@ public abstract class Ability : BaseCardableObject
     }
 
     public virtual void ClearAbility()
+    {
+
+    }
+
+    public virtual void PrepareForCardDraw()
+    {
+        CurrentStack = 0;
+        CurrentCooldown = GetCooldownDuration();
+    }
+
+    public virtual void BeginCombat()
     {
 
     }
@@ -182,6 +194,13 @@ public abstract class Ability : BaseCardableObject
         return false;
     }
 
+    protected double GetCooldownDuration()
+    {
+        return Caller.TryGetComponent(out StatblockComponent statblock)
+            ? BaseCooldown * statblock.GetStat(StatType.CooldownReduction)
+            : BaseCooldown;
+    }
+
     public virtual bool Activate()
     {
         if (CurrentStack == 0)
@@ -220,13 +239,19 @@ public abstract class Ability : BaseCardableObject
         ChargeAmount = 0;
         if (this.activated)
         {
+            useSucceeded = true;
             InternalUse();
             this.activated = false;
-            if (Caller.TryGetComponent(out AbilityComponent ac))
+            if (useSucceeded && Caller.TryGetComponent(out AbilityComponent ac))
             {
                 ac.NotifyAbilityCasted(this);
             }
         }
+    }
+
+    protected void MarkUseFailed()
+    {
+        useSucceeded = false;
     }
 
     public virtual void InternalUse()

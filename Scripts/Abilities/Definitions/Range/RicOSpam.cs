@@ -17,7 +17,7 @@ public class RicOSpam : ProjectileAbility
     {
         this.DisplayName = "Ric-O-Spam";
         this.Description = "SPAAAM. Upgrade 1: increases maximum stacks. Upgrade 2: cloned projectiles gain 20% speed per generation, up to 3x.";
-        this.IconPath = "res://Sprites/SkillIcons/Snow/8_Ice_Arrow.png";
+        this.IconPath = "res://Sprites/SkillIcons/Metal/3_Saw.png";
         this.SpawnDelay = 0.5f;
     }
 
@@ -94,9 +94,16 @@ public class RicOSpam : ProjectileAbility
         {
             if (_projectiles.Count <= ConfigParam("maxSplitProjectiles", 10))
             {
+                var remainingLifetime = projectile.GetRemainingLifetime();
+                if (projectile.SpawnRequest.Lifetime.Seconds > 0f && remainingLifetime <= 0f)
+                {
+                    return;
+                }
+
                 var request = GetProjectileSpawnRequest();
                 request.CastGuid = projectile.SpawnRequest.CastGuid;
                 request.StartPosition = position;
+                request.Lifetime.Seconds = remainingLifetime;
                 var spreadDegrees = Math.Max(1, ConfigParam("spreadDegrees", 15));
                 var offset = rnd.NextInt64(-spreadDegrees, spreadDegrees);
                 request.Movement.Direction = projectile.SpawnRequest.Movement.Direction.Rotated(Mathf.DegToRad(offset));
@@ -105,6 +112,11 @@ public class RicOSpam : ProjectileAbility
                 request.Movement.AngleOffset = 0;
                 request.Caller = Caller;
                 var add_proj = GlobalAbilitySpawner.SpawnProjectile(request, GetProjectileRuntime());
+                if (add_proj == null)
+                {
+                    return;
+                }
+
                 add_proj.OnCollision += _onProjectileCollided;
                 add_proj.OnPiercing += _onProjectilePierced;
                 add_proj.OnDestroyed += _onProjectileDestroyed;
@@ -178,6 +190,14 @@ public class RicOSpam : ProjectileAbility
         if (projectileLists.TryGetValue(projectile.SpawnRequest.CastGuid, out var _projectiles))
         {
             _projectiles.Add(projectile);
+        }
+    }
+
+    protected override void OnProjectileSpawnFailed()
+    {
+        if (!string.IsNullOrEmpty(currentCastGuid))
+        {
+            projectileLists.Remove(currentCastGuid);
         }
     }
 

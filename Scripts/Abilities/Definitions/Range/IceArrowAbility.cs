@@ -22,7 +22,7 @@ public class IceArrowAbility : ProjectileAbility
     {
         var request = AimedProjectile(
             "res://AnimationRes/Projectile/Ice/I_LargeBlue.tres",
-            ConfigParam("projectileSpeed", 500f),
+            ConfigParam("projectileSpeed", 750f),
             ConfigParam("projectileLifetime", 4f));
         request.Movement.BounceCount = ConfigParam("bounceCount", 3);
         request.Collision.PierceCount = ConfigParam("pierceCount", 1);

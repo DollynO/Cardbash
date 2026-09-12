@@ -115,6 +115,53 @@ public partial class LobbyManager : ColorRect
         }
 
         _teamSelect.Selected = currentPlayer?.TeamNumber ?? 0;
+        EnsureDeckSelected();
+    }
+
+    private void EnsureDeckSelected()
+    {
+        if (currentPlayer == null || GlobalCardManager.Instance.Decks.Count == 0)
+        {
+            _deckSelect.Selected = -1;
+            return;
+        }
+
+        if (currentPlayer.SelectedDeck == null)
+        {
+            SelectDeck(0);
+            return;
+        }
+
+        var selectedDeckIndex = GetDeckIndex(currentPlayer.SelectedDeck);
+        if (selectedDeckIndex >= 0)
+        {
+            _deckSelect.Selected = selectedDeckIndex;
+        }
+    }
+
+    private int GetDeckIndex(Deck selectedDeck)
+    {
+        for (var i = 0; i < GlobalCardManager.Instance.Decks.Count; i++)
+        {
+            if (GlobalCardManager.Instance.Decks[i].GUID == selectedDeck.GUID)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void SelectDeck(int index)
+    {
+        if (currentPlayer == null || index < 0 || index >= GlobalCardManager.Instance.Decks.Count)
+        {
+            return;
+        }
+
+        _deckSelect.Selected = index;
+        currentPlayer.SelectedDeck = GlobalCardManager.Instance.Decks[index];
+        currentPlayer.IsReady = false;
     }
 
     private void EnsurePlayerSlotCount(int playerCount)
@@ -312,8 +359,7 @@ public partial class LobbyManager : ColorRect
 
     private void _on_deck_selected(int index)
     {
-        currentPlayer.SelectedDeck = GlobalCardManager.Instance.Decks[index];
-        currentPlayer.IsReady = false;
+        SelectDeck(index);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
@@ -330,7 +376,9 @@ public partial class LobbyManager : ColorRect
     {
         foreach (var player in _network.CurrentPlayers.Values)
         {
-            player.IsReady = false;
+            player.IsReady = false;        
+            notReadyButton.Visible = true;
+            readyButton.Visible = false;
         }
     }
 
