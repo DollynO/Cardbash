@@ -153,6 +153,7 @@ public partial class GameFlowController : Node
     private void StartCombatRound()
     {
         _mode.ServerStartCombat();
+        _ctx.GameManager.StartBattleRoyaleArea();
     }
 
     private void ServerAdvance(MatchPhase next)
@@ -220,6 +221,7 @@ public partial class GameFlowController : Node
 
     private void ServerEndRound(RoundResult rr)
     {
+        _ctx.GameManager.StopBattleRoyaleArea();
         _mode.RoundResults.Add(rr);
         _phase = MatchPhase.RoundEnd;
     }

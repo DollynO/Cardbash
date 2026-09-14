@@ -20,7 +20,7 @@ _teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer
 _deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
 _playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer")
 _playerSlotScene = ExtResource("3_p6nru")
-gameSettingFields = [NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/CardsPerRoundInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsToWinInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnRoundEndInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnKillInput")]
+gameSettingFields = [NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/CardsPerRoundInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsToWinInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnRoundEndInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnKillInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/BattleRoyaleStartDelayInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/BattleRoyaleShrinkSpeedInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/BattleRoyaleDamageInput")]
 friendlyFireToggle = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/FriendlyFireToggle")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
@@ -150,7 +150,7 @@ expand_icon = true
 allow_reselect = true
 
 [node name="GameSettings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer"]
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 280)
 layout_mode = 2
 
 [node name="GridContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings"]
@@ -207,6 +207,36 @@ text = "Points on kill"
 [node name="PointsOnKillInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
 layout_mode = 2
 text = "10"
+virtual_keyboard_type = 2
+
+[node name="BattleRoyaleStartDelay" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "BR start seconds"
+
+[node name="BattleRoyaleStartDelayInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "120"
+placeholder_text = "120"
+virtual_keyboard_type = 2
+
+[node name="BattleRoyaleShrinkSpeed" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "BR shrink speed"
+
+[node name="BattleRoyaleShrinkSpeedInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "35"
+placeholder_text = "35"
+virtual_keyboard_type = 2
+
+[node name="BattleRoyaleDamage" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "BR true DPS"
+
+[node name="BattleRoyaleDamageInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "8"
+placeholder_text = "8"
 virtual_keyboard_type = 2
 
 [node name="FriendlyFire" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]

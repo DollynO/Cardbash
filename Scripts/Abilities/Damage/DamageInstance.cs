@@ -15,6 +15,7 @@ public enum DamageType
     Lightning,
     Darkness,
     Holy,
+    True,
 }
 
 /**

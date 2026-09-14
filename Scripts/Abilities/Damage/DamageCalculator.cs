@@ -36,6 +36,7 @@ public static class DamageCalculator
                     DamageType.Physical or DamageType.Poison => targetStatblock.GetStat(StatType.Armor),
                     DamageType.Darkness => 0,
                     DamageType.Holy => 0,
+                    DamageType.True => 0,
                     DamageType.Fire => targetStatblock.GetStat(StatType.EnergyShield),
                     DamageType.Ice => targetStatblock.GetStat(StatType.EnergyShield),
                     DamageType.Lightning => targetStatblock.GetStat(StatType.EnergyShield),

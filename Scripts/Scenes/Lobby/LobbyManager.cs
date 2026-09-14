@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CardBase.Scripts;
@@ -261,6 +262,9 @@ public partial class LobbyManager : ColorRect
         settings.PointsToWin = int.TryParse(gameSettingFields[1].Text, out value) ? value : 100;
         settings.PointsOnRoundEnd = int.TryParse(gameSettingFields[2].Text, out value) ? value : 15;
         settings.PointsOnKill = int.TryParse(gameSettingFields[3].Text, out value) ? value : 10;
+        settings.BattleRoyaleStartDelaySeconds = ReadFloatSetting(4, settings.BattleRoyaleStartDelaySeconds);
+        settings.BattleRoyaleShrinkSpeed = ReadFloatSetting(5, settings.BattleRoyaleShrinkSpeed);
+        settings.BattleRoyaleTrueDamagePerSecond = ReadFloatSetting(6, settings.BattleRoyaleTrueDamagePerSecond);
         settings.FriendlyFire = friendlyFireToggle?.ButtonPressed ?? false;
 
         if (!await SyncGameplayConfigBeforeGameStart())
@@ -271,6 +275,22 @@ public partial class LobbyManager : ColorRect
         }
 
         _sceneManager.LoadGameScene(settings);
+    }
+
+    private float ReadFloatSetting(int index, float fallback)
+    {
+        if (gameSettingFields == null || index < 0 || index >= gameSettingFields.Count)
+        {
+            return fallback;
+        }
+
+        return float.TryParse(
+            gameSettingFields[index].Text,
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture,
+            out var value)
+            ? value
+            : fallback;
     }
 
     private void _on_back_pressed()

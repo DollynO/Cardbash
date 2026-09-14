@@ -95,6 +95,8 @@ public class HitResolver
                 break;
             case DamageType.Holy:
                 break;
+            case DamageType.True:
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }

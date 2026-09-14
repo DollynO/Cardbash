@@ -66,6 +66,16 @@ public partial class HealthComponent : Node2D, IComponent
         }
     }
 
+    public void ApplyTrueDamage(float damageValue, IEntityComponent component)
+    {
+        ApplyDamage(new Damage
+        {
+            Type = DamageType.True,
+            AilmentChance = 0f,
+            DamageNumber = Mathf.Abs(damageValue),
+        }, component);
+    }
+
     private void TrackDamage(IEntityComponent source, DamageType damageType, float damageAmount)
     {
         if (damageAmount <= 0f)

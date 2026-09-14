@@ -15,6 +15,11 @@ public partial class GameModeSettings : Resource
     
     public int CardLockCosts { get; set; } = 10;
     public int CardRerollCosts { get; set; } = 10;
+    public float BattleRoyaleStartDelaySeconds { get; set; } = 120f;
+    public float BattleRoyaleShrinkSpeed { get; set; } = 35f;
+    public float BattleRoyaleTrueDamagePerSecond { get; set; } = 8f;
+    public float BattleRoyaleTargetMargin { get; set; } = 320f;
+    public float BattleRoyaleFinalRadius { get; set; } = 360f;
 
     public void Copy(GameModeSettings gameSettings)
     {
@@ -25,5 +30,10 @@ public partial class GameModeSettings : Resource
         FriendlyFire = gameSettings.FriendlyFire;
         CardLockCosts = gameSettings.CardLockCosts;
         CardRerollCosts = gameSettings.CardRerollCosts;
+        BattleRoyaleStartDelaySeconds = gameSettings.BattleRoyaleStartDelaySeconds;
+        BattleRoyaleShrinkSpeed = gameSettings.BattleRoyaleShrinkSpeed;
+        BattleRoyaleTrueDamagePerSecond = gameSettings.BattleRoyaleTrueDamagePerSecond;
+        BattleRoyaleTargetMargin = gameSettings.BattleRoyaleTargetMargin;
+        BattleRoyaleFinalRadius = gameSettings.BattleRoyaleFinalRadius;
     }
 }

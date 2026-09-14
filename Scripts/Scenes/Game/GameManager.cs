@@ -22,6 +22,7 @@ public partial class GameManager : Node2D
     [Export] private TileMapLayer _tileMapLayer;
     [Export] private Node2D _spawnPoint;
     private GameFlowController _flowController;
+    private BattleRoyaleArea _battleRoyaleArea;
 
     private System.Collections.Generic.Dictionary<long, PlayerCharacter> _currentCharacters = new();
     private PlayerCharacter _currentPlayer;
@@ -49,6 +50,10 @@ public partial class GameManager : Node2D
         this.CardSystem = new CardSystem(this);
         this.CardSystem.Name = "CardSystem";
         this.AddChild(CardSystem);
+
+        _battleRoyaleArea = new BattleRoyaleArea();
+        _battleRoyaleArea.Name = nameof(BattleRoyaleArea);
+        AddChild(_battleRoyaleArea);
     }
 
     // Called when the node enters the scene tree for the first time.
@@ -119,6 +124,26 @@ public partial class GameManager : Node2D
         var origion = _tileMapLayer.MapToLocal(rect.Position);
         var size = rect.Size * tileSize;
         return new Rect2(origion, size);
+    }
+
+    public void StartBattleRoyaleArea()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        _battleRoyaleArea?.ServerStart(Settings, GetMapBoundry());
+    }
+
+    public void StopBattleRoyaleArea()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        _battleRoyaleArea?.ServerStop();
     }
 
     // Called every frame. 'delta' is the elapsed time since the previous frame.

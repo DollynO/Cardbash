@@ -793,6 +793,7 @@ public partial class AoeBase : Node2D
             DamageType.Lightning => new Color(1f, 0.9f, 0.18f),
             DamageType.Darkness => new Color(0.55f, 0.16f, 0.82f),
             DamageType.Holy => new Color(1f, 0.88f, 0.44f),
+            DamageType.True => new Color(1f, 0.05f, 0.05f),
             _ => Colors.Aqua,
         };
         color.A = alpha;
