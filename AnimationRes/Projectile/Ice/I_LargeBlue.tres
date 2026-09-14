@@ -1,0 +1,67 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3 uid="uid://dy4iorfs5tlly"]
+
+[ext_resource type="Texture2D" uid="uid://d0qjaimay5kg7" path="res://Sprites/Projectiles/ice_spike_large_blue/spritesheet.png" id="1_gxm5v"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6bub8"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(0, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_m4muh"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(64, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nnyy6"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(128, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xd6my"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(192, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vhu21"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(256, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p60m1"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(320, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_577ln"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(384, 0, 64, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ptamw"]
+atlas = ExtResource("1_gxm5v")
+region = Rect2(448, 0, 64, 32)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6bub8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_m4muh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nnyy6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xd6my")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vhu21")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p60m1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_577ln")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ptamw")
+}],
+"loop": true,
+"name": &"default",
+"speed": 15.0
+}]

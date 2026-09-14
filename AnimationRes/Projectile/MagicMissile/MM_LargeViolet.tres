@@ -1,0 +1,67 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3 uid="uid://ca2lshwvh2vti"]
+
+[ext_resource type="Texture2D" uid="uid://vvj0g7kyjtyd" path="res://Sprites/Projectiles/pj2_magic_missile_large_violet/spritesheet.png" id="1_sp3pg"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xnoaj"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(0, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2e4qj"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(48, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bsews"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(96, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b2fxv"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(144, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dsi4r"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(192, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dk00s"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(240, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bd3x7"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(288, 0, 48, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_v1tgn"]
+atlas = ExtResource("1_sp3pg")
+region = Rect2(336, 0, 48, 32)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xnoaj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2e4qj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bsews")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b2fxv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dsi4r")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dk00s")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bd3x7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_v1tgn")
+}],
+"loop": true,
+"name": &"default",
+"speed": 16.0
+}]

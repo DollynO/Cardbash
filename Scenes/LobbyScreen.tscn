@@ -1,11 +1,11 @@
 [gd_scene load_steps=5 format=3 uid="uid://br2igbh2h3386"]
 
 [ext_resource type="PackedScene" uid="uid://cewc4ky5xxtch" path="res://Prefabs/Buttons/green_button.res" id="1_33tii"]
-[ext_resource type="Script" path="res://Scripts/SceneScripts/LobbyManager.cs" id="1_iigad"]
+[ext_resource type="Script" path="res://Scripts/Scenes/Lobby/LobbyManager.cs" id="1_iigad"]
 [ext_resource type="PackedScene" uid="uid://dcrvnet8y28ok" path="res://Prefabs/Buttons/red_button.res" id="2_7rmyw"]
 [ext_resource type="PackedScene" uid="uid://gi8i5cvds6au" path="res://Scenes/PlayerSlot.tscn" id="3_p6nru"]
 
-[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("ReadyButton", "NotReadyButton", "StartButton", "_teamSelect", "_deckSelect", "_playerListContainer")]
+[node name="LobbyScreen" type="ColorRect" node_paths=PackedStringArray("readyButton", "notReadyButton", "startButton", "_teamSelect", "_deckSelect", "_playerListContainer", "gameSettingFields", "friendlyFireToggle")]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -13,12 +13,15 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.356863, 0.360784, 0.341176, 1)
 script = ExtResource("1_iigad")
-ReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Ready")
-NotReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/NotReady")
-StartButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start")
+readyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Ready")
+notReadyButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/NotReady")
+startButton = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/Footer/Start")
 _teamSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/TeamSelect")
 _deckSelect = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/PlayerSettings/Player Settings/DeckSelect")
-_playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer")
+_playerListContainer = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer")
+_playerSlotScene = ExtResource("3_p6nru")
+gameSettingFields = [NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/CardsPerRoundInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsToWinInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnRoundEndInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/PointsOnKillInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/BattleRoyaleStartDelayInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/BattleRoyaleShrinkSpeedInput"), NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/BattleRoyaleDamageInput")]
+friendlyFireToggle = NodePath("CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer/FriendlyFireToggle")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
@@ -62,30 +65,35 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="PlayerListContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList"]
+[node name="ScrollContainer" type="ScrollContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
 
-[node name="PlayerSlot" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerListContainer" type="VBoxContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayerSlot" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot2" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot2" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot3" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot3" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot4" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot4" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot5" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot5" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
-[node name="PlayerSlot6" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/PlayerListContainer" instance=ExtResource("3_p6nru")]
+[node name="PlayerSlot6" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/PlayerList/ScrollContainer/PlayerListContainer" instance=ExtResource("3_p6nru")]
 layout_mode = 2
 
 [node name="Settings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main"]
@@ -142,7 +150,100 @@ expand_icon = true
 allow_reselect = true
 
 [node name="GameSettings" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer"]
-custom_minimum_size = Vector2(0, 200)
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+
+[node name="GridContainer" type="GridContainer" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 2
+
+[node name="GameRounds" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Rounds per Game"
+
+[node name="GameRoundsInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "-"
+placeholder_text = "3"
+virtual_keyboard_type = 2
+
+[node name="CardsPerRound" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Cards per round"
+
+[node name="CardsPerRoundInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "3"
+placeholder_text = "3"
+virtual_keyboard_type = 2
+
+[node name="PointsToWin" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Points to win"
+
+[node name="PointsToWinInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "100"
+virtual_keyboard_type = 2
+
+[node name="PointsOnRoundEnd" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Points on round end"
+
+[node name="PointsOnRoundEndInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "15"
+virtual_keyboard_type = 2
+
+[node name="PointsOnKill" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Points on kill"
+
+[node name="PointsOnKillInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "10"
+virtual_keyboard_type = 2
+
+[node name="BattleRoyaleStartDelay" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "BR start seconds"
+
+[node name="BattleRoyaleStartDelayInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "120"
+placeholder_text = "120"
+virtual_keyboard_type = 2
+
+[node name="BattleRoyaleShrinkSpeed" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "BR shrink speed"
+
+[node name="BattleRoyaleShrinkSpeedInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "35"
+placeholder_text = "35"
+virtual_keyboard_type = 2
+
+[node name="BattleRoyaleDamage" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "BR true DPS"
+
+[node name="BattleRoyaleDamageInput" type="LineEdit" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "8"
+placeholder_text = "8"
+virtual_keyboard_type = 2
+
+[node name="FriendlyFire" type="Label" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
+layout_mode = 2
+text = "Friendly fire"
+
+[node name="FriendlyFireToggle" type="CheckBox" parent="CanvasLayer/MarginContainer/VBoxContainer2/MainContainer/Main/Settings/VSplitContainer/GameSettings/GridContainer"]
 layout_mode = 2
 
 [node name="Footer" type="Panel" parent="CanvasLayer/MarginContainer/VBoxContainer2"]

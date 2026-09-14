@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3 uid="uid://dwoe1kdo23vje"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oyhdt"]
+bg_color = Color(0.330864, 0.686345, 0.46017, 0.388235)
+border_width_left = 5
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 5
+border_color = Color(0.329412, 0.686275, 0.458824, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ctp4n"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_psh43"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+
+[node name="Notification" type="Panel"]
+custom_minimum_size = Vector2(600, 50)
+theme_override_styles/panel = SubResource("StyleBoxFlat_oyhdt")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="TextEdit" type="LineEdit" parent="MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_uneditable_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 30
+theme_override_styles/read_only = SubResource("StyleBoxFlat_ctp4n")
+theme_override_styles/normal = SubResource("StyleBoxFlat_psh43")
+text = "test Text"
+alignment = 2
+editable = false
+expand_to_text_length = true
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+middle_mouse_paste_enabled = false
+drag_and_drop_selection_enabled = false

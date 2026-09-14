@@ -18,21 +18,9 @@ public partial class AbilityCard : Card
             return;
         }
 
-        if (playerContext.player == null)
+        if (playerContext.player != null && playerContext.player.TryGetComponent(out AbilityComponent abilityComponent))
         {
-            return;
-        }
-        
-        var ability = playerContext.player.Abilities.FirstOrDefault(x => x.GUID == EffectGUID);
-        if (ability == null)
-        {
-            ability = (Ability)AbilityManager.Create(EffectGUID);
-            ability.SetCaller(playerContext.player);
-            playerContext.player.Abilities.Add(ability);
-        }
-        else
-        {
-            ability.ApplyUpdate();
+            abilityComponent.AddUpdateAbility(EffectGUID);
         }
     }
 }

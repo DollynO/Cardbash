@@ -14,7 +14,7 @@ public partial class Counter : Resource
     {
         Count = 1;
     }
-    
+
     public Counter(int count)
     {
         Count = count;
@@ -50,7 +50,7 @@ public partial class Deck : Node
             cardDict[card.EffectGUID] = (int)card.CardType * 1000 + counter.Count;
         }
         dict["Cards"] = cardDict;
-        
+
         return dict;
     }
 
@@ -76,10 +76,10 @@ public partial class Deck : Node
 
         return deck;
     }
-    
+
     public void LoadDeckFromJson(string json)
     {
-        
+
     }
 
     public void AddCard(Card card)
@@ -97,7 +97,7 @@ public partial class Deck : Node
             card1.Count -= 1;
             return false;
         }
-        
+
         Cards.Remove(card);
         return true;
     }
@@ -112,12 +112,12 @@ public partial class Deck : Node
     {
         return number switch
         {
-            (int)DeckIconNumber.Red => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Green => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Blue => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Violet => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            (int)DeckIconNumber.Gold => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
-            _ => GD.Load<Texture2D>("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png")
+            (int)DeckIconNumber.Red => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Green => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Blue => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Violet => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            (int)DeckIconNumber.Gold => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png"),
+            _ => IconLoader.Instance.LoadImage("res://Sprites/Cards/CardTypeIcon/AbilityTypeIcon.png")
         };
     }
-} 
+}

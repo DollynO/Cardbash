@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
 
@@ -12,8 +13,24 @@ public partial class CritDagger : Item
         this.IconPath = "res://Sprites/Items/CritDagger.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.PlayerStats.BaseCrit += StatIncrease;
-    } 
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.AddModifiers(
+                new StatModifier(
+                    InstanceGuid,
+                    StatType.CritChance,
+                    StatOp.FlatAdd,
+                    ConfigParam("statIncrease", StatIncrease)));
+        }
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(InstanceGuid);
+        }
+    }
 }

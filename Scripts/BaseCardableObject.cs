@@ -4,15 +4,13 @@ using Godot;
 
 namespace CardBase.Scripts;
 
-public partial class BaseCardableObject : Node , IBaseProperty
+public class BaseCardableObject : IBaseProperty
 {
-    public string DisplayName { get; protected init; }
-    public string Description { get; protected init; }
-    public string IconPath { get; protected init; }
+    public string DisplayName { get; protected set; }
+    public string Description { get; protected set; }
+    public string IconPath { get; protected set; }
     public string GUID { get; init; }
 
-    public BaseCardableObject() {}
-    
     public BaseCardableObject(string guid)
     {
         GUID = guid ?? throw new ArgumentNullException(nameof(guid), "GUID cannot be null");

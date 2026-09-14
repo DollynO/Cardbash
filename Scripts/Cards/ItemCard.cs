@@ -23,6 +23,9 @@ public partial class ItemCard : Card
         }
 
         var item = ItemManager.Create(EffectGUID) as Item;
-        item?.ApplyItem(playerContext.player);
+        if (playerContext.player.TryGetComponent(out ItemManagerComponent imc))
+        {
+            imc.AddNewItem(item);
+        }
     }
 }

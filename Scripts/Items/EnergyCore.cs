@@ -1,4 +1,5 @@
-﻿using CardBase.Scripts.PlayerScripts;
+﻿using System;
+using CardBase.Scripts.PlayerScripts;
 
 namespace CardBase.Scripts.Items;
 
@@ -12,8 +13,20 @@ public partial class EnergyCore : Item
         this.IconPath = "res://Sprites/Items/EnergyCore.png";
     }
 
-    public override void ApplyItem(PlayerCharacter player)
+    public override void ApplyItem(IEntityComponent targetEntity)
     {
-        player.PlayerStats.EnergyShield += StatIncrease;
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.AddModifiers(new StatModifier(InstanceGuid, StatType.EnergyShield, StatOp.FlatAdd,
+                ConfigParam("statIncrease", StatIncrease)));
+        }
+    }
+
+    public override void RemoveItem(IEntityComponent targetEntity)
+    {
+        if (targetEntity.TryGetComponent<StatblockComponent>(out var statblock))
+        {
+            statblock.RemoveModifierSource(InstanceGuid);
+        }
     }
 }

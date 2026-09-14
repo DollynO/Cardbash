@@ -1,33 +1,49 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using CardBase.Scripts.Abilities;
+using CardBase.Scripts.Abilities.Buffs;
+using CardBase.Scripts.Cards;
+using CardBase.Scripts.Items;
 using Godot;
 using Godot.Collections;
 
 namespace CardBase.Scripts.PlayerScripts;
 
-public partial class PlayerCharacter : CharacterBody2D, IHitableObject
+public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffiliation, ITargetableEntity
 {
+    private static readonly Vector2 EliminatedPosition = Vector2.One * -20000;
+
     [Export] private MultiplayerSynchronizer _inputSync;
     [Export] private AnimatedSprite2D _playerAnimation;
+    public PlayerInput PlayerInput => _playerInput;
     private PlayerInput _playerInput;
     private GameManager _gameManager;
 
-    public PlayerStats PlayerStats = new();
-    public Array<Ability> Abilities = new();
-    public readonly List<DamageModifier> DamageModifier = new();
 
     [Export] private Label _playerNameLabel;
-    [Export] private ProgressBar _playerHealth;
-    
+
     [Export] private Sprite2D _lookAtIndicator;
     [Export] private Node2D _lookAtDirectionPoint;
     private Vector2 _lookAtDirectionCorrection = Vector2.FromAngle(Mathf.Tau / 4);
-
     [Export] private Node2D _characterCenterPoint;
-    
+
+    [Export]
+    private Camera2D _camera;
+
+    private Rect2 _mapBounds;
+
+    public BuffManagerComponent BuffManagerComponent;
+
     [Signal]
-    public delegate void OnKilledEventHandler(PlayerCharacter victim, PlayerCharacter killer);
-    
+    public delegate void OnKilledEventHandler(long victimId, long killerId);
+
+    public HealthComponent HealthComponent { get; private set; }
+    public AbilityComponent AbilityComponent { get; private set; }
+    public StatblockComponent StatBlock { get; private set; }
+    private VisualComponent visualComponent;
+    public ItemManagerComponent ItemManagerComponent { get; private set; }
+
     public string PlayerName
     {
         get => _playerName;
@@ -39,140 +55,443 @@ public partial class PlayerCharacter : CharacterBody2D, IHitableObject
     }
     private string _playerName;
 
+    public Deck Deck { get; set; }
+    public Array<Card> SelectedCards = new Array<Card>();
     public int TeamId { get; set; }
     public long PlayerId { get; set; }
-    
+    public int Kills { get; private set; }
+    public int Deaths { get; private set; }
+    public bool IsTargetable => !_isEliminated && HealthComponent is { IsDead: false };
+
+    private bool _statsInitialized;
+    private bool _isEliminated;
+    private bool _isSpectating;
+    private uint _defaultCollisionLayer;
+    private uint _defaultCollisionMask;
+    private PlayerCharacter _spectateTarget;
+
     public override void _EnterTree()
     {
+        _defaultCollisionLayer = CollisionLayer;
+        _defaultCollisionMask = CollisionMask;
+
         _inputSync.SetMultiplayerAuthority(int.Parse(Name));
         _playerInput = (PlayerInput)_inputSync;
-        PlayerStats.MovementSpeed = 300;
-        _playerHealth.MaxValue = 100;
+
         _gameManager = (GameManager)GetNode("/root/Main/Game");
-        _playerAnimation.Material = _playerAnimation.Material.Duplicate() as ShaderMaterial;
-        var spriteMaterial = _playerAnimation.Material as ShaderMaterial;
-        var teamColor = TeamColor.GetColor(TeamId);
-        
-        spriteMaterial?.SetShaderParameter("team_color", teamColor);
 
         if (int.Parse(Name) == Multiplayer.GetUniqueId())
         {
             _lookAtIndicator.Visible = true;
             _lookAtIndicator.Material = _lookAtIndicator.Material.Duplicate() as ShaderMaterial;
-            spriteMaterial = _lookAtIndicator.Material as ShaderMaterial;
-            spriteMaterial?.SetShaderParameter("mask_color", new Color(1f, 1f, 1f));
-            spriteMaterial?.SetShaderParameter("team_color", teamColor);
+            var spriteMaterial = _lookAtIndicator.Material as ShaderMaterial;
+            spriteMaterial?.SetShaderParameter("mask_color", new Godot.Color(1f, 1f, 1f));
+            var teamColorArrow = ColorPlate.GetColor(TeamId);
+            spriteMaterial?.SetShaderParameter("team_color", teamColorArrow);
             spriteMaterial?.SetShaderParameter("tolerance", 0.4);
+            _camera.Enabled = true;
+            _mapBounds = _gameManager.GetMapBoundry();
+            _camera.LimitTop = (int)_mapBounds.Position.Y;
+            _camera.LimitLeft = (int)_mapBounds.Position.X;
+            _camera.LimitRight = (int)_mapBounds.Position.X + (int)_mapBounds.Size.X;
+            _camera.LimitBottom = (int)_mapBounds.Position.Y + (int)_mapBounds.Size.Y;
         }
 
-        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Ice, Type = DamageModifierType.ExtraDamage, Value = 10.0f});
-        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Ice, TargetDamageType = DamageType.Ice, Type = DamageModifierType.Modifier, Value = 10.0f});
-        DamageModifier.Add(new DamageModifier {OutputDamageType = DamageType.Fire, TargetDamageType = DamageType.Fire, Type = DamageModifierType.Modifier, Value = 10.0f});
-    }
+        ItemManagerComponent = new ItemManagerComponent();
+        ItemManagerComponent.Name = nameof(ItemManagerComponent);
+        AddComponent(ItemManagerComponent);
 
-    public override void _PhysicsProcess(double delta)
-    {
-        if (Multiplayer.IsServer())
+        BuffManagerComponent = new BuffManagerComponent();
+        AddComponent(BuffManagerComponent);
+
+        HealthComponent = new HealthComponent();
+        AddComponent(HealthComponent);
+
+        AbilityComponent = new AbilityComponent
         {
-            if (!PlayerStats.IsDead)
-            {
-                _move(delta);
-            }
+            Position = _characterCenterPoint.Position
+        };
+        AddComponent(AbilityComponent);
+
+        var dac = new DamageAbleComponent();
+        AddComponent(dac);
+
+        StatBlock = new StatblockComponent();
+        AddComponent(StatBlock);
+
+        AddComponent(new MoveComponent());
+        AddComponent(new MovementPredictionComponent());
+
+        var aimComponent = new AimComponent(_characterCenterPoint, _lookAtDirectionPoint, _lookAtDirectionCorrection);
+        AddComponent(aimComponent);
+
+        visualComponent = new VisualComponent();
+        visualComponent.SetAnimation("res://AnimationRes/PlayerAnimation/PlayerCharacterAnimation.tres", Vector2.Zero);
+        var shader = GD.Load<Shader>("res://Shaders/PlayerCharacter_TeamColor.gdshader");
+        var shaderMaterial = new ShaderMaterial();
+        shaderMaterial.Shader = shader;
+        shaderMaterial.SetShaderParameter("mask_color", new Vector4(0.341f, 0.227f, 0.196f, 1));
+        shaderMaterial.SetShaderParameter("mask_color_2", new Vector4(0.251f, 0.153f, 0.09f, 1));
+        shaderMaterial.SetShaderParameter("tolerance", 0.1f);
+        var teamColor = ColorPlate.GetColor(TeamId);
+        shaderMaterial.SetShaderParameter("team_color", teamColor);
+
+        AddComponent(visualComponent);
+        visualComponent.SetShader(shaderMaterial);
+
+        var overhead = new OverHeadUiComponent();
+        AddComponent(overhead);
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (!IsLocalPlayer() || !_isSpectating)
+        {
+            return;
+        }
+
+        if (@event is not InputEventKey { Pressed: true, Echo: false } keyEvent)
+        {
+            return;
+        }
+
+        var isSpectateSwitch = keyEvent.Keycode is Key.Tab or Key.Backtab
+                               || keyEvent.PhysicalKeycode == Key.Tab;
+        if (!isSpectateSwitch)
+        {
+            return;
+        }
+
+        SpectateRelative(keyEvent.ShiftPressed || keyEvent.Keycode == Key.Backtab ? -1 : 1);
+        GetViewport().SetInputAsHandled();
+    }
+
+    public override async void _Ready()
+    {
+        if (!Multiplayer.IsServer() && PlayerId == Multiplayer.GetUniqueId())
+        {
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+            _gameManager.RpcId(1, GameManager.MethodName.ClientReady, Multiplayer.GetUniqueId());
+        }
+        else
+        {
+            _gameManager.RpcId(1, GameManager.MethodName.ClientReady, Multiplayer.GetUniqueId());
         }
     }
-    
+
+    public void InitializeServerStats()
+    {
+        if (!Multiplayer.IsServer() || _statsInitialized)
+        {
+            return;
+        }
+
+        _statsInitialized = true;
+        defineCharacterStats();
+    }
+
+    private void defineCharacterStats()
+    {
+        StatBlock.Define(StatType.MovementSpeed, 150, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.AimRotationSpeed, 1, 0, 1);
+        StatBlock.Define(StatType.Life, 100, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.Armor, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.EnergyShield, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.CritBonus, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.CritChance, 5, 0, 100);
+        StatBlock.Define(StatType.Darkness, 0, 0, 20);
+        StatBlock.Define(StatType.Blinding, 0, 0, 20);
+        StatBlock.Define(StatType.GlobalAilmentChance, 0, 0, 1);
+        StatBlock.Define(StatType.DmgLightningBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgIceBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgFireBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgHolyBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgDarknessBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgPhysicalBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgPoisonBonus, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.DmgConvertFireFrost, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFireLightning, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFrostFire, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFrostLightning, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertLightningFrost, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertLightningFire, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFireDarkness, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFireHoly, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFrostDarkness, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertFrostHoly, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertLightningDarkness, 0, 0, 100);
+        StatBlock.Define(StatType.DmgConvertLightningHoly, 0, 0, 100);
+
+        StatBlock.Define(StatType.AddPullRadius, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);
+        StatBlock.Define(StatType.CooldownReduction, 1, 0.2f, 1.8f); // max +-80% cooldown 
+        StatBlock.Define(StatType.IncreasedMinionLife, 0, float.NegativeInfinity, float.PositiveInfinity);
+    }
+
     public override void _Process(double delta)
     {
+        visualComponent?.UpdateAnimation(_playerInput);
         ((PlayerAnimation)_playerAnimation).UpdateAnimation();
-        if (_inputSync.GetMultiplayerAuthority() == Multiplayer.GetUniqueId())
-        {
-            for (var i = 0; i < Abilities.Count; i++)
-            {   
-                Abilities[i].HandleInput(_playerInput.KeyState[i] ,delta);
-                Abilities[i].UpdateCooldown(delta);
-            }
-            
-            _lookAtIndicator.LookAt(GetGlobalMousePosition());
-            _lookAtIndicator.Rotate(-Mathf.Tau / 4);
-        }
+        UpdateSpectatorCamera();
 
-        _playerHealth.Value = PlayerStats.CurrentLife * 100 / PlayerStats.Life;
-    }
-
-    public Vector2 GetLookAtDirection()
-    {
-        return (_lookAtDirectionPoint.GlobalPosition - _lookAtIndicator.GlobalPosition).Normalized();
-    }
-
-    public Vector2 GetProjectileStartPosition()
-    {
-        return _lookAtDirectionPoint.GlobalPosition;
-    }
-
-    public Vector2 GetCharacterCenterPosition()
-    {
-        return _characterCenterPoint.GlobalPosition;
-    }
-
-    public void ApplyDamage(Godot.Collections.Dictionary<DamageType, float> damage, PlayerCharacter attacker)
-    {
-        Rpc(MethodName.applyDamageServer, damage, long.Parse(attacker.Name));
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void applyDamageServer(Godot.Collections.Dictionary<DamageType, float> damage, long attackerId)
-    {
         if (Multiplayer.IsServer())
         {
-            if (PlayerStats.IsDead)
+            if (TryGetComponent(out AbilityComponent abilityComponent))
             {
-                return;
+                abilityComponent.ProcessAbilities(delta, _playerInput.ConsumeAbilityKeyStates());
             }
-
-            foreach (var dmg in damage)
-            {
-                var defenseStat = dmg.Key switch
-                {
-                    DamageType.Physical => PlayerStats.Armor,
-                    DamageType.Poison => PlayerStats.Armor,
-                    DamageType.Darkness => 0,
-                    DamageType.Holy => 0,
-                    DamageType.Fire => PlayerStats.EnergyShield,
-                    DamageType.Ice => PlayerStats.EnergyShield,
-                    DamageType.Lightning => PlayerStats.EnergyShield,
-                    _ => 0,
-                };
-
-                var dr = defenseStat / (defenseStat + 5 * dmg.Value);
-                
-                this.PlayerStats.CurrentLife -= (int)(dmg.Value * (1 - dr));
-            }
-            
-            Rpc(MethodName.SyncPlayerLife,  Name, PlayerStats.CurrentLife);
-            if (PlayerStats.CurrentLife > 0)
-            {
-                return;
-            }
-
-            PlayerStats.IsDead = true;
-            var attacker = _gameManager.GetPlayerCharacter(attackerId);
-            EmitSignal(SignalName.OnKilled, this, attacker);
         }
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    public void SyncPlayerLife(string name, int currenLife)
+
+
+    public void RoundReset(int roundIndex)
     {
-        if (Name == name)
+        _isEliminated = false;
+        Rpc(MethodName.syncEliminatedState, false);
+        BuffManagerComponent.ClearAllBuffs();
+        StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
+        if (TryGetComponent(out HealthComponent healthComponent))
         {
-            PlayerStats.CurrentLife = currenLife;
+            healthComponent.Reset(StatBlock.GetStat(StatType.Life));
+        }
+
+        if (TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.IsMovementDisabled = true;
+        }
+
+        if (TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.RoundReset();
+            abilityComponent.Disable();
         }
     }
 
-    private void _move(double delta)
+    public void RoundStart()
     {
-        var inputDir = new Vector2(_playerInput.XDirection, _playerInput.YDirection);
-        Velocity = inputDir * PlayerStats.MovementSpeed;
-        MoveAndSlide();
+        if (TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.IsMovementDisabled = false;
+        }
+
+        if (TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.Enable();
+        }
+    }
+
+    public void EnterStealth()
+    {
+        Rpc(MethodName.enterStealthServer);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void enterStealthServer()
+    {
+        if (Multiplayer.GetUniqueId() == this.PlayerId)
+        {
+            this.Modulate = new Godot.Color(this.Modulate, 0.5f);
+        }
+        else
+        {
+            this.Modulate = new Godot.Color(this.Modulate, 0.0f);
+        }
+    }
+
+    public void ExitStealth()
+    {
+        Rpc(MethodName.exitStealthServer);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void exitStealthServer()
+    {
+        this.Modulate = new Godot.Color(this.Modulate, 1.0f);
+    }
+
+    public void Cleanup()
+    {
+        BuffManagerComponent.ClearAllBuffs();
+        StatBlock.RemoveModifierSource(Damage.SOURCE_MODIFIER_ID);
+
+        if (TryGetComponent(out MoveComponent moveComponent))
+        {
+            moveComponent.IsMovementDisabled = true;
+        }
+
+        if (TryGetComponent(out AbilityComponent abilityComponent))
+        {
+            abilityComponent.Cleanup();
+            abilityComponent.Disable();
+        }
+
+        _isEliminated = true;
+        GlobalPosition = EliminatedPosition;
+        Rpc(MethodName.syncEliminatedState, true);
+    }
+
+    public PlayerCharacter GetCameraTarget()
+    {
+        return _isSpectating && _spectateTarget != null ? _spectateTarget : this;
+    }
+
+    public void AddKill()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        SetCombatStats(Kills + 1, Deaths);
+    }
+
+    public void AddDeath()
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        SetCombatStats(Kills, Deaths + 1);
+    }
+
+    private bool IsLocalPlayer()
+    {
+        return PlayerId == Multiplayer.GetUniqueId();
+    }
+
+    private void SetTargetable(bool targetable)
+    {
+        CollisionLayer = targetable ? _defaultCollisionLayer : 0;
+        CollisionMask = targetable ? _defaultCollisionMask : 0;
+    }
+
+    private void StartSpectating()
+    {
+        if (!IsLocalPlayer())
+        {
+            return;
+        }
+
+        _isSpectating = true;
+        _camera.Enabled = true;
+        _camera.SetAsTopLevel(true);
+        SpectateRelative(1);
+    }
+
+    private void StopSpectating()
+    {
+        if (!IsLocalPlayer())
+        {
+            return;
+        }
+
+        _isSpectating = false;
+        _spectateTarget = null;
+        _camera.SetAsTopLevel(false);
+        _camera.Position = Vector2.Zero;
+        _camera.Rotation = 0;
+        _camera.Enabled = true;
+    }
+
+    private void SpectateRelative(int direction)
+    {
+        var targets = GetSpectateTargets();
+        if (targets.Count == 0)
+        {
+            _spectateTarget = null;
+            _camera.GlobalPosition = _mapBounds.Position + _mapBounds.Size / 2;
+            return;
+        }
+
+        var currentIndex = targets.IndexOf(_spectateTarget);
+        if (currentIndex < 0)
+        {
+            currentIndex = direction > 0 ? -1 : 0;
+        }
+
+        var nextIndex = PosMod(currentIndex + direction, targets.Count);
+        _spectateTarget = targets[nextIndex];
+        _camera.GlobalPosition = _spectateTarget.GlobalPosition;
+    }
+
+    private List<PlayerCharacter> GetSpectateTargets()
+    {
+        return _gameManager.GetPlayers()
+            .Where(player => player != this && player.IsTargetable)
+            .OrderBy(player => player.PlayerId)
+            .ToList();
+    }
+
+    private void UpdateSpectatorCamera()
+    {
+        if (!_isSpectating || !IsLocalPlayer())
+        {
+            return;
+        }
+
+        if (_spectateTarget == null || !_spectateTarget.IsTargetable)
+        {
+            SpectateRelative(1);
+            return;
+        }
+
+        _camera.GlobalPosition = _spectateTarget.GlobalPosition;
+    }
+
+    private static int PosMod(int value, int modulo)
+    {
+        return (value % modulo + modulo) % modulo;
+    }
+
+    private void SetCombatStats(int kills, int deaths)
+    {
+        Rpc(MethodName.SyncCombatStats, kills, deaths);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void SyncCombatStats(int kills, int deaths)
+    {
+        Kills = kills;
+        Deaths = deaths;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = true, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void syncEliminatedState(bool eliminated)
+    {
+        _isEliminated = eliminated;
+        SetTargetable(!eliminated);
+
+        if (eliminated)
+        {
+            if (TryGetComponent(out MoveComponent moveComponent))
+            {
+                moveComponent.IsMovementDisabled = true;
+            }
+
+            if (TryGetComponent(out AbilityComponent abilityComponent))
+            {
+                abilityComponent.Disable();
+            }
+
+            GlobalPosition = EliminatedPosition;
+            StartSpectating();
+        }
+        else
+        {
+            StopSpectating();
+        }
+    }
+
+}
+
+public class BuffEventArgs : EventArgs
+{
+    public readonly Buff Buff;
+    public BuffEventArgs(Buff buff)
+    {
+        Buff = buff;
     }
 }

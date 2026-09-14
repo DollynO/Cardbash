@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3 uid="uid://co5hgjvqoxwbt"]
+
+[ext_resource type="Script" path="res://Scenes/AbilityPopupMenu.cs" id="1_npjs7"]
+[ext_resource type="PackedScene" uid="uid://cfqf887dfiqag" path="res://Scenes/AbilityFrame.res" id="2_40aed"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sftcv"]
+bg_color = Color(0.265828, 0.204962, 0.170893, 1)
+
+[node name="AbilityPopupMenu" type="PanelContainer" node_paths=PackedStringArray("frameContainer")]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -960.0
+offset_top = -1080.0
+offset_right = -940.0
+offset_bottom = -1060.0
+grow_horizontal = 2
+grow_vertical = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_sftcv")
+script = ExtResource("1_npjs7")
+abilityFrameScene = ExtResource("2_40aed")
+frameContainer = NodePath("MarginContainer/HBoxContainer")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
