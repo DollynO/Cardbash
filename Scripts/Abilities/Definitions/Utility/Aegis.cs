@@ -8,7 +8,7 @@ namespace CardBase.Scripts.Abilities;
 public class Aegis : PassiveStackAbility, IHitInterceptor
 {
     private Ring ring;
-    private AoeBase detectRing;
+    private AbilityVolume detectRing;
     private float ringRadius = 50;
     private List<IEntityComponent> charactersInRange = new();
     private bool isCharInRange => charactersInRange.Count > 0;
@@ -70,12 +70,12 @@ public class Aegis : PassiveStackAbility, IHitInterceptor
             return;
         }
 
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             Radius = ConfigParam("ringRadius", ringRadius),
             ActivationTime = ConfigParam("activationTime", 0.1f),
             Duration = ConfigParam("duration", -1f),
-            Callbacks = new AoeBaseCallbacks
+            Callbacks = new AbilityVolumeCallbacks
             {
                 OnActivation = OnActivation,
                 OnEntityEnter = OnPlayerEnter,
@@ -86,10 +86,10 @@ public class Aegis : PassiveStackAbility, IHitInterceptor
             CanAffectOwner = false,
             Owner = Caller,
         };
-        detectRing = GlobalAbilitySpawner.SpawnAoe(stats);
+        detectRing = GlobalAbilitySpawner.SpawnAbilityVolume(stats);
     }
 
-    private void OnPlayerExit(IEntityComponent arg1, AoeBase arg2)
+    private void OnPlayerExit(IEntityComponent arg1, AbilityVolume arg2)
     {
         if (charactersInRange.Contains(arg1))
         {
@@ -102,7 +102,7 @@ public class Aegis : PassiveStackAbility, IHitInterceptor
         }
     }
 
-    private void OnPlayerEnter(IEntityComponent arg1, AoeBase arg2)
+    private void OnPlayerEnter(IEntityComponent arg1, AbilityVolume arg2)
     {
         if (!charactersInRange.Contains(arg1))
         {
@@ -115,7 +115,7 @@ public class Aegis : PassiveStackAbility, IHitInterceptor
         }
     }
 
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
         charactersInRange = arg1;
 

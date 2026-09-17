@@ -20,8 +20,8 @@ public class SmokeAoe
     private readonly GlobalAbilitySpawner spawner;
     private readonly string abilityGuid;
     private readonly SmokeAoeConfig config;
-    private readonly List<AoeBase> activeAreas = new();
-    private readonly Dictionary<AoeBase, Dictionary<IEntityComponent, string>> slowSources = new();
+    private readonly List<AbilityVolume> activeAreas = new();
+    private readonly Dictionary<AbilityVolume, Dictionary<IEntityComponent, string>> slowSources = new();
 
     public SmokeAoe(
         IEntityComponent owner,
@@ -35,9 +35,9 @@ public class SmokeAoe
         this.config = config ?? new SmokeAoeConfig();
     }
 
-    public AoeBase Spawn(Vector2 position)
+    public AbilityVolume Spawn(Vector2 position)
     {
-        var stats = new AoeBaseStats
+        var stats = new AbilityVolumeStats
         {
             Radius = config.Radius,
             Angle = 360f,
@@ -48,7 +48,7 @@ public class SmokeAoe
             IsStationary = true,
             StationaryPosition = position,
             CanAffectOwner = config.CanAffectOwner,
-            Callbacks = new AoeBaseCallbacks
+            Callbacks = new AbilityVolumeCallbacks
             {
                 OnActivation = OnActivation,
                 OnDeactivation = OnDeactivation,
@@ -57,7 +57,7 @@ public class SmokeAoe
             },
         };
 
-        var smoke = spawner.SpawnAoe(stats);
+        var smoke = spawner.SpawnAbilityVolume(stats);
         if (smoke != null)
         {
             activeAreas.Add(smoke);
@@ -68,7 +68,7 @@ public class SmokeAoe
 
     public void Clear()
     {
-        foreach (var smoke in new List<AoeBase>(activeAreas))
+        foreach (var smoke in new List<AbilityVolume>(activeAreas))
         {
             RemoveAreaModifiers(smoke);
             if (GodotObject.IsInstanceValid(smoke))
@@ -80,7 +80,7 @@ public class SmokeAoe
         activeAreas.Clear();
     }
 
-    private void OnActivation(List<IEntityComponent> targets, AoeBase smoke)
+    private void OnActivation(List<IEntityComponent> targets, AbilityVolume smoke)
     {
         smoke.ChangeFillColor(config.FillColor);
         foreach (var target in targets)
@@ -89,23 +89,23 @@ public class SmokeAoe
         }
     }
 
-    private void OnEntityEnter(IEntityComponent target, AoeBase smoke)
+    private void OnEntityEnter(IEntityComponent target, AbilityVolume smoke)
     {
         ApplySlow(target, smoke);
     }
 
-    private void OnEntityExit(IEntityComponent target, AoeBase smoke)
+    private void OnEntityExit(IEntityComponent target, AbilityVolume smoke)
     {
         RemoveSlow(target, smoke);
     }
 
-    private void OnDeactivation(List<IEntityComponent> targets, AoeBase smoke)
+    private void OnDeactivation(List<IEntityComponent> targets, AbilityVolume smoke)
     {
         RemoveAreaModifiers(smoke);
         activeAreas.Remove(smoke);
     }
 
-    private void ApplySlow(IEntityComponent target, AoeBase smoke)
+    private void ApplySlow(IEntityComponent target, AbilityVolume smoke)
     {
         if (target == null || !target.TryGetComponent(out StatblockComponent statBlock))
         {
@@ -129,7 +129,7 @@ public class SmokeAoe
         targetSources[target] = sourceId;
     }
 
-    private void RemoveSlow(IEntityComponent target, AoeBase smoke)
+    private void RemoveSlow(IEntityComponent target, AbilityVolume smoke)
     {
         if (target == null
             || !slowSources.TryGetValue(smoke, out var targetSources)
@@ -150,7 +150,7 @@ public class SmokeAoe
         }
     }
 
-    private void RemoveAreaModifiers(AoeBase smoke)
+    private void RemoveAreaModifiers(AbilityVolume smoke)
     {
         if (!slowSources.TryGetValue(smoke, out var targetSources))
         {

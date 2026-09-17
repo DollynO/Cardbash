@@ -8,7 +8,7 @@ namespace CardBase.Scripts.Abilities;
 public class Agony : ProjectileAbility
 {
     private readonly List<Projectile> activeProjectiles = new();
-    private readonly List<AoeBase> activeAoes = new();
+    private readonly List<AbilityVolume> activeAoes = new();
 
     public Agony(PlayerCharacter creator) : base(AbilityIds.AgnoyAbilitGuid, creator)
     {
@@ -55,28 +55,28 @@ public class Agony : ProjectileAbility
 
         if (UpdateCounter != 2) return;
         
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             Angle = 360f,
             ActivationTime = ConfigParam("activationTimeWildfire", 1f),
             Radius = ConfigParam("radiusWildfire", 300f),
             AngleOffset = ConfigParam("angleOffsetWildfire", 0f),
             Owner = Caller,
-            Callbacks = new AoeBaseCallbacks
+            Callbacks = new AbilityVolumeCallbacks
             {
                 OnActivation = OnActivation,
                 OnDeactivation = (_, aoe) => activeAoes.Remove(aoe),
             },
         };
-        ApplyAoeConfig(stats);
-        var aoe = GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        var aoe = GlobalAbilitySpawner.SpawnAbilityVolume(stats);
         if (aoe != null)
         {
             activeAoes.Add(aoe);
         }
     }
 
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
         foreach (var ec in arg1)
         {
@@ -122,7 +122,7 @@ public class Agony : ProjectileAbility
         }
         activeProjectiles.Clear();
 
-        foreach (var aoe in new List<AoeBase>(activeAoes))
+        foreach (var aoe in new List<AbilityVolume>(activeAoes))
         {
             if (GodotObject.IsInstanceValid(aoe))
             {

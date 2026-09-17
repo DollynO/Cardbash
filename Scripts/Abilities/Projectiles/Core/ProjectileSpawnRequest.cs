@@ -72,6 +72,35 @@ public class ProjectileSpawnRequest
             ? null
             : manager.GetNodeOrNull<Node>(callerPath) as IEntityComponent;
     }
+
+    public static ProjectileSpawnRequest FromVolumeStats(AbilityVolumeStats stats)
+    {
+        return new ProjectileSpawnRequest
+        {
+            Caller = stats.Owner,
+            StartPosition = stats.StartPosition,
+            Visual = stats.Visual,
+            Movement = new ProjectileMovementConfig
+            {
+                Speed = stats.Speed,
+                Direction = stats.Direction,
+                Mode = stats.MovementMode,
+                BounceCount = stats.BounceCount,
+            },
+            Collision = new ProjectileCollisionConfig
+            {
+                PierceCount = stats.PierceCount,
+                CollisionMask = stats.CollisionMask,
+                AllowCallerCollision = stats.CanAffectOwner,
+            },
+            Lifetime = new ProjectileLifetimeConfig
+            {
+                Seconds = stats.Duration,
+            },
+            Pull = stats.Pull,
+            Health = stats.Health,
+        };
+    }
 }
 
 public class ProjectileRuntime

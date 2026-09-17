@@ -11,7 +11,7 @@ public class ExplodeOnHitModifier : IHitModifier
     private ExplodeStats _explodeStats;
     private IEntityComponent _caller;
     private string _guid;
-    private readonly List<AoeBase> activeAoes = new();
+    private readonly List<AbilityVolume> activeAoes = new();
     
     public ExplodeOnHitModifier(IEntityComponent caller, string guid)
     {
@@ -31,7 +31,7 @@ public class ExplodeOnHitModifier : IHitModifier
         {
             var spawner = sourceNode.GetTree().Root
                 .GetNode<GlobalAbilitySpawner>("/root/Main/Game/GlobalAbilitySpawner");
-            var stats = new AoeBaseStats
+            var stats = new AbilityVolumeStats
             {
                 AbilityGUID = ctx.AbilityGuid,
                 ActivationTime = 3,
@@ -39,13 +39,13 @@ public class ExplodeOnHitModifier : IHitModifier
                 Owner =  ctx.Source,
                 IsStationary = true,
                 StationaryPosition = ((Node2D)ctx.Target).GlobalPosition,
-                Callbacks = new AoeBaseCallbacks()
+                Callbacks = new AbilityVolumeCallbacks()
                 {
                     OnActivation = OnActivation,
                 }
             };
             ApplyDamagePreview(stats, DamageType.Fire);
-            var aoe = spawner.SpawnAoe(stats);
+            var aoe = spawner.SpawnAbilityVolume(stats);
 
             if (aoe != null)
             {
@@ -54,7 +54,7 @@ public class ExplodeOnHitModifier : IHitModifier
         }
     }
 
-    private void ApplyDamagePreview(AoeBaseStats stats, DamageType baseType)
+    private void ApplyDamagePreview(AbilityVolumeStats stats, DamageType baseType)
     {
         stats.BaseDamageType = baseType;
         var damageModifiers = new List<DamageModifier>();
@@ -92,7 +92,7 @@ public class ExplodeOnHitModifier : IHitModifier
 
     }
 
-    private void OnActivation(List<IEntityComponent> obj, AoeBase aoeBase)
+    private void OnActivation(List<IEntityComponent> obj, AbilityVolume aoeBase)
     {
         var dict = new Dictionary<DamageType, Damage>();
         var damage = new Damage()

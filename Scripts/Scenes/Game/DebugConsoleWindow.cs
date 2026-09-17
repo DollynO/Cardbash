@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using CardBase.Scripts;
 using CardBase.Scripts.Abilities;
@@ -12,6 +13,7 @@ public partial class DebugConsoleWindow : PanelContainer
 {
     private const int MaxLogLines = 400;
     private const uint CaretUnicode = 94;
+    public static bool BlocksGameplayInput { get; private set; }
 
     private readonly List<string> logLines = new();
     private readonly List<string> consoleLines = new();
@@ -24,6 +26,7 @@ public partial class DebugConsoleWindow : PanelContainer
     {
         Name = nameof(DebugConsoleWindow);
         Visible = false;
+        BlocksGameplayInput = false;
         ProcessMode = ProcessModeEnum.Always;
         SetProcessInput(true);
 
@@ -34,6 +37,7 @@ public partial class DebugConsoleWindow : PanelContainer
 
     public override void _ExitTree()
     {
+        BlocksGameplayInput = false;
         EventBus.Instance.EventTraceEventHandler -= OnEventTrace;
     }
 
@@ -181,6 +185,7 @@ public partial class DebugConsoleWindow : PanelContainer
     private void Toggle()
     {
         Visible = !Visible;
+        BlocksGameplayInput = Visible;
         if (Visible)
         {
             commandInput?.GrabFocus();
@@ -225,7 +230,21 @@ public partial class DebugConsoleWindow : PanelContainer
         AddConsoleLine($"> {command}");
         commandInput.Clear();
 
-        switch (command.ToLowerInvariant())
+        var lowerCommand = command.ToLowerInvariant();
+        if (lowerCommand == "stats")
+        {
+            AddConsoleLine(FormatEditableStats());
+            return;
+        }
+
+        if (lowerCommand == "players"
+            || lowerCommand.StartsWith("stat ", StringComparison.OrdinalIgnoreCase))
+        {
+            RouteServerCommand(command);
+            return;
+        }
+
+        switch (lowerCommand)
         {
             case "clear":
                 logLines.Clear();
@@ -235,7 +254,8 @@ public partial class DebugConsoleWindow : PanelContainer
                 AddConsoleLine("Cleared.");
                 break;
             case "help":
-                AddConsoleLine("Commands: clear, events, hide, help");
+                AddConsoleLine("Commands: clear, events, hide, help, players, stats, stat <player> <stat|list> <value|reset>");
+                AddConsoleLine("Examples: stat me movementSpeed 250 | stat me health 75 | stat me maxHealth 150 | stat me bounceCount 5 | stat me pierceCount 5");
                 break;
             case "events":
                 AddConsoleLine($"{logLines.Count} log entries buffered.");
@@ -247,6 +267,292 @@ public partial class DebugConsoleWindow : PanelContainer
                 AddConsoleLine($"Unknown command: {command}");
                 break;
         }
+    }
+
+    private void RouteServerCommand(string command)
+    {
+        if (Multiplayer.IsServer() || Multiplayer.MultiplayerPeer == null)
+        {
+            AddConsoleLine(ExecuteServerCommand(command, Multiplayer.GetUniqueId()));
+            return;
+        }
+
+        RpcId(1, MethodName.ExecuteServerConsoleCommand, command);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void ExecuteServerConsoleCommand(string command)
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        var senderId = Multiplayer.GetRemoteSenderId();
+        var result = ExecuteServerCommand(command, senderId);
+        RpcId(senderId, MethodName.ReceiveConsoleCommandResult, result);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+    private void ReceiveConsoleCommandResult(string line)
+    {
+        AddConsoleLine(line);
+    }
+
+    private string ExecuteServerCommand(string command, long senderId)
+    {
+        var args = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (args.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        if (args[0].Equals("players", StringComparison.OrdinalIgnoreCase))
+        {
+            return FormatPlayers();
+        }
+
+        return args[0].Equals("stat", StringComparison.OrdinalIgnoreCase)
+            ? ExecuteStatCommand(args, senderId)
+            : $"Unknown server command: {command}";
+    }
+
+    private string ExecuteStatCommand(string[] args, long senderId)
+    {
+        if (args.Length < 3)
+        {
+            return "Usage: stat <player> <stat|list> <value|reset>";
+        }
+
+        if (!TryResolvePlayer(args[1], senderId, out var player, out var error))
+        {
+            return error;
+        }
+
+        if (args[2].Equals("list", StringComparison.OrdinalIgnoreCase))
+        {
+            return FormatPlayerStats(player);
+        }
+
+        if (args.Length < 4)
+        {
+            return "Usage: stat <player> <stat|list> <value|reset>";
+        }
+
+        if (!player.TryGetComponent(out StatblockComponent statBlock))
+        {
+            return $"{FormatPlayerLabel(player)} has no stat block.";
+        }
+
+        if (IsCurrentHealthAlias(args[2]))
+        {
+            return SetPlayerCurrentHealth(player, statBlock, args[3]);
+        }
+
+        if (!TryResolveStat(args[2], out var statType, out var resetValue))
+        {
+            return $"Unknown stat '{args[2]}'. Try movementSpeed, health, maxHealth, bounceCount, pierceCount, or a StatType name.";
+        }
+
+        if (!TryParseStatValue(args[3], resetValue, out var value, out error))
+        {
+            return error;
+        }
+
+        statBlock.SetBaseStat(statType, value);
+        if (statType == StatType.Life && player.TryGetComponent(out HealthComponent health))
+        {
+            health.Reset(value);
+        }
+
+        return $"{FormatPlayerLabel(player)} {statType} = {statBlock.GetStat(statType):0.###}";
+    }
+
+    private string SetPlayerCurrentHealth(PlayerCharacter player, StatblockComponent statBlock, string valueText)
+    {
+        if (!player.TryGetComponent(out HealthComponent health))
+        {
+            return $"{FormatPlayerLabel(player)} has no health component.";
+        }
+
+        if (valueText.Equals("reset", StringComparison.OrdinalIgnoreCase))
+        {
+            health.Reset(statBlock.GetStat(StatType.Life));
+            return $"{FormatPlayerLabel(player)} health = {health.CurrentHealth:0.###}/{health.MaxHealth:0.###}";
+        }
+
+        if (!float.TryParse(valueText, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+        {
+            return $"Invalid stat value '{valueText}'.";
+        }
+
+        health.SetCurrentHealth(value);
+        return $"{FormatPlayerLabel(player)} health = {health.CurrentHealth:0.###}/{health.MaxHealth:0.###}";
+    }
+
+    private bool TryResolvePlayer(string value, long senderId, out PlayerCharacter player, out string error)
+    {
+        player = null;
+        error = string.Empty;
+
+        var gameManager = GetNodeOrNull<GameManager>("/root/Main/Game");
+        if (gameManager == null)
+        {
+            error = "GameManager not found.";
+            return false;
+        }
+
+        if (value.Equals("me", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("self", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("local", StringComparison.OrdinalIgnoreCase))
+        {
+            player = gameManager.GetPlayerCharacter(senderId);
+        }
+        else if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var playerId))
+        {
+            player = gameManager.GetPlayerCharacter(playerId);
+        }
+        else
+        {
+            player = gameManager.GetPlayers().FirstOrDefault(candidate =>
+                string.Equals(candidate.PlayerName, value, StringComparison.OrdinalIgnoreCase)
+                || candidate.Name.ToString().Equals(value, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (player != null)
+        {
+            return true;
+        }
+
+        error = $"Player '{value}' not found. Use 'players' to list valid targets.";
+        return false;
+    }
+
+    private static bool TryResolveStat(string value, out StatType statType, out float resetValue)
+    {
+        resetValue = 0f;
+        if (value.Equals("moveSpeed", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("movementSpeed", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("movement_speed", StringComparison.OrdinalIgnoreCase))
+        {
+            statType = StatType.MovementSpeed;
+            resetValue = 150f;
+            return true;
+        }
+
+        if (value.Equals("bounce", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("bounces", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("bounceCount", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("projectileBounceCount", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("projectile_bounce_count", StringComparison.OrdinalIgnoreCase))
+        {
+            statType = StatType.ProjectileBounceCount;
+            resetValue = -1f;
+            return true;
+        }
+
+        if (value.Equals("pierce", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("pierces", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("pierceCount", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("projectilePierceCount", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("projectile_pierce_count", StringComparison.OrdinalIgnoreCase))
+        {
+            statType = StatType.ProjectilePierceCount;
+            resetValue = -1f;
+            return true;
+        }
+
+        if (value.Equals("life", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("maxHealth", StringComparison.OrdinalIgnoreCase)
+            || value.Equals("max_health", StringComparison.OrdinalIgnoreCase))
+        {
+            statType = StatType.Life;
+            resetValue = 100f;
+            return true;
+        }
+
+        if (Enum.TryParse(value, true, out statType))
+        {
+            return true;
+        }
+
+        statType = default;
+        return false;
+    }
+
+    private static bool IsCurrentHealthAlias(string value)
+    {
+        return value.Equals("health", StringComparison.OrdinalIgnoreCase)
+               || value.Equals("currentHealth", StringComparison.OrdinalIgnoreCase)
+               || value.Equals("current_health", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryParseStatValue(string valueText, float resetValue, out float value, out string error)
+    {
+        if (valueText.Equals("reset", StringComparison.OrdinalIgnoreCase))
+        {
+            value = resetValue;
+            error = string.Empty;
+            return true;
+        }
+
+        if (float.TryParse(valueText, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        {
+            error = string.Empty;
+            return true;
+        }
+
+        error = $"Invalid stat value '{valueText}'.";
+        return false;
+    }
+
+    private string FormatPlayers()
+    {
+        var gameManager = GetNodeOrNull<GameManager>("/root/Main/Game");
+        if (gameManager == null)
+        {
+            return "GameManager not found.";
+        }
+
+        var players = gameManager.GetPlayers()
+            .OrderBy(player => player.PlayerId)
+            .Select(player => $"{FormatPlayerLabel(player)} team={player.TeamId}");
+
+        return "Players:\n" + string.Join("\n", players);
+    }
+
+    private static string FormatEditableStats()
+    {
+        var statNames = Enum.GetNames<StatType>();
+        return "Editable stats:"
+               + "\nmovementSpeed - player movement speed"
+               + "\nhealth - current health"
+               + "\nmaxHealth / life - max health"
+               + "\nbounceCount - projectile bounce override, reset = ability default"
+               + "\npierceCount - projectile pierce override, reset = ability default"
+               + "\nAny StatType name is also accepted:"
+               + $"\n{string.Join(", ", statNames)}";
+    }
+
+    private static string FormatPlayerStats(PlayerCharacter player)
+    {
+        var movementSpeed = player.StatBlock?.GetStat(StatType.MovementSpeed) ?? 0f;
+        var bounceCount = player.StatBlock?.GetStat(StatType.ProjectileBounceCount) ?? -1f;
+        var pierceCount = player.StatBlock?.GetStat(StatType.ProjectilePierceCount) ?? -1f;
+        var life = player.StatBlock?.GetStat(StatType.Life) ?? 0f;
+        var health = player.HealthComponent;
+
+        return $"{FormatPlayerLabel(player)} stats:"
+               + $"\nMovementSpeed = {movementSpeed:0.###}"
+               + $"\nProjectileBounceCount = {(bounceCount < 0 ? "default" : bounceCount.ToString("0", CultureInfo.InvariantCulture))}"
+               + $"\nProjectilePierceCount = {(pierceCount < 0 ? "default" : pierceCount.ToString("0", CultureInfo.InvariantCulture))}"
+               + $"\nLife = {life:0.###}"
+               + $"\nHealth = {health?.CurrentHealth:0.###}/{health?.MaxHealth:0.###}";
+    }
+
+    private static string FormatPlayerLabel(PlayerCharacter player)
+    {
+        return $"{PlayerName(player)}/{player.PlayerId}";
     }
 
     private void AddLogLine(string line)

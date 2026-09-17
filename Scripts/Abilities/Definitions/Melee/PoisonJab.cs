@@ -34,7 +34,7 @@ public class PoisonJab : Ability
                 ConfigParam("venomDashDuration", 0.15f));
         }
 
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             Angle = ConfigParam("angle", 120f),
             ActivationTime = ConfigParam("activationTime", 0.8f),
@@ -43,13 +43,13 @@ public class PoisonJab : Ability
             Owner = Caller,
             AbilityGUID = GUID,
             CanAffectOwner = false,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
         };
-        ApplyAoeConfig(stats);
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats);
     }
 
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
 
         foreach (var playerCharacter in arg1)

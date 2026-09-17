@@ -38,6 +38,7 @@ public partial class PlayerInput : MultiplayerSynchronizer
         new Queue<AbilityKeyState>()
     };
     private readonly bool[] heldAbilities = new bool[AbilitySlotCount];
+    private bool gameplayInputBlockedLastFrame;
 
     [Export]
     public Node2D LookAtRotation;
@@ -58,6 +59,20 @@ public partial class PlayerInput : MultiplayerSynchronizer
     // Called every frame. 'delta' is the elapsed time since the previous frame.
     public override void _PhysicsProcess(double delta)
     {
+        if (DebugConsoleWindow.BlocksGameplayInput)
+        {
+            if (!gameplayInputBlockedLastFrame)
+            {
+                ReleaseHeldAbilityInputs();
+            }
+
+            gameplayInputBlockedLastFrame = true;
+            XDirection = 0f;
+            YDirection = 0f;
+            return;
+        }
+
+        gameplayInputBlockedLastFrame = false;
         XDirection = Input.GetAxis("MoveLeft", "MoveRight");
         YDirection = Input.GetAxis("MoveUp", "MoveDown");
         ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition();
@@ -83,6 +98,11 @@ public partial class PlayerInput : MultiplayerSynchronizer
     public override void _Input(InputEvent @event)
     {
         if (GetMultiplayerAuthority() != Multiplayer.GetUniqueId())
+        {
+            return;
+        }
+
+        if (DebugConsoleWindow.BlocksGameplayInput)
         {
             return;
         }
@@ -148,6 +168,19 @@ public partial class PlayerInput : MultiplayerSynchronizer
         }
 
         RpcId(1, MethodName.RequestAbilityReleased, slot);
+    }
+
+    private void ReleaseHeldAbilityInputs()
+    {
+        if (GetMultiplayerAuthority() != Multiplayer.GetUniqueId())
+        {
+            return;
+        }
+
+        for (var i = 0; i < AbilitySlotCount; i++)
+        {
+            SendAbilityReleased(i);
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]

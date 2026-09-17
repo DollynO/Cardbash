@@ -9,7 +9,7 @@ namespace CardBase.Scripts.Abilities;
 
 public class ChargingBeam : Ability
 {
-    private Ray _ray;
+    private AbilityVolume _ray;
     private float deltaSum = 0;
     private float aoeBaseDamage = 20;
     private readonly string castSlowModifierSourceId = System.Guid.NewGuid().ToString("N");
@@ -89,26 +89,27 @@ public class ChargingBeam : Ability
         CurrentCooldown = 0;
         ApplyCastSlow();
 
-        var rayStats = new RayStats()
+        var rayStats = new AbilityVolumeStats()
         {
-            Caster = Caller,
-            Range = ConfigParam("rayRange", 400f),
-            CollisionTick = onHit,
-            AnimationResource = "res://AnimationRes/OrangeBeam.tres",
-            CenterLoopCount = ConfigParam("rayCenterLoopCount", 8),
-            CenterLoopFolder = "res://Sprites/Projectiles/laser_beam_A_large_orange/center_loop",
-            PierceCount = ConfigParam("rayPierceCount", 1),
+            Owner = Caller,
+            Anchor = AbilityVolumeAnchor.Owner,
+            Shape = AbilityVolumeShape.Rectangle,
+            Radius = ConfigParam("rayRange", 400f),
+            Width = ConfigParam("rayWidth", 32f),
+            ActivationTime = 0f,
+            Duration = ConfigParam("maxDuration", 3f),
+            TickInterval = ConfigParam("damageTickInterval", 0.5f),
+            IsStationary = false,
+            CanAffectOwner = false,
+            CollisionMask = CombatCollisionLayers.TargetableEntities,
+            Callbacks = new AbilityVolumeCallbacks
+            {
+                OnTick = (entity, delta, _) => onHit(entity, (float)delta),
+                OnDestroyed = (_, _) => OnBeamVolumeDestroyed(),
+            },
         };
-        ApplyRayConfig(rayStats);
 
-        var spawnData = new SpawnData()
-        {
-            SpawnType = SpawnType.RAY,
-            SpawnObjectData = rayStats.ToDict()
-        };
-
-        _ray = (Ray)GlobalAbilitySpawner.Spawn(spawnData);
-        _ray?.SetCollisionTick(onHit);
+        _ray = GlobalAbilitySpawner.SpawnAbilityVolume(rayStats);
     }
 
     public void ReleaseBeam()
@@ -156,14 +157,14 @@ public class ChargingBeam : Ability
 
                 if (shockBuffCount % Mathf.Max(1, ConfigParam("shockAoeStackInterval", 5)) == 0)
                 {
-                    var aoeStats = new AoeBaseStats
+                    var aoeStats = new AbilityVolumeStats
                     {
                         Radius = ConfigParam("shockAoeRadius", 100f),
                         ActivationTime = ConfigParam("shockAoeActivationTime", 0.5f),
                         Duration = ConfigParam("shockAoeDuration", 0f),
                         IsStationary = true,
                         StationaryPosition = ((Node2D)ctx.Target).GlobalPosition,
-                        Callbacks = new AoeBaseCallbacks
+                        Callbacks = new AbilityVolumeCallbacks
                         {
                             OnActivation = onAoeActivation,
                             OnDeactivation = null,
@@ -171,15 +172,15 @@ public class ChargingBeam : Ability
                         },
                         Owner = Caller,
                     };
-                    ApplyAoeDamagePreview(aoeStats);
-                    GlobalAbilitySpawner.SpawnAoe(aoeStats);
+                    ApplyVolumeDamagePreview(aoeStats);
+                    GlobalAbilitySpawner.SpawnAbilityVolume(aoeStats);
                 }
             }
 
         }
     }
 
-    private void onAoeActivation(List<IEntityComponent> obj, AoeBase aoeBase)
+    private void onAoeActivation(List<IEntityComponent> obj, AbilityVolume aoeBase)
     {
         var dict = new Dictionary<DamageType, Damage>();
         var damage = new Damage()
@@ -215,9 +216,17 @@ public class ChargingBeam : Ability
 
         if (_ray != null)
         {
-            _ray.Destroy();
+            _ray.DestroyVolume();
             _ray = null;
         }
+    }
+
+    private void OnBeamVolumeDestroyed()
+    {
+        _isBeamActive = false;
+        _beamActiveTime = 0f;
+        RemoveCastSlow();
+        _ray = null;
     }
 
     private void ApplyCastSlow()

@@ -46,6 +46,7 @@ public partial class NetworkManager : Node
         ResetNetworkState();
         CurrentPlayers.Clear();
         clearMultiplayerSpawner();
+        HostIP = "127.0.0.1";
         var peer = new ENetMultiplayerPeer();
         peer.CreateServer(port, MaxRemoteClients);
         Multiplayer.MultiplayerPeer = peer;
@@ -62,8 +63,9 @@ public partial class NetworkManager : Node
     {
         ResetNetworkState();
         CurrentPlayers.Clear();
+        HostIP = ip.Trim();
         var peer = new ENetMultiplayerPeer();
-        peer.CreateClient(ip, port);
+        peer.CreateClient(HostIP, port);
         Multiplayer.MultiplayerPeer = peer;
 
         Multiplayer.ConnectedToServer += _connected_to_server;
@@ -192,7 +194,6 @@ public partial class NetworkManager : Node
 
     private void _connected_to_server()
     {
-        HostIP = ((ENetMultiplayerPeer)Multiplayer.MultiplayerPeer).Host.GetPeers()[0].GetRemoteAddress();
         EmitSignal(SignalName.OnConnectedToServer);
     }
 

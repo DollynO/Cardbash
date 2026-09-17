@@ -23,11 +23,11 @@ public class ShatterStrike : Ability
 
     public override void InternalUse()
     {
-        var aoeStats = new AoeBaseStats()
+        var aoeStats = new AbilityVolumeStats()
         {
             Angle = ConfigParam("angle", 45f),
             ActivationTime = ConfigParam("activationTime", 0.5f),
-            Callbacks = new AoeBaseCallbacks
+            Callbacks = new AbilityVolumeCallbacks
             {
                 OnActivation = OnActivation,
             },
@@ -37,11 +37,11 @@ public class ShatterStrike : Ability
             Owner = Caller,
             CanAffectOwner = false
         };
-        ApplyAoeConfig(aoeStats);
-        GlobalAbilitySpawner.SpawnAoe(aoeStats);
+        ApplyVolumeConfig(aoeStats);
+        GlobalAbilitySpawner.SpawnAbilityVolume(aoeStats);
     }
 
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
 
         foreach (var playerCharacter in arg1)

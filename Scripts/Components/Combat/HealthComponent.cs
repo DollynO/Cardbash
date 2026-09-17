@@ -40,6 +40,16 @@ public partial class HealthComponent : Node2D, IComponent
         _recentDamage.Clear();
     }
 
+    public void SetCurrentHealth(float health)
+    {
+        if (!Multiplayer.IsServer())
+        {
+            return;
+        }
+
+        CurrentHealth = Mathf.Clamp(health, 0, MaxHealth);
+    }
+
     public void ApplyDamage(Damage damage, IEntityComponent component)
     {
         if (IsDead)

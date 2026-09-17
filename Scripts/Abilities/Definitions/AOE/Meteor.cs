@@ -30,23 +30,23 @@ public class Meteor : Ability
     {
         Caller.TryGetComponent(out AimComponent aimComponent);
 
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             ActivationTime = ConfigParam("activationTime", 2f),
             Radius = ConfigParam("radius", 200f),
             Duration = ConfigParam("duration", 0f),
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             Owner = Caller,
             AbilityGUID = GUID,
             StationaryPosition = aimComponent.GetPlayerMouesPosition(ConfigParam("range", 600f)),
             IsStationary = true,
         };
-        ApplyAoeConfig(stats);
-        var aoe = GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        var aoe = GlobalAbilitySpawner.SpawnAbilityVolume(stats);
 
     }
 
-    private void OnActivation(List<IEntityComponent> playersHit, AoeBase source)
+    private void OnActivation(List<IEntityComponent> playersHit, AbilityVolume source)
     {
         if (playersHit.Count > 0)
         {

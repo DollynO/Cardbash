@@ -21,7 +21,7 @@ public class FireSlash : Ability
 
     public override void InternalUse()
     {
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             Angle = ConfigParam("angle", 120f),
             ActivationTime = ConfigParam("activationTime", 0.2f),
@@ -29,13 +29,13 @@ public class FireSlash : Ability
             AngleOffset = ConfigParam("angleOffset", 0f),
             Owner = Caller,
             CanAffectOwner = false,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
         };
-        ApplyAoeConfig(stats);
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats);
     }
 
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
 
         foreach (var playerCharacter in arg1)
@@ -65,7 +65,7 @@ public class FireSlash : Ability
 
             if (UpdateCounter != 2) continue;
             
-            var stats = new AoeBaseStats()
+            var stats = new AbilityVolumeStats()
             {
                 Angle = 360f,
                 ActivationTime = ConfigParam("activationTimeWildfire", 1f),
@@ -73,10 +73,10 @@ public class FireSlash : Ability
                 AngleOffset = ConfigParam("angleOffsetWildfire", 0f),
                 Owner = Caller,
                 CanAffectOwner = false,
-                Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+                Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             };
-            ApplyAoeConfig(stats);
-            GlobalAbilitySpawner.SpawnAoe(stats);
+            ApplyVolumeConfig(stats);
+            GlobalAbilitySpawner.SpawnAbilityVolume(stats);
         }
     }
 

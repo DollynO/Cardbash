@@ -142,6 +142,17 @@ public partial class StatblockComponent : Node2D, IComponent
         return (float)ReplicatedCurrent[(int)stat];
     }
 
+    public void SetBaseStat(StatType stat, float value)
+    {
+        if (!Multiplayer.IsServer()) return;
+
+        _stats.SetBase(stat, value);
+        SyncStats(new Godot.Collections.Dictionary<int, float>
+        {
+            { (int)stat, _stats.Get(stat) },
+        });
+    }
+
     public void AddDamageConverter(DamageType source, DamageType target, float convertValue)
     {
         

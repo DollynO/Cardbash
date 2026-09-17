@@ -8,13 +8,16 @@ namespace CardBase.Scripts.Abilities;
 
 public enum SpawnType
 {
-    RAY,
-    AOE,
+    ABILITY_VOLUME,
     AURA,
-    PROJECTILE,
     RING_TEXTURE_NODE,
     VISUAL_CONNECTION,
     MINION,
+}
+
+public interface IAbilityVolumeModifier
+{
+    void Modify(AbilityVolumeStats stats);
 }
 
 public class SpawnData
@@ -42,6 +45,8 @@ public partial class GlobalAbilitySpawner : Node2D
     [Export] private GameManager GameManager;
 
     private System.Collections.Generic.Dictionary<string, PackedScene> LoadedScenes = new();
+    private readonly System.Collections.Generic.List<IAbilityVolumeModifier> volumeModifiers = new();
+    private readonly System.Collections.Generic.HashSet<string> destroyedSpawnNames = new();
     public override void _EnterTree()
     {
         abilitySpawner.SetSpawnFunction(new Callable(this, MethodName.customSpawn));
@@ -61,19 +66,17 @@ public partial class GlobalAbilitySpawner : Node2D
         var type = (SpawnType)(int)typeVariant;
         var spawnData = spawnDataVariant.AsGodotDictionary<string, Variant>();
         var name = (string)nameVariant;
+        if (destroyedSpawnNames.Remove(name))
+        {
+            return null;
+        }
 
         switch ((SpawnType)(int)type)
         {
-            case SpawnType.RAY:
-                var rayStats = RayStats.FromDict(spawnData, GameManager);
-                return SpawnRay(rayStats, name);
-
-            case SpawnType.AOE:
-                var aoeStats = AoeBaseStats.FromDict(spawnData, GameManager);
-                return spawnAoe(aoeStats, name);
+            case SpawnType.ABILITY_VOLUME:
+                var volumeStats = AbilityVolumeStats.FromDict(spawnData, GameManager);
+                return SpawnAbilityVolume(volumeStats, name);
             case SpawnType.AURA:
-                break;
-            case SpawnType.PROJECTILE:
                 break;
             case SpawnType.RING_TEXTURE_NODE:
                 var spriteStats = SpriteStats.FromDict(spawnData, GameManager);
@@ -107,39 +110,54 @@ public partial class GlobalAbilitySpawner : Node2D
         SetMultiplayerAuthority(1);
     }
 
-    public Ray SpawnRay(RayStats props, string name)
+    public void AddVolumeModifier(IAbilityVolumeModifier modifier)
     {
-        var ray = new Ray(props);
-        ray.Name = name;
-        return ray;
+        if (modifier != null && !volumeModifiers.Contains(modifier))
+        {
+            volumeModifiers.Add(modifier);
+        }
     }
 
-    public AoeBase SpawnAoe(AoeBaseStats aoeStats)
+    public void RemoveVolumeModifier(IAbilityVolumeModifier modifier)
+    {
+        volumeModifiers.Remove(modifier);
+    }
+
+    private void ApplyVolumeModifiers(AbilityVolumeStats stats)
+    {
+        foreach (var modifier in volumeModifiers)
+        {
+            modifier.Modify(stats);
+        }
+    }
+
+    public AbilityVolume SpawnAbilityVolume(AbilityVolumeStats stats)
     {
         if (!Multiplayer.IsServer()) return null;
 
-        var spawnData = new SpawnData()
+        stats.NormalizeForSpawn();
+        ApplyVolumeModifiers(stats);
+        stats.NormalizeForSpawn();
+        var node = Spawn(new SpawnData
         {
-            Name = GlobalAbilitySpawner.GenerateSpawnName(SpawnType.AOE),
-            SpawnType = SpawnType.AOE,
-            SpawnObjectData = aoeStats.ToDict()
-        };
-        var node = Spawn(spawnData);
-        if (node is AoeBase aoe)
+            SpawnType = SpawnType.ABILITY_VOLUME,
+            SpawnObjectData = stats.ToDict(),
+        });
+        if (node is AbilityVolume volume)
         {
-            aoe.SetCallbacks(aoeStats.Callbacks);
-            return aoe;
+            volume.SetCallbacks(stats.Callbacks);
+            return volume;
         }
 
         return null;
     }
 
-    private AoeBase spawnAoe(AoeBaseStats aoeStats, string name)
+    private AbilityVolume SpawnAbilityVolume(AbilityVolumeStats stats, string name)
     {
-        var aoe = new AoeBase();
-        aoe.Initialize(aoeStats);
-        aoe.Name = name;
-        return aoe;
+        var volume = InstantiateAbilityVolume(stats.Visual?.ScenePath);
+        volume.Initialize(stats);
+        volume.Name = name;
+        return volume;
     }
 
     public Projectile SpawnProjectile(ProjectileSpawnRequest spawnRequest, ProjectileRuntime runtime = null)
@@ -149,16 +167,20 @@ public partial class GlobalAbilitySpawner : Node2D
             return null;
         }
 
-        var projectile = instantiateProjectile(spawnRequest.Visual.ScenePath);
-        var name = GenerateSpawnName(SpawnType.PROJECTILE);
-        projectile.Name = name;
+        var stats = AbilityVolumeStats.FromProjectile(spawnRequest);
+        if (spawnRequest.Caller != null && spawnRequest.Caller.TryGetComponent(out StatblockComponent statBlock))
+        {
+            stats.Pull.Radius += statBlock.GetStat(StatType.AddPullRadius);
+            stats.Pull.Strength += statBlock.GetStat(StatType.AddPullStrength);
+        }
 
-        projectile.Initialize(spawnRequest, runtime);
+        var volume = SpawnAbilityVolume(stats);
+        if (volume is not Projectile projectile)
+        {
+            return null;
+        }
 
-        var dict = spawnRequest.ToDict();
-        AddChild(projectile);
-
-        Rpc(MethodName.spawnProjectileOnClient, dict, name);
+        projectile.ConfigureProjectile(spawnRequest, runtime);
         return projectile;
     }
 
@@ -200,21 +222,43 @@ public partial class GlobalAbilitySpawner : Node2D
             : spawnRequest.StartPosition;
     }
 
-    [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
-    private void spawnProjectileOnClient(Variant dict, string name)
+    public void DestroySpawnedNode(string nodeName)
     {
-        var spawnRequest = ProjectileSpawnRequest.FromDict((Godot.Collections.Dictionary<string, Variant>)dict, GameManager);
-        var projectile = instantiateProjectile(spawnRequest.Visual.ScenePath);
-        projectile.Name = name;
-        projectile.Initialize(spawnRequest);
-        AddChild(projectile);
+        if (string.IsNullOrEmpty(nodeName))
+        {
+            return;
+        }
+
+        DestroySpawnedNodeLocally(nodeName);
     }
 
-    private Projectile instantiateProjectile(string path)
+    private void DestroySpawnedNodeLocally(string nodeName)
+    {
+        if (TryGetSpawnedNode(nodeName, out var node))
+        {
+            if (!node.IsQueuedForDeletion())
+            {
+                node.QueueFree();
+            }
+
+            return;
+        }
+
+        destroyedSpawnNames.Add(nodeName);
+    }
+
+    private bool TryGetSpawnedNode(string nodeName, out Node node)
+    {
+        node = GetNodeOrNull<Node>(nodeName)
+               ?? GetNodeOrNull<Node>($"AbilitySpawns/{nodeName}");
+        return node != null;
+    }
+
+    private AbilityVolume InstantiateAbilityVolume(string path)
     {
         if (string.IsNullOrEmpty(path))
         {
-            path = "res://Scenes/Projectiles/Projectile.tscn";
+            return new AbilityVolume();
         }
 
         if (!LoadedScenes.TryGetValue(path, out var loadedScene))
@@ -223,8 +267,7 @@ public partial class GlobalAbilitySpawner : Node2D
             LoadedScenes.Add(path, loadedScene);
         }
 
-        var projectile = loadedScene.Instantiate();
-        return (Projectile)projectile;
+        return (AbilityVolume)loadedScene.Instantiate();
     }
 
     private RingTextureNode SpawnRingTextureNode(SpriteStats stats, string name)

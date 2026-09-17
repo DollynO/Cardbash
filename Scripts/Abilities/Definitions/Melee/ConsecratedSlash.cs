@@ -26,63 +26,63 @@ public class ConsecratedSlash : Ability
         var radius = ConfigParam("radius", 60f);
         var angleOffset = ConfigParam("angleOffset", 0f);
 
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             Angle = angle,
             ActivationTime = activationTime,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             Radius = radius,
             AngleOffset = angleOffset,
             Owner = Caller,
             AbilityGUID = GUID,
             CanAffectOwner = false,
         };
-        ApplyAoeConfig(stats, false);
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats, false);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats);
 
-        var stats1 = new AoeBaseStats()
+        var stats1 = new AbilityVolumeStats()
         {
             Angle = angle,
             ActivationTime = activationTime,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             Radius = radius,
             AngleOffset = angleOffset + 90,
             Owner = Caller,
             AbilityGUID = GUID,
             CanAffectOwner = false,
         };
-        ApplyAoeConfig(stats1, false);
-        GlobalAbilitySpawner.SpawnAoe(stats1);
+        ApplyVolumeConfig(stats1, false);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats1);
 
-        var stats2 = new AoeBaseStats()
+        var stats2 = new AbilityVolumeStats()
         {
             Angle = angle,
             ActivationTime = activationTime,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             Radius = radius,
             AngleOffset = angleOffset + 180,
             Owner = Caller,
             AbilityGUID = GUID,
             CanAffectOwner = false,
         };
-        ApplyAoeConfig(stats2, false);
-        GlobalAbilitySpawner.SpawnAoe(stats2);
+        ApplyVolumeConfig(stats2, false);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats2);
 
-        var stats3 = new AoeBaseStats()
+        var stats3 = new AbilityVolumeStats()
         {
             Angle = angle,
             ActivationTime = activationTime,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             Radius = radius,
             AngleOffset = angleOffset + 270,
             Owner = Caller,
             AbilityGUID = GUID,
             CanAffectOwner = false,
         };
-        ApplyAoeConfig(stats3, false);
-        GlobalAbilitySpawner.SpawnAoe(stats3);
+        ApplyVolumeConfig(stats3, false);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats3);
     }
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
 
         foreach (var playerCharacter in arg1)

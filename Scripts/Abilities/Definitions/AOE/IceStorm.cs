@@ -8,7 +8,7 @@ namespace CardBase.Scripts.Abilities.AOE;
 public class IceStorm : Ability
 {
     private float baseStunDuration = 3;
-    private readonly List<AoeBase> activeAoes = new();
+    private readonly List<AbilityVolume> activeAoes = new();
 
     public IceStorm(PlayerCharacter creator) : base(AbilityIds.IceStormGuid, creator)
     {
@@ -40,7 +40,7 @@ public class IceStorm : Ability
     {
         Caller.TryGetComponent(out AimComponent aimComponent);
 
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             ActivationTime = ConfigParam("activationTime", 1f),
             Radius = ConfigParam("radius", 300f),
@@ -49,14 +49,14 @@ public class IceStorm : Ability
             AbilityGUID = GUID,
             StationaryPosition = aimComponent.GetPlayerMouesPosition(ConfigParam("range", 500f)),
             IsStationary = true,
-            Callbacks = new AoeBaseCallbacks
+            Callbacks = new AbilityVolumeCallbacks
             {
                 OnTick = OnTick,
                 OnDeactivation = (_, aoe) => activeAoes.Remove(aoe),
             },
         };
-        ApplyAoeConfig(stats);
-        var aoe = GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        var aoe = GlobalAbilitySpawner.SpawnAbilityVolume(stats);
         if (aoe != null)
         {
             activeAoes.Add(aoe);
@@ -64,7 +64,7 @@ public class IceStorm : Ability
 
     }
 
-    private void OnTick(IEntityComponent entity, double arg2, AoeBase source)
+    private void OnTick(IEntityComponent entity, double arg2, AbilityVolume source)
     {
         var ailmentChance = UpdateCounter >= 1 ? ConfigParam("ailmentChance", 0.5f) : Damage.DEFAULT_AILMENT_CHANGE;
         var damage = new Damage
@@ -105,7 +105,7 @@ public class IceStorm : Ability
 
     private void CancelRuntimeObjects()
     {
-        foreach (var aoe in new List<AoeBase>(activeAoes))
+        foreach (var aoe in new List<AbilityVolume>(activeAoes))
         {
             if (GodotObject.IsInstanceValid(aoe))
             {
@@ -116,7 +116,7 @@ public class IceStorm : Ability
         activeAoes.Clear();
     }
     
-    private void OnActivation(List<IEntityComponent> playersHit, AoeBase source)
+    private void OnActivation(List<IEntityComponent> playersHit, AbilityVolume source)
     {
         if (playersHit.Count > 0)
         {

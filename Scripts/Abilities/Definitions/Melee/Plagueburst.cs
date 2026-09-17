@@ -52,12 +52,12 @@ public class Plagueburst : Ability
             return;
         }
 
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             ActivationTime = ConfigParam("contagionActivationTime", 0.05f),
             Radius = ConfigParam("contagionRadius", 90f),
             Duration = 0f,
-            Callbacks = new AoeBaseCallbacks
+            Callbacks = new AbilityVolumeCallbacks
             {
                 OnActivation = (targets, _) => ApplyContagion(targets, origin, consumedType, consumedCount),
             },
@@ -68,7 +68,7 @@ public class Plagueburst : Ability
             StationaryPosition = originNode.GlobalPosition,
             CanAffectOwner = false,
         };
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats);
     }
 
     private void ApplyContagion(List<IEntityComponent> targets, IEntityComponent origin, Type consumedType, int consumedCount)
@@ -107,22 +107,22 @@ public class Plagueburst : Ability
 
     public override void InternalUse()
     {
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             ActivationTime = ConfigParam("activationTime", 3f),
             Radius = ConfigParam("radius", 100f),
             Duration = ConfigParam("duration", 0f),
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
             Owner = Caller,
             AbilityGUID = GUID,
             Angle = ConfigParam("angle", 90f),
             CanAffectOwner = false,
         };
-        ApplyAoeConfig(stats);
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats);
     }
 
-    private void OnActivation(List<IEntityComponent> playersHit, AoeBase source)
+    private void OnActivation(List<IEntityComponent> playersHit, AbilityVolume source)
     {
         if (playersHit.Count > 0)
         {

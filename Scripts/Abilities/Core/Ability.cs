@@ -305,8 +305,26 @@ public abstract class Ability : BaseCardableObject
         }
 
         request.Movement.BounceCount = ConfigParam("bounceCount", request.Movement.BounceCount);
+        if (Caller != null && Caller.TryGetComponent(out StatblockComponent statblock))
+        {
+            var bounceOverride = Mathf.RoundToInt(statblock.GetStat(StatType.ProjectileBounceCount));
+            if (bounceOverride >= 0)
+            {
+                request.Movement.BounceCount = bounceOverride;
+            }
+        }
+
         request.Movement.AngleOffset = ConfigParam("angleOffset", request.Movement.AngleOffset);
         request.Collision.PierceCount = ConfigParam("pierceCount", request.Collision.PierceCount);
+        if (Caller != null && Caller.TryGetComponent(out StatblockComponent pierceStatblock))
+        {
+            var pierceOverride = Mathf.RoundToInt(pierceStatblock.GetStat(StatType.ProjectilePierceCount));
+            if (pierceOverride >= 0)
+            {
+                request.Collision.PierceCount = pierceOverride;
+            }
+        }
+
         request.Collision.CollisionMask = (uint)ConfigParam("collisionMask", (int)request.Collision.CollisionMask);
         request.Lifetime.Seconds = ConfigParam("projectileLifetime", request.Lifetime.Seconds);
         request.Pull.Radius = ConfigParam("pullRadius", request.Pull.Radius);
@@ -322,7 +340,7 @@ public abstract class Ability : BaseCardableObject
             ConfigParam("animationOffsetY", request.Visual.AnimationOffset.Y));
     }
 
-    protected void ApplyAoeConfig(AoeBaseStats stats, bool applyAngleOffset = true)
+    protected void ApplyVolumeConfig(AbilityVolumeStats stats, bool applyAngleOffset = true)
     {
         if (stats == null)
         {
@@ -339,10 +357,10 @@ public abstract class Ability : BaseCardableObject
         stats.Duration = ConfigParam("duration", stats.Duration);
         stats.TickInterval = ConfigParam("tickInterval", stats.TickInterval);
         stats.ShapeUpdateInterval = ConfigParam("shapeUpdateInterval", stats.ShapeUpdateInterval);
-        ApplyAoeDamagePreview(stats);
+        ApplyVolumeDamagePreview(stats);
     }
 
-    protected void ApplyAoeDamagePreview(AoeBaseStats stats)
+    protected void ApplyVolumeDamagePreview(AbilityVolumeStats stats)
     {
         if (stats == null)
         {
@@ -357,19 +375,6 @@ public abstract class Ability : BaseCardableObject
         }
 
         stats.DamageTypePercentages = DamageCalculator.PreviewDamageTypeMix(BaseType, damageModifiers);
-    }
-
-    protected void ApplyRayConfig(RayStats stats)
-    {
-        if (stats == null)
-        {
-            return;
-        }
-
-        stats.Range = ConfigParam("rayRange", stats.Range);
-        stats.CollisionMask = (uint)ConfigParam("rayCollisionMask", (int)stats.CollisionMask);
-        stats.CenterLoopCount = ConfigParam("rayCenterLoopCount", stats.CenterLoopCount);
-        stats.PierceCount = ConfigParam("rayPierceCount", stats.PierceCount);
     }
 
     public void HandleInput(AbilityKeyState state, double delta)

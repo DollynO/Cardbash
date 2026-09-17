@@ -227,6 +227,8 @@ public partial class PlayerCharacter : CharacterbodyEntityComponent, ITeamAffili
         StatBlock.Define(StatType.AddPullStrength, 0, 0, float.PositiveInfinity);
         StatBlock.Define(StatType.CooldownReduction, 1, 0.2f, 1.8f); // max +-80% cooldown 
         StatBlock.Define(StatType.IncreasedMinionLife, 0, float.NegativeInfinity, float.PositiveInfinity);
+        StatBlock.Define(StatType.ProjectileBounceCount, -1, -1, float.PositiveInfinity);
+        StatBlock.Define(StatType.ProjectilePierceCount, -1, -1, float.PositiveInfinity);
     }
 
     public override void _Process(double delta)

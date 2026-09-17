@@ -24,7 +24,7 @@ public class LightningStrike : Ability
 
     public override void InternalUse()
     {
-        var stats = new AoeBaseStats()
+        var stats = new AbilityVolumeStats()
         {
             Angle = ConfigParam("angle", 15f),
             ActivationTime = ConfigParam("activationTime", 0.3f),
@@ -32,13 +32,13 @@ public class LightningStrike : Ability
             Owner = Caller,
             AbilityGUID = GUID,
             CanAffectOwner = false,
-            Callbacks = new AoeBaseCallbacks { OnActivation = OnActivation },
+            Callbacks = new AbilityVolumeCallbacks { OnActivation = OnActivation },
         };
-        ApplyAoeConfig(stats);
-        GlobalAbilitySpawner.SpawnAoe(stats);
+        ApplyVolumeConfig(stats);
+        GlobalAbilitySpawner.SpawnAbilityVolume(stats);
     }
 
-    private void OnActivation(List<IEntityComponent> arg1, AoeBase arg2)
+    private void OnActivation(List<IEntityComponent> arg1, AbilityVolume arg2)
     {
         var chainExcludedTargets = new HashSet<IEntityComponent>(arg1);
 
