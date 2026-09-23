@@ -76,6 +76,12 @@ public partial class PlayerInput : MultiplayerSynchronizer
         XDirection = Input.GetAxis("MoveLeft", "MoveRight");
         YDirection = Input.GetAxis("MoveUp", "MoveDown");
         ClientGlobalMousePosition = GetParent<PlayerCharacter>().GetGlobalMousePosition();
+#if TOOLS
+        if (CardBase.Playtesting.PlaytestBridge.TryGetAimPosition(out var playtestAim))
+        {
+            ClientGlobalMousePosition = playtestAim;
+        }
+#endif
         var desiredRotation = (ClientGlobalMousePosition - LookAtRotation.GlobalPosition).Angle() - Mathf.Tau / 4;
         LookAtRotation.Rotation = Mathf.LerpAngle(
             LookAtRotation.Rotation,

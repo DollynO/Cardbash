@@ -96,7 +96,7 @@ public partial class DebugConsoleWindow : PanelContainer
         {
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
-            SplitOffset = 760,
+            SplitOffsets = new[] { 760 },
         };
         margin.AddChild(split);
 

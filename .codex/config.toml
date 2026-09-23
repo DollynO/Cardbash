@@ -1,0 +1,7 @@
+  [mcp_servers.rider]
+    url = "http://127.0.0.1:64482/stream"
+
+[mcp_servers.cardbash_playtest]
+command = "python3"
+args = ["/home/jhieble/Projects/Cardbash/tools/playtest/server.py"]
+tool_timeout_sec = 120

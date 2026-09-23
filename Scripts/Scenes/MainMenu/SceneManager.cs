@@ -21,6 +21,9 @@ public partial class SceneManager : Node
         Menu = MenuScene.Instantiate();
         DeckBuilder = DeckBuilderScene.Instantiate();
         LoadMenuScene();
+#if TOOLS
+        CardBase.Playtesting.PlaytestBridge.Attach(this);
+#endif
     }
 
     public override void _Input(InputEvent @event)

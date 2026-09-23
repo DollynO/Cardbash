@@ -2,3 +2,5 @@
 .godot/
 /android/
 .idea/
+.venv-playtest/
+__pycache__/
